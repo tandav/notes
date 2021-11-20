@@ -30,7 +30,7 @@ class Database:
         self.connection.commit()
 
     def get_all(self):
-        self.cursor.execute('select * from notes')
+        self.cursor.execute('select * from notes order by timestamp desc')
         return self.cursor.fetchall()
 
     # def updateData(self, id: int, data: list):
