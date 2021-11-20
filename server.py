@@ -1,10 +1,9 @@
-import datetime
-import json
-from string import Template
+from fastapi.responses import RedirectResponse
 from fastapi import FastAPI
 from fastapi import Form
 from fastapi.responses import HTMLResponse
 from database import Database
+import starlette.status as status
 
 db = Database('notes.db')
 app = FastAPI()
@@ -34,9 +33,31 @@ body {
     background: white;
 }
 #text {
-    width: 300px;
     height: 75px;
     font-family: monospace;
+    margin-bottom: 20px;
+}
+
+/* mobile */
+@media screen and (max-width: 1080px) {
+    body {
+        font-size: 2em;
+    }
+    #text {
+        width: 100%;
+    }
+
+}
+
+/* desktop */
+@media screen and (min-width: 1080px) {
+    body {
+        margin: auto;
+        width: 500px;
+    }
+    #text {
+        width: 500px;
+    }
 }
 </style>
 '''
@@ -71,4 +92,4 @@ async def create():
 async def save_note(text: str = Form(...)):
     db.insert(text)
     print(text)
-    return 'note saved'
+    return RedirectResponse('/', status_code=status.HTTP_302_FOUND)
