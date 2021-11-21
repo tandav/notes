@@ -2,8 +2,11 @@ from fastapi.responses import RedirectResponse
 from fastapi import FastAPI
 from fastapi import Form
 from fastapi.responses import HTMLResponse
-from database import Database
 import starlette.status as status
+
+from database import Database
+import util
+
 
 db = Database('notes.db')
 app = FastAPI()
@@ -67,7 +70,7 @@ body {
 async def root():
     html = ''.join(f'''
     <pre class='note'>
-    {{'id': {i}, 'timestamp': '{t}'}}
+    {{'id': {i}, 'timestamp': '{util.ago(t)}'}}
     ----------------------------------------------------
     {text}
     </pre>
