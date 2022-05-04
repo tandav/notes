@@ -6,7 +6,7 @@ Base = declarative_base()
 
 
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = "user"
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
@@ -16,24 +16,28 @@ class User(Base):
 
 notes_tags = Table('notes_tags', Base.metadata,
     Column('note_id', ForeignKey('note.id'), primary_key=True),
-    Column('note_id', ForeignKey('tag.id'), primary_key=True)
+    Column('tag_id', ForeignKey('tag.id'), primary_key=True),
 )
 
 
 class Note(Base):
-    __tablename__ = 'notes'
+    __tablename__ = 'note'
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
+    user_id = Column(Integer, ForeignKey('user.id'))
+    # username = Column(String, ForeignKey('user.username'))
     title = Column(String, index=True, nullable=True)
-    text = Column(String, nullable=True) # for bookmarks this should be url
-    user = relationship('User', back_populates="notes")
-    tags = relationship('Tag', secondary=notes_tags, back_populates='notes')
+    text = Column(String, nullable=True)
     is_bookmark = Column(Boolean, nullable=False)
     created_time = Column(DateTime, nullable=False)
     updated_time = Column(DateTime, nullable=False, index=True)
 
+    user = relationship('User', back_populates="notes")
+    tags = relationship('Tag', secondary=notes_tags, back_populates='notes')
+
 
 class Tag(Base):
+    __tablename__ = 'tag'
+
     id = Column(Integer, primary_key=True, index=True)
     notes = relationship('Note', secondary=notes_tags, back_populates='tags')

@@ -2,9 +2,7 @@ from sqlalchemy.orm import Session
 
 import models
 import schemas
-
-def get_user(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+import datetime
 
 
 def get_user_by_username(db: Session, username: str):
@@ -28,8 +26,10 @@ def get_notes(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Note).offset(skip).limit(limit).all()
 
 
-def create_note(db: Session, note: schemas.NoteCreate, user_id: int):
-    db_note = models.Note(**note.dict(), user_id=user_id)
+def create_note(db: Session, note: schemas.NoteCreate, username: str):
+    user = get_user_by_username(db, username)
+    now = datetime.datetime.now()
+    db_note = models.Note(**note.dict(), user_id=user.id, created_time=now, updated_time=now)
     db.add(db_note)
     db.commit()
     db.refresh(db_note)
