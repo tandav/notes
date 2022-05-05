@@ -2,6 +2,7 @@ import pytest
 from http import HTTPStatus
 from notes import models
 from faker import Faker
+from notes.util import is_hex_color
 fake = Faker()
 
 
@@ -64,10 +65,20 @@ def test_create_tags(client):
     assert r.ok
 
     # test already created
-    # w/o color - check assigned
-    # w/ color
-    # invalid color handled
+    r = client.post('/tags/', json={'name': 'books', 'color': '#c0ffee'})
+    assert r.status_code == HTTPStatus.BAD_REQUEST
+    assert r.json() == {'detail': 'tag with name books username already exists'}
+
+    # test valid color generated
+    r = client.post('/tags/', json={'name': 'groceries'})
+    assert is_hex_color(r.json()['color'])
+
+    r = client.post('/tags/', json={'name': 'fake', 'color': 'bad-color'})
+    assert r.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+
     # test create note with tags
+        # test all tags exists
 
 # def create_note_with_tags():
 #     pass

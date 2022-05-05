@@ -1,8 +1,7 @@
 from __future__ import annotations
 import datetime
-import string
 from pydantic import BaseModel, validator, root_validator
-
+from notes.util import is_hex_color
 
 # ===================================================================================
 
@@ -79,8 +78,10 @@ class TagBase(BaseModel):
 
     @validator('color')
     def color_string_check(cls, v):
+        if v is None:
+            return v
         v = v.lower()
-        if not (v.startswith('#') and set(v[1:]) <= set(string.hexdigits)):
+        if not is_hex_color(v):
             raise ValueError('invalid color. Provide color in #f048ed format')
         return v
 
@@ -91,6 +92,7 @@ class TagCreate(TagBase):
 
 class Tag(TagBase):
     id: int
+    color: str
     notes: list[Note] = []
     created_time: datetime.datetime
     updated_time: datetime.datetime

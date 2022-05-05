@@ -57,9 +57,8 @@ def create_tag(db: Session, tag: schemas.TagCreate):
     now = datetime.datetime.now()
     tag_dict = tag.dict()
 
-    tag_dict.setdefault('color', f"#{int.from_bytes(random.randbytes(3), 'little'):06x}")
-    # if 'color' not in tag_dict:
-    #     tag.color = f"#{int.from_bytes(random.randbytes(3), 'little'):06x}"
+    if tag_dict.get('color') is None:
+        tag_dict['color'] = f"#{int.from_bytes(random.randbytes(3), 'little'):06x}"
 
     db_tag = models.Tag(**tag_dict, created_time=now, updated_time=now)
     db.add(db_tag)
@@ -67,3 +66,6 @@ def create_tag(db: Session, tag: schemas.TagCreate):
     db.refresh(db_tag)
     return db_tag
 
+
+def get_tag_by_name(db: Session, name: str):
+    return db.query(models.Tag).filter(models.Tag.name == name).first()

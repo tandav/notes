@@ -1,5 +1,5 @@
 import datetime
-
+import string
 
 def _ago(e):
     # e: pass timedelta between timestamps in 1579812524 format
@@ -28,3 +28,6 @@ def _ago(e):
 def ago(t: datetime.datetime):
     return _ago((datetime.datetime.utcnow() - t).total_seconds())
 
+
+def is_hex_color(v: str) -> bool:
+    return (v.startswith('#') and set(v[1:]) <= set(string.hexdigits))

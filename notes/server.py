@@ -27,9 +27,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="username already registered")
-    u = crud.create_user(db=db, user=user)
-    assert isinstance(u, models.User)
-    return u
+    return crud.create_user(db=db, user=user)
 
 
 @app.get("/users/", response_model=list[schemas.User])
@@ -55,6 +53,9 @@ def create_note(
 
 @app.post('/tags/', response_model=schemas.Tag)
 def create_tag(tag: schemas.TagCreate, db: Session = Depends(get_db)):
+    db_tag = crud.get_tag_by_name(db, name=tag.name)
+    if db_tag:
+        raise HTTPException(status_code=400, detail=f"tag with name {tag.name} username already exists")
     return crud.create_tag(db, tag)
 
 
