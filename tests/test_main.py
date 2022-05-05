@@ -42,3 +42,32 @@ def test_username_already_registred(client):
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.json() == {'detail': 'username already registered'}
+
+
+def test_create_note(client):
+    for _ in range(100):
+        r = client.post('/users/test_user/notes/', json={
+            "title": fake.text(max_nb_chars=30),
+            "text": fake.text(max_nb_chars=200),
+            "is_private": False,
+            "tags": [],
+        })
+        assert r.ok, r.json()
+
+
+# def test_read_notes(client):
+#     r = client.get('')
+#     breakpoint()
+
+def test_create_tags(client):
+    r = client.post('/tags/', json={'name': 'books', 'color': '#c0ffee'})
+    assert r.ok
+
+    # test already created
+    # w/o color - check assigned
+    # w/ color
+    # invalid color handled
+    # test create note with tags
+
+# def create_note_with_tags():
+#     pass
