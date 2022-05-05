@@ -5,6 +5,7 @@ from notes import models
 from notes.server import get_db
 from notes.server import app
 from fastapi.testclient import TestClient
+from sqlalchemy.pool import StaticPool
 
 
 # @pytest.fixture(scope='session')
@@ -40,3 +41,25 @@ from fastapi.testclient import TestClient
 #     app.dependency_overrides[get_db] = override_get_db
 #     # app.dependency_overrides[get_db] = db
 #     yield TestClient(app)
+
+
+engine = create_engine('sqlite://', connect_args={"check_same_thread": False}, poolclass=StaticPool, echo=True)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+models.Base.metadata.create_all(bind=engine)
+
+
+def override_get_db():
+    try:
+        db = TestingSessionLocal()
+        yield db
+    finally:
+        db.close()
+
+
+app.dependency_overrides[get_db] = override_get_db
+
+
+@pytest.fixture(scope='session', autouse=True)
+def client():
+    yield TestClient(app)
+

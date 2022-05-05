@@ -8,7 +8,6 @@ from notes import models
 from notes.server import get_db
 from notes.server import app
 from fastapi.testclient import TestClient
-from sqlalchemy.pool import StaticPool
 # app.dependency_overrides[get_db] = db
 
 
@@ -24,27 +23,10 @@ from sqlalchemy.pool import StaticPool
 
 # engine = create_engine('sqlite:///./test.db', connect_args={"check_same_thread": False})
 # engine = create_engine('sqlite:///:memory:', connect_args={"check_same_thread": False}, echo=True)
-engine = create_engine('sqlite://', connect_args={"check_same_thread": False}, poolclass=StaticPool, echo=True)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-models.Base.metadata.create_all(bind=engine)
-
-
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-
-client = TestClient(app)
 
 
 # def test_create_item(client):
-def test_create_item():
+def test_create_item(client):
     response = client.post(
         "/users/",
         json={"username": "test_user", "password": "test_password"},
