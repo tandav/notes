@@ -11,14 +11,14 @@ from fastapi.testclient import TestClient
 # app.dependency_overrides[get_db] = db
 
 
-# @pytest.mark.parametrize('table', [
-#     models.User,
-#     models.Note,
-#     models.Tag,
-#     models.Attachment,
-# ])
-# def test_tables_empty(db, table):
-#     assert db.query(table).count() == 0
+@pytest.mark.parametrize('table', [
+    models.User,
+    models.Note,
+    models.Tag,
+    models.Attachment,
+])
+def test_tables_empty(db, table):
+    assert db.query(table).count() == 0
 
 
 # engine = create_engine('sqlite:///./test.db', connect_args={"check_same_thread": False})
