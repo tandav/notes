@@ -1,4 +1,5 @@
 import pytest
+from http import HTTPStatus
 from notes import models
 
 
@@ -28,5 +29,11 @@ def test_create_item(client):
     }
 
 
-# def test_username_already_registred(client):
-#     raise NotImplementedError
+def test_username_already_registred(client):
+    response = client.post(
+        "/users/",
+        json={"username": "test_user", "password": "test_password"},
+    )
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.json() == {'detail': 'username already registered'}
