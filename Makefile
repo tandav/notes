@@ -6,4 +6,4 @@ run:
 
 .PHONY: test
 test:
-	$(python) -m pytest -s -vv tests
+	$(python) -m pytest -s -vv --asyncio-mode=strict tests
