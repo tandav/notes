@@ -8,7 +8,7 @@ from notes import models
 from notes.server import get_db
 from notes.server import app
 from fastapi.testclient import TestClient
-
+from sqlalchemy.pool import StaticPool
 # app.dependency_overrides[get_db] = db
 
 
@@ -22,16 +22,10 @@ from fastapi.testclient import TestClient
 #     assert db.query(table).count() == 0
 
 
-
-
-
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+# engine = create_engine('sqlite:///./test.db', connect_args={"check_same_thread": False})
+# engine = create_engine('sqlite:///:memory:', connect_args={"check_same_thread": False}, echo=True)
+engine = create_engine('sqlite://', connect_args={"check_same_thread": False}, poolclass=StaticPool, echo=True)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -56,10 +50,13 @@ def test_create_item():
         json={"username": "test_user", "password": "test_password"},
     )
     assert response.ok, response.json()
-    assert response.json() == {
-        "id": "foobar",
-        "title": "Foo Bar",
-        "description": "The Foo Barters",
+    j = response.json()
+    assert j.pop('created_time')
+    assert j.pop('updated_time')
+    assert j == {
+        'id': 1,
+        'notes': [],
+        'username': 'test_user',
     }
 
 
