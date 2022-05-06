@@ -10,7 +10,7 @@ fake = Faker()
     models.User,
     models.Note,
     models.Tag,
-    models.Attachment,
+    # models.Attachment,
 ])
 def test_tables_empty(db, table):
     assert db.query(table).count() == 0
@@ -50,7 +50,7 @@ def test_create_note(client):
         r = client.post('/users/test_user/notes/', json={
             "title": fake.text(max_nb_chars=30),
             "text": fake.text(max_nb_chars=200),
-            "is_private": False,
+            # "is_private": False,
             "tags": [],
         })
         assert r.ok, r.json()
@@ -77,8 +77,23 @@ def test_create_tags(client):
     assert r.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
+def test_create_note_with_tags(client):
+    # 1 tag
+    r = client.post('/users/test_user/notes/', json={
+        "title": fake.text(max_nb_chars=30),
+        "text": fake.text(max_nb_chars=200),
+        # "is_private": False,
+        "tags": ['books'],
+    })
+    assert r.ok, r.json()
+
+    # # 1 tag
+    # r = client.post('/users/test_user/notes/', json={
+    #     "title": fake.text(max_nb_chars=30),
+    #     "text": fake.text(max_nb_chars=200),
+    #     "is_private": False,
+    #     "tags": ['books', 'groceries'],
+    # })
+
     # test create note with tags
         # test all tags exists
-
-# def create_note_with_tags():
-#     pass

@@ -11,9 +11,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     password = Column(String)
-    password_hash_algo = Column(String)
+    # password_hash_algo = Column(String)
     salt = Column(String)
-    avatar = Column(String, nullable=True)
+    # avatar = Column(String, nullable=True)
     notes = relationship("Note", back_populates="user")
     created_time = Column(DateTime, nullable=False)
     updated_time = Column(DateTime, nullable=False, index=True)
@@ -24,10 +24,10 @@ notes_tags = Table('notes_tags', Base.metadata,
     Column('tag_id', ForeignKey('tag.id'), primary_key=True),
 )
 
-notes_attachments = Table('notes_attachments', Base.metadata,
-    Column('note_id', ForeignKey('note.id'), primary_key=True),
-    Column('attachment_id', ForeignKey('attachment.id'), primary_key=True),
-)
+# notes_attachments = Table('notes_attachments', Base.metadata,
+#     Column('note_id', ForeignKey('note.id'), primary_key=True),
+#     Column('attachment_id', ForeignKey('attachment.id'), primary_key=True),
+# )
 
 
 class Note(Base):
@@ -39,14 +39,27 @@ class Note(Base):
     title = Column(String, index=True, nullable=True)
     text = Column(String, nullable=True)
     url = Column(String, nullable=True)
-    is_private = Column(Boolean, nullable=False, default=False)
+    # is_private = Column(Boolean, nullable=False, default=False)
     created_time = Column(DateTime, nullable=False)
     updated_time = Column(DateTime, nullable=False, index=True)
 
     user = relationship('User', back_populates="notes")
-    tags = relationship('Tag', secondary=notes_tags, back_populates='notes')
-    attachments = relationship('Attachment', secondary=notes_attachments, back_populates='notes')
+    # tags = relationship('Tag', secondary=notes_tags, back_populates='notes')
+    tags = relationship('Tag', secondary=notes_tags)
+    # attachments = relationship('Attachment', secondary=notes_attachments, back_populates='notes')
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'title': self.title,
+            'text': self.text,
+            'url': self.url,
+            # 'is_private': self.is_private,
+            'created_time': self.created_time,
+            'updated_time': self.updated_time,
+            'tags': [tag.name for tag in self.tags],
+        }
 
 class Tag(Base):
     __tablename__ = 'tag'
@@ -56,12 +69,12 @@ class Tag(Base):
     color = Column(String)
     created_time = Column(DateTime, nullable=False)
     updated_time = Column(DateTime, nullable=False, index=True)
-    notes = relationship('Note', secondary=notes_tags, back_populates='tags')
+    # notes = relationship('Note', secondary=notes_tags, back_populates='tags')
 
 
-class Attachment(Base):
-    __tablename__ = 'attachment'
-
-    id = Column(Integer, primary_key=True, index=True)
-    # data = Column(text)
-    notes = relationship('Note', secondary=notes_attachments, back_populates='attachments')
+# class Attachment(Base):
+#     __tablename__ = 'attachment'
+#
+#     id = Column(Integer, primary_key=True, index=True)
+#     # data = Column(text)
+#     notes = relationship('Note', secondary=notes_attachments, back_populates='attachments')

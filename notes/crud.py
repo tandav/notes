@@ -28,7 +28,7 @@ def create_user(db: Session, user: schemas.UserCreate) -> schemas.User:
     db_user = models.User(
         username=user.username,
         password=password_hashed,
-        password_hash_algo='pbkdf2',
+        # password_hash_algo='pbkdf2',
         salt=salt,
         created_time=now,
         updated_time=now,
@@ -46,11 +46,30 @@ def get_notes(db: Session, skip: int = 0, limit: int = 100):
 def create_note(db: Session, note: schemas.NoteCreate, username: str):
     user = get_user_by_username(db, username)
     now = datetime.datetime.now()
-    db_note = models.Note(**note.dict(), user_id=user.id, created_time=now, updated_time=now)
+
+    # sam = User()
+    # sam.name = 'sam'
+    # sam_teams = session.query(Teams).filter(Teams.name.in_(['wildcats', 'jokers'])).all()
+    # sam.teams = [team for team in sam_teams]
+
+    note_dict = note.dict()
+
+    if note.tags:
+        tags = db.query(models.Tag).filter(models.Tag.name.in_(note.tags)).all()
+        note_dict = {**note.dict(), 'tags': tags}
+
+    db_note = models.Note(**note_dict, user_id=user.id, created_time=now, updated_time=now)
+    # db_note.tags = [tag for tag in db.query(models.Tag).filter(models.Tag.name.in_([note.tags])).all()]
+
     db.add(db_note)
     db.commit()
     db.refresh(db_note)
-    return db_note
+
+    # convert tags to str befor return
+    # db_note.tags = [tag.name for tag in db_note.tags]
+    # if note.tags:
+    #     breakpoint()
+    return db_note.to_dict()
 
 
 def create_tag(db: Session, tag: schemas.TagCreate):

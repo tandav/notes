@@ -10,8 +10,9 @@ class NoteBase(BaseModel):
     title: str | None = None
     text: str | None = None
     url: str | None = None
-    is_private: bool
-    tags: list[Tag] = []
+    # is_private: bool
+    # tags: list[Tag] = []
+    tags: list[str] = []
 
     @validator('url')
     def url_starts_with_http(cls, v):
@@ -93,13 +94,13 @@ class TagCreate(TagBase):
 class Tag(TagBase):
     id: int
     color: str
-    notes: list[Note] = []
+    # notes: list[Note] = []
     created_time: datetime.datetime
     updated_time: datetime.datetime
 
     class Config:
         orm_mode = True
 
-Note.update_forward_refs()
 NoteCreate.update_forward_refs()
+Note.update_forward_refs()
 # Tag.update_forward_refs()

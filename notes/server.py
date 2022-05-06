@@ -9,7 +9,6 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 # models.Base.metadata.create_all(bind=engine)
 
-
 app = FastAPI()
 
 
@@ -48,7 +47,10 @@ def read_user(username: str, db: Session = Depends(get_db)):
 def create_note(
     username: str, note: schemas.NoteCreate, db: Session = Depends(get_db)
 ):
-    return crud.create_note(db, note, username)
+    res = crud.create_note(db, note, username)
+    # if note.tags:
+    #     breakpoint()
+    return res
 
 
 @app.post('/tags/', response_model=schemas.Tag)
