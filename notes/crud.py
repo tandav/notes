@@ -56,7 +56,6 @@ def delete_note(db: Session, note_id: int):
 #     return db.query(models.Tag).filter(models.Tag.name.in_(tags)).all()
 
 
-
 def create_note(db: Session, note: schemas.NoteCreate, username: str):
     user = get_user_by_username(db, username)
     now = datetime.datetime.now()
@@ -105,3 +104,7 @@ def create_tag(db: Session, tag: schemas.TagCreate):
 
 def get_tag_by_name(db: Session, name: str):
     return db.query(models.Tag).filter(models.Tag.name == name).first()
+
+
+def get_tags(db: Session):
+    return db.query(models.Tag).all()

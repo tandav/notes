@@ -12,6 +12,7 @@ from sqlalchemy.pool import StaticPool
 def db():
     engine = create_engine(
         'sqlite:///:memory:',
+        # 'sqlite:///./test.db',
         connect_args={'check_same_thread': False},
         poolclass=StaticPool,
         # echo=True,

@@ -1,5 +1,8 @@
 from fastapi import Depends, FastAPI, HTTPException, Form
 from sqlalchemy.orm import Session
+from fastapi.responses import HTMLResponse
+from fastapi.responses import RedirectResponse
+from http import HTTPStatus
 
 from notes import crud
 from notes import models
@@ -62,10 +65,14 @@ def create_tag(tag: schemas.TagCreate, db: Session = Depends(get_db)):
     return crud.create_tag(db, tag)
 
 
+@app.get('/tags/', response_model=list[schemas.Tag])
+def read_tags(db: Session = Depends(get_db)):
+    return crud.get_tags(db)
+
+
 @app.get("/notes/", response_model=list[schemas.Note])
 def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    items = crud.get_notes(db, skip=skip, limit=limit)
-    return items
+    return crud.get_notes(db, skip=skip, limit=limit)
 
 
 @app.delete("/notes/{note_id}", response_model=list[schemas.Note])
@@ -76,8 +83,50 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail={"note dont exists": note_id})
 
 
+@app.get('/', response_class=HTMLResponse)
+def root():
+    return """
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+    <h1>create note</h1>
+    <form action="/signup" method="post">
+      <p>
+        <label><input type="checkbox" value="is_bookmark">bookmark</label>
+        <label><input type="checkbox" value="is_private">private</label>
+      </p>
 
-# from fastapi.responses import RedirectResponse
+      <p>
+        <label>title</label><br>
+        <input type="text" name="title">
+      </p>
+      <p>
+        <label for="textarea">text or url</label>
+        <textarea id="textarea" rows="8" cols="48" placeholder="Enter your message here"></textarea>
+      </p>
+      <p>
+        <label>tags</label><br>
+          <p>
+            <label><input type="checkbox" value="is_bookmark">bookmark</label>
+            <label><input type="checkbox" value="is_private">private</label>
+          </p>
+      </p>
+      <p>
+        <button>create</button>
+      </p>
+    </form>
+    <style>
+    input[name=title] {
+        width: 440px;
+    }
+    </style>
+    """
+
+
+#     db.insert(text)
+#     print(text)
+#     return RedirectResponse('/', status_code=HTTPStatus.FOUND)
+#
+
+
 # from fastapi import FastAPI
 # from fastapi import Form
 # from fastapi.responses import HTMLResponse

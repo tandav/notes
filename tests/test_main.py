@@ -2,6 +2,7 @@ import pytest
 from http import HTTPStatus
 from notes import models
 from faker import Faker
+from notes import crud
 from notes.util import is_hex_color
 fake = Faker()
 
@@ -73,6 +74,12 @@ def test_create_tags(client):
     assert r.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
+def test_get_tags(client):
+    r = client.get('/tags/')
+    assert r.ok
+    assert [tag['name'] for tag in r.json()] == ['books', 'groceries']
+
+
 def test_create_note_with_tags(client):
     # 1 tag
     r = client.post('/users/test_user/notes/', json={
@@ -117,4 +124,3 @@ def test_delete_notes(client):
 # def test_delete_tag (check all notes which have tag delete reference to this tag)
 # def read_notes
 # def read_notes_of user private/public (use tag)
-#
