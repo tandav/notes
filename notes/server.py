@@ -84,41 +84,63 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
 
 
 @app.get('/', response_class=HTMLResponse)
-def root():
-    return """
+def root(db: Session = Depends(get_db)):
+    tags = crud.get_tags(db)
+    tags_checkboxes = '\n'.join(
+        f'<label class="tag" id="{tag.name}"><input type="checkbox" value="{tag.name}">{tag.name}</label>'
+        for tag in tags
+    )
+    # colors = {tag.name}
+
+    html = f"""
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
     <h1>create note</h1>
     <form action="/signup" method="post">
       <p>
-        <label><input type="checkbox" value="is_bookmark">bookmark</label>
-        <label><input type="checkbox" value="is_private">private</label>
-      </p>
-
-      <p>
-        <label>title</label><br>
-        <input type="text" name="title">
-      </p>
-      <p>
-        <label for="textarea">text or url</label>
+        <label for="textarea">text</label>
         <textarea id="textarea" rows="8" cols="48" placeholder="Enter your message here"></textarea>
+      </p>
+      <p>
+        <label>url (optional)</label><br>
+        <input type="text" name="title">
       </p>
       <p>
         <label>tags</label><br>
           <p>
-            <label><input type="checkbox" value="is_bookmark">bookmark</label>
-            <label><input type="checkbox" value="is_private">private</label>
+            {tags_checkboxes}
           </p>
       </p>
       <p>
         <button>create</button>
       </p>
     </form>
-    <style>
-    input[name=title] {
-        width: 440px;
-    }
-    </style>
     """
+
+    # tags_colors = '\n'.join(f'''
+    # label > input[value='{tag.name}'] {{
+    #     background-color: {tag.color};
+    # }}
+    # ''' for tag in tags)
+
+    tags_colors = '\n'.join(f'''
+    #{tag.name} {{
+        background-color: {tag.color};
+        padding: 0.25em;
+        border-radius: 4px;
+        margin: 3px;
+    }}
+    ''' for tag in tags)
+
+
+    css = f'''
+    <style>
+    input[name=title] {{
+        width: 440px;
+    }}
+    {tags_colors}
+    </style>
+    '''
+    return html + css
 
 
 #     db.insert(text)
