@@ -40,6 +40,7 @@ def read_user(username: str, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=username)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
+
     return db_user
 
 
@@ -49,8 +50,8 @@ def create_note(
 ):
     try:
         res = crud.create_note(db, note, username)
-    except crud.TagNotExistsError:
-        raise HTTPException(status_code=400, detail="username already registered")
+    except crud.TagNotExistsError as e:
+        raise HTTPException(status_code=400, detail={"tags dont exists": e.args[0]})
     # if note.tags:
     #     breakpoint()
     return res

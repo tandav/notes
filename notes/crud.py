@@ -65,8 +65,8 @@ def create_note(db: Session, note: schemas.NoteCreate, username: str):
 
     if note.tags:
         tags = db.query(models.Tag).filter(models.Tag.name.in_(note.tags)).all()
-        if set(note.tags) != {tag.name for tag in tags}:
-            raise TagNotExistsError
+        if unknown_tags := set(note.tags) - {tag.name for tag in tags}:
+            raise TagNotExistsError(list(unknown_tags))
 
         note_dict = {**note.dict(), 'tags': tags}
 

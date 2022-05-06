@@ -101,4 +101,5 @@ def test_create_note_with_tags(client):
         "tags": ['books', 'groceries', 'tag_does_not_exist'],
     })
     assert r.status_code == HTTPStatus.BAD_REQUEST
+    assert r.json() == {"detail": {"tags dont exists": ['tag_does_not_exist']}}
 
