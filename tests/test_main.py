@@ -82,18 +82,23 @@ def test_create_note_with_tags(client):
     r = client.post('/users/test_user/notes/', json={
         "title": fake.text(max_nb_chars=30),
         "text": fake.text(max_nb_chars=200),
-        # "is_private": False,
         "tags": ['books'],
     })
-    assert r.ok, r.json()
+    assert r.ok
 
-    # # 1 tag
-    # r = client.post('/users/test_user/notes/', json={
-    #     "title": fake.text(max_nb_chars=30),
-    #     "text": fake.text(max_nb_chars=200),
-    #     "is_private": False,
-    #     "tags": ['books', 'groceries'],
-    # })
+    # 2 tag
+    r = client.post('/users/test_user/notes/', json={
+        "title": fake.text(max_nb_chars=30),
+        "text": fake.text(max_nb_chars=200),
+        "tags": ['books', 'groceries'],
+    })
+    assert r.ok
 
-    # test create note with tags
-        # test all tags exists
+    # test error when tags does not exists
+    r = client.post('/users/test_user/notes/', json={
+        "title": fake.text(max_nb_chars=30),
+        "text": fake.text(max_nb_chars=200),
+        "tags": ['books', 'groceries', 'tag_does_not_exist'],
+    })
+    assert r.status_code == HTTPStatus.BAD_REQUEST
+

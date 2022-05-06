@@ -8,6 +8,10 @@ from notes import models
 from notes import schemas
 
 
+class CrudError(BaseException): pass
+class TagNotExistsError(CrudError): pass
+
+
 def get_user_by_username(db: Session, username: str):
     return db.query(models.User).filter(models.User.username == username).first()
 
@@ -43,6 +47,11 @@ def get_notes(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Note).offset(skip).limit(limit).all()
 
 
+# def get_tags_by_names(db: Session, tags: list[str]):
+#     return db.query(models.Tag).filter(models.Tag.name.in_(tags)).all()
+
+
+
 def create_note(db: Session, note: schemas.NoteCreate, username: str):
     user = get_user_by_username(db, username)
     now = datetime.datetime.now()
@@ -56,6 +65,9 @@ def create_note(db: Session, note: schemas.NoteCreate, username: str):
 
     if note.tags:
         tags = db.query(models.Tag).filter(models.Tag.name.in_(note.tags)).all()
+        if set(note.tags) != {tag.name for tag in tags}:
+            raise TagNotExistsError
+
         note_dict = {**note.dict(), 'tags': tags}
 
     db_note = models.Note(**note_dict, user_id=user.id, created_time=now, updated_time=now)

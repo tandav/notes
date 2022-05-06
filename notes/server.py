@@ -47,7 +47,10 @@ def read_user(username: str, db: Session = Depends(get_db)):
 def create_note(
     username: str, note: schemas.NoteCreate, db: Session = Depends(get_db)
 ):
-    res = crud.create_note(db, note, username)
+    try:
+        res = crud.create_note(db, note, username)
+    except crud.TagNotExistsError:
+        raise HTTPException(status_code=400, detail="username already registered")
     # if note.tags:
     #     breakpoint()
     return res
