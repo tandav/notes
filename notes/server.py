@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Form
 from sqlalchemy.orm import Session
 
 from notes import crud
@@ -40,7 +40,6 @@ def read_user(username: str, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=username)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
-
     return db_user
 
 
@@ -52,8 +51,6 @@ def create_note(
         res = crud.create_note(db, note, username)
     except crud.TagNotExistsError as e:
         raise HTTPException(status_code=400, detail={"tags dont exists": e.args[0]})
-    # if note.tags:
-    #     breakpoint()
     return res
 
 
@@ -65,10 +62,18 @@ def create_tag(tag: schemas.TagCreate, db: Session = Depends(get_db)):
     return crud.create_tag(db, tag)
 
 
-# @app.get("/notes/", response_model=list[schemas.Item])
-# def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-#     items = crud.get_notes(db, skip=skip, limit=limit)
-#     return items
+@app.get("/notes/", response_model=list[schemas.Note])
+def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    items = crud.get_notes(db, skip=skip, limit=limit)
+    return items
+
+
+@app.delete("/notes/{note_id}", response_model=list[schemas.Note])
+def delete_note(note_id: int, db: Session = Depends(get_db)):
+    try:
+        crud.delete_note(db, note_id)
+    except crud.NoteNotExistsError:
+        raise HTTPException(status_code=400, detail={"note dont exists": note_id})
 
 
 

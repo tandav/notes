@@ -61,6 +61,7 @@ class Note(Base):
             'tags': [tag.name for tag in self.tags],
         }
 
+
 class Tag(Base):
     __tablename__ = 'tag'
 

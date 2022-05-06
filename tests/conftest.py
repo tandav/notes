@@ -10,7 +10,12 @@ from sqlalchemy.pool import StaticPool
 
 @pytest.fixture(scope='session')
 def db():
-    engine = create_engine('sqlite:///:memory:', connect_args={'check_same_thread': False}, poolclass=StaticPool, echo=True)
+    engine = create_engine(
+        'sqlite:///:memory:',
+        connect_args={'check_same_thread': False},
+        poolclass=StaticPool,
+        # echo=True,
+    )
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     models.Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()

@@ -10,6 +10,7 @@ from notes import schemas
 
 class CrudError(BaseException): pass
 class TagNotExistsError(CrudError): pass
+class NoteNotExistsError(CrudError): pass
 
 
 def get_user_by_username(db: Session, username: str):
@@ -44,7 +45,11 @@ def create_user(db: Session, user: schemas.UserCreate) -> schemas.User:
 
 
 def get_notes(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Note).offset(skip).limit(limit).all()
+    return [note.to_dict() for note in db.query(models.Note).offset(skip).limit(limit).all()]
+
+
+def delete_note(db: Session, note_id: int):
+    db.query(models.Note).filter(models.Note.id == note_id).delete()
 
 
 # def get_tags_by_names(db: Session, tags: list[str]):

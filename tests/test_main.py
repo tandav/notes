@@ -46,7 +46,7 @@ def test_username_already_registred(client):
 
 
 def test_create_note(client):
-    for _ in range(100):
+    for _ in range(3):
         r = client.post('/users/test_user/notes/', json={
             "title": fake.text(max_nb_chars=30),
             "text": fake.text(max_nb_chars=200),
@@ -55,10 +55,6 @@ def test_create_note(client):
         })
         assert r.ok, r.json()
 
-
-# def test_read_notes(client):
-#     r = client.get('')
-#     breakpoint()
 
 def test_create_tags(client):
     r = client.post('/tags/', json={'name': 'books', 'color': '#c0ffee'})
@@ -103,3 +99,22 @@ def test_create_note_with_tags(client):
     assert r.status_code == HTTPStatus.BAD_REQUEST
     assert r.json() == {"detail": {"tags dont exists": ['tag_does_not_exist']}}
 
+
+def test_read_notes(client):
+    r = client.get('/notes')
+    assert r.ok
+    assert len(r.json()) == 5, r.json()
+
+
+def test_delete_notes(client):
+    r = client.delete('/notes/1')
+    assert r.ok
+    assert 1 not in {note['id'] for note in client.get('/notes').json()}
+
+
+# def test_edit_note (change tags, change text/title/url) (check updated_time changed)
+# def test_delete_note
+# def test_delete_tag (check all notes which have tag delete reference to this tag)
+# def read_notes
+# def read_notes_of user private/public (use tag)
+#
