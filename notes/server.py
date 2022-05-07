@@ -128,8 +128,19 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
     else:
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
 
-@app.get("/notes/{note_id}", response_model=schemas.Note)
-def get_note(note_id: int, db: Session = Depends(get_db)):
+@app.get(
+    "/notes/{note_id}",
+    response_model=schemas.Note,
+    responses={
+        200: {
+            "content": {"text/html": {}},
+            "description": "Return the html page with note",
+        },
+        415: {"model": schemas.Message},
+        400: {"model": schemas.Message},
+    }
+)
+def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('application/json')):
     try:
         return crud.get_note(db, note_id)
     except crud.NoteNotExistsError:
