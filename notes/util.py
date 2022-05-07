@@ -43,3 +43,16 @@ def format_time(t: datetime.datetime, absolute: bool = False) -> str:
     if absolute or (datetime.datetime.now() - t).days > 30:
         return t.strftime('%Y %b %d %H:%M')
     return ago(t)
+
+
+def header(
+    new_note: bool = True,
+) -> str:
+    items = [
+        '<a href="/notes">[notes]</a>',
+        '<a href="/tags">[tags]</a>',
+
+    ]
+    if new_note:
+        items.append('<a href="/new_note"><button>new note</button></a>',)
+    return '\n'.join(items)

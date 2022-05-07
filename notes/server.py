@@ -15,11 +15,7 @@ from fastapi.responses import JSONResponse
 # models.Base.metadata.create_all(bind=engine)
 
 CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">'
-HEADER = """
-<a href="/notes">[notes]</a>
-<a href="/tags">[tags]</a>
-<a href="/new_note"><button>new note</button></a>
-"""
+
 # <a href="/new_tag"><button>new tag</button></a>
 
 app = FastAPI()
@@ -114,7 +110,7 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
             )
             return HTMLResponse(f'''
             {CSS_FRAMEWORK}
-            {HEADER}
+            {util.header()}
             <h1>Notes</h1>
             <table>
             <thead>
@@ -131,6 +127,15 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
             {rows}
             </tbody>
             </table>
+            ''' + '''
+            <style>
+            td {
+                max-width:100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            </style>
             ''')
         if is_json:
             return notes
@@ -175,11 +180,8 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 </script>
                 ''' + f'''
                 {CSS_FRAMEWORK}
-                {HEADER}
-                <button onclick='delete_note({note_id})'>delete</button>
-                <form action="/notes/{note_id}" method="delete">
-                <button class="delete_button">delete</button>
-                </form>
+                {util.header()}
+                <button class="delete_button" onclick='delete_note({note_id})'>delete</button>
                 <h1>Note</h1>
                 <span><a href='/users/{note.user_id}'>user_{note.user_id}</a> last edit: {note.updated_time:%Y %b %d %H:%M}</span>
                 {url}
@@ -194,10 +196,6 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 #header {
                     display: flex;
                     align-items: center;
-                }
-                form {
-                    margin-block-end: 0em;
-                    display: inline;
                 }
                 <style>
                 ''')
@@ -245,12 +243,12 @@ def new_note_form(db: Session = Depends(get_db)):
 
     html = f"""
     {CSS_FRAMEWORK}
-    {HEADER}
+    {util.header(new_note=False)}
     <h1>create note</h1>
     <form action="/new_note" method="post" id="note_form">
       <p>
         <label for="textarea">text</label>
-        <textarea type="input" rows="8" cols="48" placeholder="Enter your note here" form="note_form" name="text"></textarea>
+        <textarea type="input" placeholder="Enter your note here" form="note_form" name="text"></textarea>
       </p>
       <p>
         <label>url</label><br>
@@ -280,9 +278,15 @@ def new_note_form(db: Session = Depends(get_db)):
 
     css = f'''
     <style>
-    input[name=title] {{
-        width: 440px;
+    input[name=url] {{
+        width: 100%;
     }}
+    
+    textarea {{
+        font-family: monospace;
+        font-size: 9pt;
+    }}
+    
     {tags_colors}
     </style>
     '''
