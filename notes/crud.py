@@ -54,7 +54,7 @@ def get_notes(db: Session, skip: int = 0, limit: int = 100):
 
 def delete_note(db: Session, note_id: int):
     db.query(models.Note).filter(models.Note.id == note_id).delete()
-
+    db.commit()
 
 # def get_tags_by_names(db: Session, tags: list[str]):
 #     return db.query(models.Tag).filter(models.Tag.name.in_(tags)).all()
