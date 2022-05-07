@@ -207,6 +207,17 @@ def test_get_notes_by_tag(client):
     assert r.ok
     assert [note['id'] for note in r.json()] == [5]
 
+
+def test_delete_tag(client):
+    r = client.post('/tags/', json={'name': 'tag_to_be_removed', 'color': '#ffaace'})
+    assert r.ok
+    tag_id = r.json()['id']
+    r = client.post('/users/test_user/notes/', json={"text": 'fake_text', "tags": ['tag_to_be_removed']})
+    assert r.ok
+    note_id = r.json()['id']
+    assert client.delete(f'/tags/{tag_id}').ok
+    assert 'tag_to_be_removed' not in client.get(f'/notes/{note_id}').json()['tags']
+
+
 # def test_edit_note (change tags, change text/title/url) (check updated_time changed)
-# def test_delete_tag (check all notes which have tag delete reference to this tag)
 # def read_notes_of user private/public (use tag)

@@ -441,6 +441,14 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail={"note dont exists": note_id})
 
 
+@app.delete("/tags/{tag_id}", response_model=list[schemas.Tag])
+def delete_note(tag_id: int, db: Session = Depends(get_db)):
+    try:
+        crud.delete_tag(db, tag_id)
+    except crud.NoteNotExistsError:
+        raise HTTPException(status_code=404, detail={"note dont exists": tag_id})
+
+
 @app.post('/new_note')
 async def new_note_handle_form(request: Request, db: Session = Depends(get_db)):
     form = await request.form()

@@ -35,7 +35,7 @@ def is_hex_color(v: str) -> bool:
 
 def format_url(url: str | None) -> str:
     if url is None:
-        return 'null'
+        return ''
     return f"<a href='{url}'>{url}</a>"
 
 
