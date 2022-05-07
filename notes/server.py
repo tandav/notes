@@ -152,7 +152,9 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
             return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={f"note dont exists: {note_id}"})
         else:
             if is_html:
-                return HTMLResponse('<h1>Note</h1>')
+                return HTMLResponse(f'''
+                <h1>Note</h1>
+                ''')
             if is_json:
                 return note
     else:
