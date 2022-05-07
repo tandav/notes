@@ -97,7 +97,7 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
                 f'''
                 <tr>
                     <td><a href='/notes/{note['id']}'>{note['id']}</a></td>
-                    <td>{note['user_id']}</td>
+                    <td><a href='/users/{note['user_id']}'>{note['user_id']}</td>
                     <td>{note['text']}</td>
                     <td>{util.format_url(note['url'])}</td>
                     <td>{note['created_time']:%Y %b %d %H:%M}</td>
