@@ -72,6 +72,7 @@ def create_note(db: Session, note: schemas.NoteCreate, username: str):
     note_dict = note.dict()
 
     if note.tags:
+        # tags = get_note_tags(db, note)
         tags = db.query(models.Tag).filter(models.Tag.name.in_(note.tags)).all()
         if unknown_tags := set(note.tags) - {tag.name for tag in tags}:
             raise TagNotExistsError(list(unknown_tags))
@@ -106,8 +107,12 @@ def create_tag(db: Session, tag: schemas.TagCreate):
     return db_tag
 
 
-def get_tag_by_name(db: Session, name: str):
-    return db.query(models.Tag).filter(models.Tag.name == name).first()
+# def get_tag_by_name(db: Session, name: str):
+#     return db.query(models.Tag).filter(models.Tag.name == name).first()
+
+
+def get_note_tags(db: Session, note: schemas.Note):
+    return db.query(models.Tag).filter(models.Tag.name.in_(note.tags)).all()
 
 
 def get_tags(db: Session):

@@ -166,7 +166,13 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
             return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={f"note dont exists: {note_id}"})
         else:
             if is_html:
-                url = f"<p>url: <a href='/users/{note.url}'>{note.url}</a></p>" if note.url else ''
+                tags = '\n'.join(
+                    f'<a href="/tags/{tag.name}"><label class="tag" id="{tag.name}">{tag.name}</label></a>'
+                    for tag in note.tags
+                )
+                tags_colors = util.tags_css(note.tags)
+
+                url = f"<p>url: <a href='{note.url}'>{note.url}</a></p>" if note.url else ''
                 text = f"<p>{note.text}</p>" if note.text else ''
                 return HTMLResponse('''
                 <script>
@@ -180,23 +186,33 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 </script>
                 ''' + f'''
                 {CSS_FRAMEWORK}
+                <header>
+                <nav>
                 {util.header()}
                 <button class="delete_button" onclick='delete_note({note_id})'>delete</button>
-                <h1>Note</h1>
-                <span><a href='/users/{note.user_id}'>user_{note.user_id}</a> last edit: {note.updated_time:%Y %b %d %H:%M}</span>
+                </nav>
+                <span class='metadata'><a href='/users/{note.user_id}'>user_{note.user_id}</a> last edit: {note.updated_time:%Y %b %d %H:%M}</span>
+                </header>
                 {url}
                 <p></p>
+                <div class='tags'>
+                {tags}
+                </div>
                 <hr>
                 {text}
-                ''' + '''
+                ''' + f'''
                 <style>
-                .delete_button {
+                .delete_button {{
                     background-color: #EF5350;
-                }
-                #header {
+                }}
+                {tags_colors}
+
+  
+                header {{
                     display: flex;
+                    justify-content: space-between;
                     align-items: center;
-                }
+                }}
                 <style>
                 ''')
             if is_json:
@@ -266,14 +282,7 @@ def new_note_form(db: Session = Depends(get_db)):
     </form>
     """
 
-    tags_colors = '\n'.join(f'''
-    #{tag.name} {{
-        background-color: {tag.color};
-        padding: 0.25em;
-        border-radius: 4px;
-        margin: 3px;
-    }}
-    ''' for tag in tags)
+    tags_colors = util.tags_css(tags)
 
 
     css = f'''

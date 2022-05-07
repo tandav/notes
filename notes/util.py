@@ -56,3 +56,14 @@ def header(
     if new_note:
         items.append('<a href="/new_note"><button>new note</button></a>',)
     return '\n'.join(items)
+
+
+def tags_css(tags) -> str:
+    return '\n'.join(f'''
+    #{tag.name} {{
+        background-color: {tag.color};
+        padding: 0.25em;
+        border-radius: 4px;
+        margin: 3px;
+    }}
+    ''' for tag in tags)
