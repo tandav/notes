@@ -295,6 +295,11 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
 
 
+@app.get('/tags/{tag_id}/notes')
+def get_tag_notes(tag_id: int, db: Session = Depends(get_db)):
+    return crud.get_tag(db, tag_id).notes
+
+
 @app.get(
     "/tags/{tag_id}",
     response_model=schemas.Tag,

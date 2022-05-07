@@ -68,7 +68,9 @@ class Tag(Base):
     color = Column(String)
     created_time = Column(DateTime, nullable=False)
     updated_time = Column(DateTime, nullable=False, index=True)
-    # notes = relationship('Note', secondary=notes_tags, back_populates='tags')
+    notes = relationship('Note', secondary=notes_tags, back_populates='tags')
+
+
 
 
 # class Attachment(Base):

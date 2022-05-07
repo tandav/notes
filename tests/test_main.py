@@ -2,7 +2,6 @@ import pytest
 from http import HTTPStatus
 from notes import models
 from faker import Faker
-from requests.exceptions import JSONDecodeError
 from xml.etree import ElementTree
 from notes.util import is_hex_color
 fake = Faker()
@@ -199,7 +198,15 @@ def test_delete_note(client):
     assert 2 not in {note['id'] for note in client.get('/notes').json()}
 
 
+def test_get_notes_by_tag(client):
+    r = client.get('/tags/1/notes')
+    assert r.ok
+    assert [note['id'] for note in r.json()] == [4, 5]
+
+    r = client.get('/tags/2/notes')
+    assert r.ok
+    assert [note['id'] for note in r.json()] == [5]
+
 # def test_edit_note (change tags, change text/title/url) (check updated_time changed)
 # def test_delete_tag (check all notes which have tag delete reference to this tag)
-# def read_notes
 # def read_notes_of user private/public (use tag)
