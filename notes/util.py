@@ -31,3 +31,9 @@ def ago(t: datetime.datetime):
 
 def is_hex_color(v: str) -> bool:
     return (v.startswith('#') and set(v[1:]) <= set(string.hexdigits))
+
+
+def format_url(url: str | None) -> str:
+    if url is None:
+        return 'null'
+    return f"<a href='{url}'>{url}</a>"

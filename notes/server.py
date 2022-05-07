@@ -6,6 +6,7 @@ from http import HTTPStatus
 from fastapi import Request
 
 from notes import crud
+from notes import util
 from notes import models
 from notes import schemas
 from notes.database import SessionLocal, engine
@@ -13,8 +14,9 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 # models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">'
 
+app = FastAPI()
 
 # Dependency
 def get_db():
@@ -97,15 +99,15 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
                     <td><a href='/notes/{note['id']}'>{note['id']}</a></td>
                     <td>{note['user_id']}</td>
                     <td>{note['text']}</td>
-                    <td>{note['url']}</td>
-                    <td>{note['created_time']}</td>
-                    <td>{note['updated_time']}</td>
+                    <td>{util.format_url(note['url'])}</td>
+                    <td>{note['created_time']:%Y %b %d %H:%M}</td>
+                    <td>{note['updated_time']:%Y %b %d %H:%M}</td>
                 </tr>
                 '''
                 for note in notes
             )
             return HTMLResponse(f'''
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+            {CSS_FRAMEWORK}
             <h1>Notes</h1>
             <table>
             <thead>
@@ -152,8 +154,15 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
             return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={f"note dont exists: {note_id}"})
         else:
             if is_html:
+                url = f"<p>url: <a href='/users/{note.url}'>{note.url}</a></p>" if note.url else ''
+                text = f"<p>{note.text}</p>" if note.text else ''
                 return HTMLResponse(f'''
+                {CSS_FRAMEWORK}
                 <h1>Note</h1>
+                <p>user: <a href='/users/{note.user_id}'>{note.user_id}</a></p>
+                {url}
+                {text}
+                <p>updated: {note.updated_time:%Y %b %d %H:%M}</p>
                 ''')
             if is_json:
                 return note
@@ -198,10 +207,11 @@ def new_note_form(db: Session = Depends(get_db)):
     # colors = {tag.name}
 
     html = f"""
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+    {CSS_FRAMEWORK}
     <a href="/notes">[notes]</a>
     <a href="/tags">[tags]</a>
     <a href="/new_tag"><button>new tag</button></a>
+    <a href="/new_note"><button>new note</button></a>
     <h1>create note</h1>
     <form action="/new_note" method="post" id="note_form">
       <p>
