@@ -14,7 +14,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 # models.Base.metadata.create_all(bind=engine)
 
-CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">'
+CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css"/>'
 
 # <a href="/new_tag"><button>new tag</button></a>
 
@@ -120,7 +120,7 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
                 f'''
                 <tr>
                     <td><a href='/notes/{note['id']}'>{note['id']}</a></td>
-                    <td><a href='/users/{note['user_id']}'>{note['user_id']}</td>
+                    <td><a href='/users/{note['user_id']}'>{note['user_id']}</a></td>
                     <td>{note['text']}</td>
                     <td>{util.format_url(note['url'])}</td>
                     <td>{note['tags']}</td>
@@ -130,7 +130,11 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
                 for note in notes
             )
             return HTMLResponse(f'''
+            <html>
+            <head>
             {CSS_FRAMEWORK}
+            </head>
+            <body>
             {util.header()}
             <h1>Notes</h1>
             <table>
@@ -157,6 +161,8 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
                 text-overflow: ellipsis;
             }
             </style>
+            </body>
+            </html>
             ''')
 
     else:
@@ -195,6 +201,11 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 url = f"<p>url: <a href='{note.url}'>{note.url}</a></p>" if note.url else ''
                 text = f"<p>{note.text}</p>" if note.text else ''
                 return HTMLResponse('''
+                <html>
+                <head>
+                {CSS_FRAMEWORK}
+                </head>
+                <body>
                 <script>
                 const delete_note = note_id => {
                     if (confirm('delete confirmation')) {
@@ -205,7 +216,6 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 }
                 </script>
                 ''' + f'''
-                {CSS_FRAMEWORK}
                 <header>
                 <nav>
                 {util.header()}
@@ -218,7 +228,7 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 <div class='tags'>
                 {tags}
                 </div>
-                <hr>
+                <hr/>
                 {text}
                 ''' + f'''
                 <style>
@@ -233,7 +243,9 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                     justify-content: space-between;
                     align-items: center;
                 }}
-                <style>
+                </style>
+                </body>
+                </html>
                 ''')
             if is_json:
                 return note

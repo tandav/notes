@@ -3,6 +3,7 @@ from http import HTTPStatus
 from notes import models
 from faker import Faker
 from requests.exceptions import JSONDecodeError
+from xml.etree import ElementTree
 from notes.util import is_hex_color
 fake = Faker()
 
@@ -84,9 +85,9 @@ def test_get_tags(client):
 
     # test html
     r = client.get('/tags/', headers={'Accept': 'text/html'})
+    assert r.ok
     assert r.text
-    with pytest.raises(JSONDecodeError):
-        r.json()
+    ElementTree.fromstring(r.text)
 
     # test unsupported media type
     r = client.get('/tags', headers={'Accept': 'image/png'})
@@ -134,9 +135,9 @@ def test_get_note(client):
 
     # test html
     r = client.get('/notes/1', headers={'Accept': 'text/html'})
+    assert r.ok
     assert r.text
-    with pytest.raises(JSONDecodeError):
-        r.json()
+    ElementTree.fromstring(r.text)
 
     # test unsupported media type
     r = client.get('/notes/1', headers={'Accept': 'image/png'})
@@ -159,8 +160,7 @@ def test_get_notes(client):
     r = client.get('/notes', headers={'Accept': 'text/html'})
     assert r.ok
     assert r.text
-    with pytest.raises(JSONDecodeError):
-        r.json()
+    ElementTree.fromstring(r.text)
 
     # test unsupported media type
     r = client.get('/notes', headers={'Accept': 'image/png'})
