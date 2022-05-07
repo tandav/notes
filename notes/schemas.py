@@ -109,4 +109,4 @@ Note.update_forward_refs()
 
 
 class Message(BaseModel):
-    message: str
+    detail: str

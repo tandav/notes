@@ -126,7 +126,8 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
         if is_json:
             return notes
     else:
-        return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
+        return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'detail': '415 Unsupported Media Type'})
+
 
 @app.get(
     "/notes/{note_id}",
@@ -137,14 +138,27 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
             "description": "Return the html page with note",
         },
         415: {"model": schemas.Message},
-        400: {"model": schemas.Message},
+        404: {"model": schemas.Message},
     }
 )
 def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('application/json')):
-    try:
-        return crud.get_note(db, note_id)
-    except crud.NoteNotExistsError:
-        raise HTTPException(status_code=400, detail={"note dont exists": note_id})
+    accept = accept.split(',')
+    is_html = accept[0] == 'text/html'
+    is_json = 'application/json' in accept or '*/*' in accept
+    if is_html or is_json:
+        try:
+            note = crud.get_note(db, note_id)
+        except crud.NoteNotExistsError:
+            return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={f"note dont exists: {note_id}"})
+        else:
+            if is_html:
+                return HTMLResponse('<h1>Note</h1>')
+            if is_json:
+                return note
+    else:
+        return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
+
+
 
 
 @app.delete("/notes/{note_id}", response_model=list[schemas.Note])
@@ -152,7 +166,7 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
     try:
         crud.delete_note(db, note_id)
     except crud.NoteNotExistsError:
-        raise HTTPException(status_code=400, detail={"note dont exists": note_id})
+        raise HTTPException(status_code=404, detail={"note dont exists": note_id})
 
 
 @app.post('/new_note')

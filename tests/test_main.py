@@ -107,11 +107,25 @@ def test_create_note_with_tags(client):
 
 
 def test_get_note(client):
+    # test default json works
     r = client.get('/notes/1')
     assert r.ok
     assert r.json()['id'] == 1
     assert r.json()['user_id'] == 1
     assert r.json()['tags'] == []
+
+    # test json
+    assert client.get('/notes/1', headers={'Accept': 'application/json'}).ok
+
+    # test html
+    r = client.get('/notes/1', headers={'Accept': 'text/html'})
+    assert r.text
+    with pytest.raises(JSONDecodeError):
+        r.json()
+
+    # test unsupported media type
+    r = client.get('/notes/1', headers={'Accept': 'image/png'})
+    assert r.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
 
 
 def test_get_notes(client):
@@ -136,6 +150,7 @@ def test_get_notes(client):
     # test unsupported media type
     r = client.get('/notes', headers={'Accept': 'image/png'})
     assert r.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+    assert r.json() == {'detail': '415 Unsupported Media Type'}
 
 
 def test_delete_notes(client):
