@@ -94,7 +94,7 @@ def read_tags(db: Session = Depends(get_db), accept=Header('application/json')):
             rows = '\n'.join(
                 f'''
                   <tr>
-                      <td><a href='/tag/{tag.id}'>{tag.id}</a></td>
+                      <td><a href='/tags/{tag.id}'>{tag.id}</a></td>
                       <td>{tag.name}</td>
                       <td id="{tag.name}">{tag.color}</td>
                       <td title="{util.format_time(tag.updated_time, absolute=True)}">{util.format_time(tag.updated_time)}</td>
@@ -118,7 +118,7 @@ def read_tags(db: Session = Depends(get_db), accept=Header('application/json')):
                     <th>id</th>
                     <th>name</th>
                     <th>color</th>
-                    <th>updated_time</th>
+                    <th>last edit</th>
                 </tr>
             </thead>
             <tbody>
@@ -163,7 +163,7 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
                     <td><a href='/users/{note['user_id']}'>{note['user_id']}</a></td>
                     <td>{note['text']}</td>
                     <td>{util.format_url(note['url'])}</td>
-                    <td>{note['tags']}</td>
+                    <td>{','.join(f'<a href="/tags/{tag}">{tag}</a>' for tag in note['tags'])}</td>
                     <td title="{util.format_time(note['updated_time'], absolute=True)}">{util.format_time(note['updated_time'])}</td>
                 </tr>
                 '''
@@ -175,7 +175,9 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
             {CSS_FRAMEWORK}
             </head>
             <body>
+            <nav>
             {util.header(new_note=True)}
+            </nav>
             <h1>Notes</h1>
             <table>
             <thead>
@@ -185,7 +187,7 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
                     <th>text</th>
                     <th>url</th>
                     <th>tags</th>
-                    <th>updated_time</th>
+                    <th>last edit</th>
                 </tr>
             </thead>
             <tbody>
@@ -250,7 +252,6 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 <script>
                 const delete_note = note_id => {
                     if (confirm('delete confirmation')) {
-                        console.log(note_id)
                         fetch(`/notes/${note_id}`, {method: 'DELETE'})
                         window.location = "/notes"
                     }
@@ -292,6 +293,122 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 return note
     else:
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
+
+
+@app.get(
+    "/tags/{tag_id}",
+    response_model=schemas.Tag,
+    responses={
+        200: {
+            "content": {"text/html": {}},
+            "description": "Return the html page with note",
+        },
+        415: {"model": schemas.Message},
+        404: {"model": schemas.Message},
+    }
+)
+def get_tag(tag_id: int, db: Session = Depends(get_db), accept=Header('application/json')):
+    accept = accept.split(',')
+    is_html = accept[0] == 'text/html'
+    is_json = 'application/json' in accept or '*/*' in accept
+    if is_html or is_json:
+        try:
+            tag = crud.get_tag(db, tag_id)
+        except crud.NoteNotExistsError:
+            return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={f"tag dont exists: {tag_id}"})
+        else:
+            if is_json:
+                return tag
+            if is_html:
+                tags_colors = util.tags_css([tag])
+                return HTMLResponse(f'''
+                <html>
+                <head>
+                {CSS_FRAMEWORK}
+                </head>
+                <body>
+                ''' + '''
+                <script>
+                const delete_tag = tag_id => {
+                    if (confirm('delete confirmation')) {
+                        fetch(`/tags/${tag_id}`, {method: 'DELETE'})
+                        window.location = "/tags"
+                    }
+                }
+                </script>
+                ''' + f'''
+                <header>
+                <nav>
+                {util.header(new_tag=True)}
+                <button class="delete_button" onclick='delete_tag({tag_id})'>delete</button>
+                </nav>
+                <span class='metadata'>last edit: {tag.updated_time:%Y %b %d %H:%M}</span>
+                </header>
+                <h1><span>{tag.name}</span></h1>
+                ''' + f'''
+                <style>
+                .delete_button {{
+                    background-color: #EF5350;
+                }}
+                {tags_colors}
+                header {{
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }}
+                h1 span {{
+                    background-color: {tag.color};
+                    padding: 0.25em;
+                    border-radius: 4px;
+                }}
+                </style>
+                </body>
+                </html>
+                ''')
+                # tags = '\n'.join(
+                #     f'<a href="/tags/{tag.name}"><label class="tag" id="{tag.name}">{tag.name}</label></a>'
+                #     for tag in note.tags
+                # )
+                # tags_colors = util.tags_css(note.tags)
+                #
+                # url = f"<p>url: <a href='{note.url}'>{note.url}</a></p>" if note.url else ''
+                # text = f"<p>{note.text}</p>" if note.text else ''
+                # return HTMLResponse(f'''
+                # <html>
+                # <head>
+                # {CSS_FRAMEWORK}
+                # </head>
+                # ''' + '''
+                # <body>
+                # <script>
+                # const delete_note = note_id => {
+                #     if (confirm('delete confirmation')) {
+                #         console.log(note_id)
+                #         fetch(`/notes/${note_id}`, {method: 'DELETE'})
+                #         window.location = "/notes"
+                #     }
+                # }
+                # </script>
+                # ''' + f'''
+                # <header>
+                # <nav>
+                # {util.header(new_note=True)}
+                # <button class="delete_button" onclick='delete_note({note_id})'>delete</button>
+                # </nav>
+                # <span class='metadata'><a href='/users/{note.user_id}'>user_{note.user_id}</a> last edit: {note.updated_time:%Y %b %d %H:%M}</span>
+                # </header>
+                # {url}
+                # <p></p>
+                # <div class='tags'>
+                # {tags}
+                # </div>
+                # <hr/>
+                # {text}
+
+
+    else:
+        return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+                            content={'message': '415 Unsupported Media Type'})
 
 
 @app.delete("/notes/{note_id}", response_model=list[schemas.Note])
@@ -338,7 +455,7 @@ def new_note_form(db: Session = Depends(get_db)):
         <textarea type="input" placeholder="Enter your note here" form="note_form" name="text"></textarea>
       </p>
       <p>
-        <label>url</label><br>
+        <label>url (optional)</label><br>
         <input type="text" name="url">
       </p>
       <p>

@@ -48,6 +48,10 @@ def get_note(db: Session, note_id: int):
     return db.query(models.Note).filter(models.Note.id == note_id).first()
 
 
+def get_tag(db: Session, tag_id: int):
+    return db.query(models.Tag).filter(models.Tag.id == tag_id).first()
+
+
 def get_notes(db: Session, skip: int = 0, limit: int = 100):
     return [note.to_dict() for note in db.query(models.Note).order_by(models.Note.id.desc()).offset(skip).limit(limit).all()]
 

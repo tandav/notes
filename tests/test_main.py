@@ -168,7 +168,29 @@ def test_get_notes(client):
     assert r.json() == {'detail': '415 Unsupported Media Type'}
 
 
-def test_delete_notes(client):
+def test_get_tag(client):
+    # test default json works
+    r = client.get('/tags/1')
+    assert r.ok
+    assert r.json()['id'] == 1
+    assert r.json()['name'] == 'books'
+    assert r.json()['color'] == '#c0ffee'
+
+    # test json
+    assert client.get('/tags/1', headers={'Accept': 'application/json'}).ok
+
+    # test html
+    r = client.get('/tags/1', headers={'Accept': 'text/html'})
+    assert r.ok
+    assert r.text
+    ElementTree.fromstring(r.text)
+
+    # test unsupported media type
+    r = client.get('/tags/1', headers={'Accept': 'image/png'})
+    assert r.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+
+
+def test_delete_note(client):
     r = client.delete('/notes/1')
     assert r.ok
     assert 1 not in {note['id'] for note in client.get('/notes').json()}
@@ -176,8 +198,8 @@ def test_delete_notes(client):
     r = client.delete('/notes/2')
     assert 2 not in {note['id'] for note in client.get('/notes').json()}
 
+
 # def test_edit_note (change tags, change text/title/url) (check updated_time changed)
-# def test_delete_note
 # def test_delete_tag (check all notes which have tag delete reference to this tag)
 # def read_notes
 # def read_notes_of user private/public (use tag)
