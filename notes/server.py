@@ -20,6 +20,7 @@ CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water
 
 app = FastAPI()
 
+
 # Dependency
 def get_db():
     db = SessionLocal()
@@ -90,7 +91,46 @@ def read_tags(db: Session = Depends(get_db), accept=Header('application/json')):
         if is_json:
             return tags
         if is_html:
-            return HTMLResponse('<h1>tags</h1>')
+            rows = '\n'.join(
+                f'''
+                  <tr>
+                      <td><a href='/tag/{tag.id}'>{tag.id}</a></td>
+                      <td>{tag.name}</td>
+                      <td id="{tag.name}">{tag.color}</td>
+                      <td title="{util.format_time(tag.updated_time, absolute=True)}">{util.format_time(tag.updated_time)}</td>
+                  </tr>
+                  '''
+                for tag in tags
+            )
+            tags_colors = util.tags_css(tags)
+            # f'<a href="/tags/{tag.name}"><label class="tag" id="{tag.name}">{tag.name}</label></a>'
+            return HTMLResponse(f'''
+            <html>
+            <head>
+            {CSS_FRAMEWORK}
+            </head>
+            <body>
+            {util.header(new_tag=True)}
+            <h1>Tags</h1>
+            <table>
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>name</th>
+                    <th>color</th>
+                    <th>updated_time</th>
+                </tr>
+            </thead>
+            <tbody>
+            {rows}
+            </tbody>
+            </table>
+            <style>
+            {tags_colors}
+            </style>
+            </body>
+            </html>
+            ''')
     else:
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'detail': '415 Unsupported Media Type'})
 
@@ -135,7 +175,7 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
             {CSS_FRAMEWORK}
             </head>
             <body>
-            {util.header()}
+            {util.header(new_note=True)}
             <h1>Notes</h1>
             <table>
             <thead>
@@ -200,11 +240,12 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
 
                 url = f"<p>url: <a href='{note.url}'>{note.url}</a></p>" if note.url else ''
                 text = f"<p>{note.text}</p>" if note.text else ''
-                return HTMLResponse('''
+                return HTMLResponse(f'''
                 <html>
                 <head>
                 {CSS_FRAMEWORK}
                 </head>
+                ''' + '''
                 <body>
                 <script>
                 const delete_note = note_id => {
@@ -218,7 +259,7 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 ''' + f'''
                 <header>
                 <nav>
-                {util.header()}
+                {util.header(new_note=True)}
                 <button class="delete_button" onclick='delete_note({note_id})'>delete</button>
                 </nav>
                 <span class='metadata'><a href='/users/{note.user_id}'>user_{note.user_id}</a> last edit: {note.updated_time:%Y %b %d %H:%M}</span>
@@ -251,8 +292,6 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 return note
     else:
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
-
-
 
 
 @app.delete("/notes/{note_id}", response_model=list[schemas.Note])
