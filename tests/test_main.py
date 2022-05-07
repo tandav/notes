@@ -159,6 +159,8 @@ def test_delete_notes(client):
     # breakpoint()
     assert 1 not in {note['id'] for note in client.get('/notes').json()}
 
+    r = client.delete('/notes/2')
+    assert 2 not in {note['id'] for note in client.get('/notes').json()}
 
 # def test_edit_note (change tags, change text/title/url) (check updated_time changed)
 # def test_delete_note

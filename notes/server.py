@@ -15,6 +15,12 @@ from fastapi.responses import JSONResponse
 # models.Base.metadata.create_all(bind=engine)
 
 CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">'
+HEADER = """
+<a href="/notes">[notes]</a>
+<a href="/tags">[tags]</a>
+<a href="/new_note"><button>new note</button></a>
+"""
+# <a href="/new_tag"><button>new tag</button></a>
 
 app = FastAPI()
 
@@ -100,14 +106,15 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
                     <td><a href='/users/{note['user_id']}'>{note['user_id']}</td>
                     <td>{note['text']}</td>
                     <td>{util.format_url(note['url'])}</td>
-                    <td>{note['created_time']:%Y %b %d %H:%M}</td>
-                    <td>{note['updated_time']:%Y %b %d %H:%M}</td>
+                    <td>{note['tags']}</td>
+                    <td title="{util.format_time(note['updated_time'], absolute=True)}">{util.format_time(note['updated_time'])}</td>
                 </tr>
                 '''
                 for note in notes
             )
             return HTMLResponse(f'''
             {CSS_FRAMEWORK}
+            {HEADER}
             <h1>Notes</h1>
             <table>
             <thead>
@@ -116,7 +123,7 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
                     <th>user_id</th>
                     <th>text</th>
                     <th>url</th>
-                    <th>created_time</th>
+                    <th>tags</th>
                     <th>updated_time</th>
                 </tr>
             </thead>
@@ -156,13 +163,43 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
             if is_html:
                 url = f"<p>url: <a href='/users/{note.url}'>{note.url}</a></p>" if note.url else ''
                 text = f"<p>{note.text}</p>" if note.text else ''
-                return HTMLResponse(f'''
+                return HTMLResponse('''
+                <script>
+                const delete_note = note_id => {
+                    if (confirm('delete confirmation')) {
+                        console.log(note_id)
+                        fetch(`/notes/${note_id}`, {method: 'DELETE'})
+                        window.location = "/notes"
+                    }
+                }
+                </script>
+                ''' + f'''
                 {CSS_FRAMEWORK}
+                {HEADER}
+                <button onclick='delete_note({note_id})'>delete</button>
+                <form action="/notes/{note_id}" method="delete">
+                <button class="delete_button">delete</button>
+                </form>
                 <h1>Note</h1>
-                <p>user: <a href='/users/{note.user_id}'>{note.user_id}</a></p>
+                <span><a href='/users/{note.user_id}'>user_{note.user_id}</a> last edit: {note.updated_time:%Y %b %d %H:%M}</span>
                 {url}
+                <p></p>
+                <hr>
                 {text}
-                <p>updated: {note.updated_time:%Y %b %d %H:%M}</p>
+                ''' + '''
+                <style>
+                .delete_button {
+                    background-color: #EF5350;
+                }
+                #header {
+                    display: flex;
+                    align-items: center;
+                }
+                form {
+                    margin-block-end: 0em;
+                    display: inline;
+                }
+                <style>
                 ''')
             if is_json:
                 return note
@@ -208,10 +245,7 @@ def new_note_form(db: Session = Depends(get_db)):
 
     html = f"""
     {CSS_FRAMEWORK}
-    <a href="/notes">[notes]</a>
-    <a href="/tags">[tags]</a>
-    <a href="/new_tag"><button>new tag</button></a>
-    <a href="/new_note"><button>new note</button></a>
+    {HEADER}
     <h1>create note</h1>
     <form action="/new_note" method="post" id="note_form">
       <p>

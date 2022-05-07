@@ -1,7 +1,7 @@
 import datetime
 import string
 
-def _ago(e):
+def _ago(e) -> str:
     # e: pass timedelta between timestamps in 1579812524 format
     e *= 1000 # convert to 1579812524000 format
     t = round(e / 1000)
@@ -26,7 +26,7 @@ def _ago(e):
 
 
 def ago(t: datetime.datetime):
-    return _ago((datetime.datetime.utcnow() - t).total_seconds())
+    return _ago((datetime.datetime.now() - t).total_seconds())
 
 
 def is_hex_color(v: str) -> bool:
@@ -37,3 +37,9 @@ def format_url(url: str | None) -> str:
     if url is None:
         return 'null'
     return f"<a href='{url}'>{url}</a>"
+
+
+def format_time(t: datetime.datetime, absolute: bool = False) -> str:
+    if absolute or (datetime.datetime.now() - t).days > 30:
+        return t.strftime('%Y %b %d %H:%M')
+    return ago(t)

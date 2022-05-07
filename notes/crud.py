@@ -49,7 +49,7 @@ def get_note(db: Session, note_id: int):
 
 
 def get_notes(db: Session, skip: int = 0, limit: int = 100):
-    return [note.to_dict() for note in db.query(models.Note).offset(skip).limit(limit).all()]
+    return [note.to_dict() for note in db.query(models.Note).order_by(models.Note.id.desc()).offset(skip).limit(limit).all()]
 
 
 def delete_note(db: Session, note_id: int):
