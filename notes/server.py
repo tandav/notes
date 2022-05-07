@@ -135,6 +135,50 @@ def read_tags(db: Session = Depends(get_db), accept=Header('application/json')):
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'detail': '415 Unsupported Media Type'})
 
 
+def notes_table(notes: list) -> tuple[str, str]:
+    rows = '\n'.join(
+        f'''
+        <tr>
+            <td><a href='/notes/{note['id']}'>{note['id']}</a></td>
+            <td><a href='/users/{note['user_id']}'>{note['user_id']}</a></td>
+            <td>{note['text']}</td>
+            <td>{util.format_url(note['url'])}</td>
+            <td>{','.join(f'<a href="/tags/{tag}">{tag}</a>' for tag in note['tags'])}</td>
+            <td title="{util.format_time(note['updated_time'], absolute=True)}">{util.format_time(note['updated_time'])}</td>
+        </tr>
+        '''
+        for note in notes
+    )
+    html = f'''
+    <table>
+    <thead>
+        <tr>
+            <th>id</th>
+            <th>user_id</th>
+            <th>text</th>
+            <th>url</th>
+            <th>tags</th>
+            <th>last edit</th>
+        </tr>
+    </thead>
+    <tbody>
+    {rows}
+    </tbody>
+    </table>
+    '''
+
+    css = '''
+    td {
+        max-width:100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    '''
+
+    return html, css
+
+
 @app.get(
     "/notes/",
     response_model=list[schemas.Note],
@@ -156,19 +200,7 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
         if is_json:
             return notes
         if is_html:
-            rows = '\n'.join(
-                f'''
-                <tr>
-                    <td><a href='/notes/{note['id']}'>{note['id']}</a></td>
-                    <td><a href='/users/{note['user_id']}'>{note['user_id']}</a></td>
-                    <td>{note['text']}</td>
-                    <td>{util.format_url(note['url'])}</td>
-                    <td>{','.join(f'<a href="/tags/{tag}">{tag}</a>' for tag in note['tags'])}</td>
-                    <td title="{util.format_time(note['updated_time'], absolute=True)}">{util.format_time(note['updated_time'])}</td>
-                </tr>
-                '''
-                for note in notes
-            )
+            table_html, table_css = notes_table(notes)
             return HTMLResponse(f'''
             <html>
             <head>
@@ -179,29 +211,10 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
             {util.header(new_note=True)}
             </nav>
             <h1>Notes</h1>
-            <table>
-            <thead>
-                <tr>
-                    <th>id</th>
-                    <th>user_id</th>
-                    <th>text</th>
-                    <th>url</th>
-                    <th>tags</th>
-                    <th>last edit</th>
-                </tr>
-            </thead>
-            <tbody>
-            {rows}
-            </tbody>
-            </table>
-            ''' + '''
+            {table_html}
+            ''' + f'''
             <style>
-            td {
-                max-width:100%;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
+            {table_css}
             </style>
             </body>
             </html>
@@ -326,6 +339,8 @@ def get_tag(tag_id: int, db: Session = Depends(get_db), accept=Header('applicati
                 return tag
             if is_html:
                 tags_colors = util.tags_css([tag])
+
+                table_html, table_css = notes_table([note.to_dict() for note in tag.notes])
                 return HTMLResponse(f'''
                 <html>
                 <head>
@@ -350,6 +365,7 @@ def get_tag(tag_id: int, db: Session = Depends(get_db), accept=Header('applicati
                 <span class='metadata'>last edit: {tag.updated_time:%Y %b %d %H:%M}</span>
                 </header>
                 <h1><span>{tag.name}</span></h1>
+                {table_html}
                 ''' + f'''
                 <style>
                 .delete_button {{
@@ -366,6 +382,7 @@ def get_tag(tag_id: int, db: Session = Depends(get_db), accept=Header('applicati
                     padding: 0.25em;
                     border-radius: 4px;
                 }}
+                {table_css}
                 </style>
                 </body>
                 </html>
