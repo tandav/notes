@@ -104,3 +104,9 @@ class Tag(TagBase):
 NoteCreate.update_forward_refs()
 Note.update_forward_refs()
 # Tag.update_forward_refs()
+
+# ===================================================================================
+
+
+class Message(BaseModel):
+    message: str

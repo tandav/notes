@@ -52,10 +52,8 @@ class Note(Base):
         return {
             'id': self.id,
             'user_id': self.user_id,
-            # 'title': self.title,
             'text': self.text,
             'url': self.url,
-            # 'is_private': self.is_private,
             'created_time': self.created_time,
             'updated_time': self.updated_time,
             'tags': [tag.name for tag in self.tags],

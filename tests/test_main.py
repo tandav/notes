@@ -2,7 +2,7 @@ import pytest
 from http import HTTPStatus
 from notes import models
 from faker import Faker
-from notes import crud
+from requests.exceptions import JSONDecodeError
 from notes.util import is_hex_color
 fake = Faker()
 
@@ -105,16 +105,37 @@ def test_create_note_with_tags(client):
     assert r.status_code == HTTPStatus.BAD_REQUEST
     assert r.json() == {"detail": {"tags dont exists": ['tag_does_not_exist']}}
 
-
 def test_read_notes(client):
+    # test default json works
     r = client.get('/notes')
     assert r.ok
     assert len(r.json()) == 5, r.json()
+
+    # test json
+    r = client.get('/notes', headers={'Accept': 'application/json'})
+    assert r.ok
+    assert len(r.json()) == 5, r.json()
+
+
+    # test html
+    r = client.get('/notes', headers={'Accept': 'text/html'})
+    assert r.ok
+    assert r.text
+    with pytest.raises(JSONDecodeError):
+        r.json()
+
+
+    # test unsupported media type
+    # r = client.get('/notes', headers={'Accept': 'application/json'})
+    # assert r.ok
+    # assert len(r.json()) == 5, r.json()
+
 
 
 def test_delete_notes(client):
     r = client.delete('/notes/1')
     assert r.ok
+    # breakpoint()
     assert 1 not in {note['id'] for note in client.get('/notes').json()}
 
 

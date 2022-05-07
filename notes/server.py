@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, HTTPException, Form
+from fastapi import Depends, FastAPI, HTTPException, Form, Header
 from sqlalchemy.orm import Session
 from fastapi.responses import HTMLResponse
 from fastapi.responses import RedirectResponse
@@ -71,9 +71,27 @@ def read_tags(db: Session = Depends(get_db)):
     return crud.get_tags(db)
 
 
-@app.get("/notes/", response_model=list[schemas.Note])
-def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return crud.get_notes(db, skip=skip, limit=limit)
+@app.get(
+    "/notes/",
+    response_model=list[schemas.Note],
+    responses={
+        200: {
+            "content": {"text/html": {}},
+            "description": "Return the html page with list of notes",
+        },
+        415: {"model": schemas.Message},
+    }
+)
+def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), accept=Header('application/json')):
+    accept = accept.split(',')
+
+    if accept[0] == 'text/html':
+        return HTMLResponse('<h1>Notes</h1>')
+    if 'application/json' in accept or '*/*' in accept:
+        return crud.get_notes(db, skip=skip, limit=limit)
+    else:
+        return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
+
 
 
 @app.delete("/notes/{note_id}", response_model=list[schemas.Note])
@@ -85,27 +103,21 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
 
 @app.post('/new_note')
 # async def save_note(text: str = Form(...), url):
-async def save_note(request: Request, db: Session = Depends(get_db)):
+async def new_note_handle_form(request: Request, db: Session = Depends(get_db)):
 
     form = await request.form()
 
-    data = {
-        'text': form.get('text'),
-        'url': form.get('url'),
-        'tags': form.getlist('tags'),
-
-    }
-    crud.create_note(db)
-    print(form)
-    print(data)
-    # print(text, url, tags)
-    # db.insert(text)
-    # print(text)
-    return RedirectResponse('/', status_code=HTTPStatus.CREATED)
+    note = schemas.NoteCreate(
+        text=form.get('text') or None,
+        url=form.get('url') or None,
+        tags=form.getlist('tags'),
+    )
+    create_note(username='test_user', note=note, db=db)
+    return RedirectResponse('/', status_code=HTTPStatus.FOUND)
 
 
-@app.get('/', response_class=HTMLResponse)
-def root(db: Session = Depends(get_db)):
+@app.get('/new_note', response_class=HTMLResponse)
+def new_note_form(db: Session = Depends(get_db)):
     tags = crud.get_tags(db)
     tags_checkboxes = '\n'.join(
         # f'<label class="tag" id="{tag.name}"><input type="checkbox" name="{tag.name}" value="{tag.name}">{tag.name}</label>'
@@ -117,6 +129,9 @@ def root(db: Session = Depends(get_db)):
 
     html = f"""
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+    <a href="/notes">[notes]</a>
+    <a href="/tags">[tags]</a>
+    <a href="/new_tag"><button>new tag</button></a>
     <h1>create note</h1>
     <form action="/new_note" method="post" id="note_form">
       <p>
@@ -124,7 +139,7 @@ def root(db: Session = Depends(get_db)):
         <textarea type="input" rows="8" cols="48" placeholder="Enter your note here" form="note_form" name="text"></textarea>
       </p>
       <p>
-        <label>url (optional)</label><br>
+        <label>url</label><br>
         <input type="text" name="url">
       </p>
       <p>
@@ -138,12 +153,6 @@ def root(db: Session = Depends(get_db)):
       </p>
     </form>
     """
-
-    # tags_colors = '\n'.join(f'''
-    # label > input[value='{tag.name}'] {{
-    #     background-color: {tag.color};
-    # }}
-    # ''' for tag in tags)
 
     tags_colors = '\n'.join(f'''
     #{tag.name} {{
@@ -165,6 +174,12 @@ def root(db: Session = Depends(get_db)):
     '''
     return html + css
 
+@app.get('/', response_class=HTMLResponse)
+def root(db: Session = Depends(get_db)):
+    return RedirectResponse('/new_note')
+# @app.get('/', response_class=HTMLResponse)
+# def create_tag_page(db: Session = Depends(get_db)):
+#     return
 
 #     db.insert(text)
 #     print(text)

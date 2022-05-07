@@ -7,3 +7,8 @@ run:
 .PHONY: test
 test:
 	$(python) -m pytest -s -vv --asyncio-mode=strict tests
+
+
+.PHONY: create
+create:
+	$(python) -m notes.database create

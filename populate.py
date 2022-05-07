@@ -76,9 +76,11 @@
 
 
 from notes import models
+from notes import database
+
 
 def main():
-    pass
+
 
 if __name__ == '__main__':
     main()
