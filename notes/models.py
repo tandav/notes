@@ -36,7 +36,7 @@ class Note(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('user.id'))
     # username = Column(String, ForeignKey('user.username'))
-    title = Column(String, index=True, nullable=True)
+    # title = Column(String, index=True, nullable=True)
     text = Column(String, nullable=True)
     url = Column(String, nullable=True)
     # is_private = Column(Boolean, nullable=False, default=False)
@@ -52,7 +52,7 @@ class Note(Base):
         return {
             'id': self.id,
             'user_id': self.user_id,
-            'title': self.title,
+            # 'title': self.title,
             'text': self.text,
             'url': self.url,
             # 'is_private': self.is_private,

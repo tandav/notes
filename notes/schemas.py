@@ -7,7 +7,7 @@ from notes.util import is_hex_color
 
 
 class NoteBase(BaseModel):
-    title: str | None = None
+    # title: str | None = None
     text: str | None = None
     url: str | None = None
     # is_private: bool

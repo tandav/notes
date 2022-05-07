@@ -85,11 +85,19 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
 
 @app.post('/new_note')
 # async def save_note(text: str = Form(...), url):
-async def save_note(request: Request):
+async def save_note(request: Request, db: Session = Depends(get_db)):
 
     form = await request.form()
+
+    data = {
+        'text': form.get('text'),
+        'url': form.get('url'),
+        'tags': form.getlist('tags'),
+
+    }
+    crud.create_note(db)
     print(form)
-    # breakpoint()
+    print(data)
     # print(text, url, tags)
     # db.insert(text)
     # print(text)
@@ -101,7 +109,8 @@ def root(db: Session = Depends(get_db)):
     tags = crud.get_tags(db)
     tags_checkboxes = '\n'.join(
         # f'<label class="tag" id="{tag.name}"><input type="checkbox" name="{tag.name}" value="{tag.name}">{tag.name}</label>'
-        f'<label class="tag" id="{tag.name}"><input type="checkbox" name="{tag.name}">{tag.name}</label>'
+        f'<label class="tag" id="{tag.name}"><input type="checkbox" name="tags" value="{tag.name}">{tag.name}</label>'
+        # f'<label class="tag" id="{tag.name}"><input type="checkbox" name="{tag.name}">{tag.name}</label>'
         for tag in tags
     )
     # colors = {tag.name}
@@ -117,10 +126,6 @@ def root(db: Session = Depends(get_db)):
       <p>
         <label>url (optional)</label><br>
         <input type="text" name="url">
-      </p>
-      <p>
-        <label>u2</label><br>
-        <input type="text" name="u2">
       </p>
       <p>
         <label>tags</label><br>

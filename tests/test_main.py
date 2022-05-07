@@ -49,9 +49,8 @@ def test_username_already_registred(client):
 def test_create_note(client):
     for _ in range(3):
         r = client.post('/users/test_user/notes/', json={
-            "title": fake.text(max_nb_chars=30),
             "text": fake.text(max_nb_chars=200),
-            # "is_private": False,
+            "url": fake.uri(),
             "tags": [],
         })
         assert r.ok, r.json()
@@ -83,15 +82,15 @@ def test_get_tags(client):
 def test_create_note_with_tags(client):
     # 1 tag
     r = client.post('/users/test_user/notes/', json={
-        "title": fake.text(max_nb_chars=30),
         "text": fake.text(max_nb_chars=200),
+        "url": fake.uri(),
         "tags": ['books'],
     })
     assert r.ok
 
     # 2 tag
     r = client.post('/users/test_user/notes/', json={
-        "title": fake.text(max_nb_chars=30),
+        # "title": fake.text(max_nb_chars=30),
         "text": fake.text(max_nb_chars=200),
         "tags": ['books', 'groceries'],
     })
@@ -99,8 +98,8 @@ def test_create_note_with_tags(client):
 
     # test error when tags does not exists
     r = client.post('/users/test_user/notes/', json={
-        "title": fake.text(max_nb_chars=30),
         "text": fake.text(max_nb_chars=200),
+        "url": fake.uri(),
         "tags": ['books', 'groceries', 'tag_does_not_exist'],
     })
     assert r.status_code == HTTPStatus.BAD_REQUEST
