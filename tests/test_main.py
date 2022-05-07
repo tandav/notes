@@ -105,7 +105,15 @@ def test_create_note_with_tags(client):
     assert r.status_code == HTTPStatus.BAD_REQUEST
     assert r.json() == {"detail": {"tags dont exists": ['tag_does_not_exist']}}
 
-def test_read_notes(client):
+
+def test_get_notes(client):
+    # test single note
+    r = client.get('/notes/1')
+    assert r.ok
+    assert r.json()['id'] == 1
+    assert r.json()['user_id'] == 1
+    assert r.json()['tags'] == []
+
     # test default json works
     r = client.get('/notes')
     assert r.ok
@@ -129,7 +137,6 @@ def test_read_notes(client):
     # r = client.get('/notes', headers={'Accept': 'application/json'})
     # assert r.ok
     # assert len(r.json()) == 5, r.json()
-
 
 
 def test_delete_notes(client):

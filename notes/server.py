@@ -85,13 +85,55 @@ def read_tags(db: Session = Depends(get_db)):
 def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), accept=Header('application/json')):
     accept = accept.split(',')
 
-    if accept[0] == 'text/html':
-        return HTMLResponse('<h1>Notes</h1>')
-    if 'application/json' in accept or '*/*' in accept:
-        return crud.get_notes(db, skip=skip, limit=limit)
+    is_html = accept[0] == 'text/html'
+    is_json = 'application/json' in accept or '*/*' in accept
+
+    if is_html or is_json:
+        notes = crud.get_notes(db, skip=skip, limit=limit)
+        if is_html:
+            rows = '\n'.join(
+                f'''
+                <tr>
+                    <td><a href='/notes/{note['id']}'>{note['id']}</a></td>
+                    <td>{note['user_id']}</td>
+                    <td>{note['text']}</td>
+                    <td>{note['url']}</td>
+                    <td>{note['created_time']}</td>
+                    <td>{note['updated_time']}</td>
+                </tr>
+                '''
+                for note in notes
+            )
+            return HTMLResponse(f'''
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+            <h1>Notes</h1>
+            <table>
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>user_id</th>
+                    <th>text</th>
+                    <th>url</th>
+                    <th>created_time</th>
+                    <th>updated_time</th>
+                </tr>
+            </thead>
+            <tbody>
+            {rows}
+            </tbody>
+            </table>
+            ''')
+        if is_json:
+            return notes
     else:
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
 
+@app.get("/notes/{note_id}", response_model=schemas.Note)
+def get_note(note_id: int, db: Session = Depends(get_db)):
+    try:
+        return crud.get_note(db, note_id)
+    except crud.NoteNotExistsError:
+        raise HTTPException(status_code=400, detail={"note dont exists": note_id})
 
 
 @app.delete("/notes/{note_id}", response_model=list[schemas.Note])
@@ -100,6 +142,7 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
         crud.delete_note(db, note_id)
     except crud.NoteNotExistsError:
         raise HTTPException(status_code=400, detail={"note dont exists": note_id})
+
 
 @app.post('/new_note')
 # async def save_note(text: str = Form(...), url):
