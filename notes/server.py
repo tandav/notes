@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi.responses import HTMLResponse
 from fastapi.responses import RedirectResponse
 from http import HTTPStatus
+from fastapi import Request
 
 from notes import crud
 from notes import models
@@ -82,12 +83,25 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
     except crud.NoteNotExistsError:
         raise HTTPException(status_code=400, detail={"note dont exists": note_id})
 
+@app.post('/new_note')
+# async def save_note(text: str = Form(...), url):
+async def save_note(request: Request):
+
+    form = await request.form()
+    print(form)
+    # breakpoint()
+    # print(text, url, tags)
+    # db.insert(text)
+    # print(text)
+    return RedirectResponse('/', status_code=HTTPStatus.CREATED)
+
 
 @app.get('/', response_class=HTMLResponse)
 def root(db: Session = Depends(get_db)):
     tags = crud.get_tags(db)
     tags_checkboxes = '\n'.join(
-        f'<label class="tag" id="{tag.name}"><input type="checkbox" value="{tag.name}">{tag.name}</label>'
+        # f'<label class="tag" id="{tag.name}"><input type="checkbox" name="{tag.name}" value="{tag.name}">{tag.name}</label>'
+        f'<label class="tag" id="{tag.name}"><input type="checkbox" name="{tag.name}">{tag.name}</label>'
         for tag in tags
     )
     # colors = {tag.name}
@@ -95,14 +109,18 @@ def root(db: Session = Depends(get_db)):
     html = f"""
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
     <h1>create note</h1>
-    <form action="/signup" method="post">
+    <form action="/new_note" method="post" id="note_form">
       <p>
         <label for="textarea">text</label>
-        <textarea id="textarea" rows="8" cols="48" placeholder="Enter your message here"></textarea>
+        <textarea type="input" rows="8" cols="48" placeholder="Enter your note here" form="note_form" name="text"></textarea>
       </p>
       <p>
         <label>url (optional)</label><br>
-        <input type="text" name="title">
+        <input type="text" name="url">
+      </p>
+      <p>
+        <label>u2</label><br>
+        <input type="text" name="u2">
       </p>
       <p>
         <label>tags</label><br>
