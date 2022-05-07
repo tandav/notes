@@ -74,9 +74,13 @@ def test_create_tags(client):
 
 
 def test_get_tags(client):
+    # test default json works
     r = client.get('/tags/')
     assert r.ok
     assert [tag['name'] for tag in r.json()] == ['books', 'groceries']
+
+    # test json
+    # assert client.get('/tags/1', headers={'Accept': 'application/json'}).ok
 
 
 def test_create_note_with_tags(client):
@@ -156,7 +160,6 @@ def test_get_notes(client):
 def test_delete_notes(client):
     r = client.delete('/notes/1')
     assert r.ok
-    # breakpoint()
     assert 1 not in {note['id'] for note in client.get('/notes').json()}
 
     r = client.delete('/notes/2')

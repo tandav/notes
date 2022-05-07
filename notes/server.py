@@ -70,9 +70,27 @@ def create_tag(tag: schemas.TagCreate, db: Session = Depends(get_db)):
     return crud.create_tag(db, tag)
 
 
-@app.get('/tags/', response_model=list[schemas.Tag])
-def read_tags(db: Session = Depends(get_db)):
-    return crud.get_tags(db)
+@app.get(
+    "/tags/",
+    response_model=list[schemas.Tag],
+    responses={
+        200: {
+            "content": {"text/html": {}},
+            "description": "Return the html page with list of notes",
+        },
+        415: {"model": schemas.Message},
+    }
+)
+def read_tags(db: Session = Depends(get_db), accept=Header('application/json')):
+    accept = accept.split(',')
+    is_html = accept[0] == 'text/html'
+    is_json = 'application/json' in accept or '*/*' in accept
+    if is_html or is_json:
+        tags = crud.get_tags(db)
+        if is_json:
+            return tags
+        if is_html:
+            return HTMLResponse('<h1>tags</h1>')
 
 
 @app.get(
@@ -88,12 +106,13 @@ def read_tags(db: Session = Depends(get_db)):
 )
 def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), accept=Header('application/json')):
     accept = accept.split(',')
-
     is_html = accept[0] == 'text/html'
     is_json = 'application/json' in accept or '*/*' in accept
 
     if is_html or is_json:
         notes = crud.get_notes(db, skip=skip, limit=limit)
+        if is_json:
+            return notes
         if is_html:
             rows = '\n'.join(
                 f'''
@@ -137,8 +156,7 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
             }
             </style>
             ''')
-        if is_json:
-            return notes
+
     else:
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'detail': '415 Unsupported Media Type'})
 

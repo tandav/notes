@@ -107,12 +107,8 @@ def create_tag(db: Session, tag: schemas.TagCreate):
     return db_tag
 
 
-# def get_tag_by_name(db: Session, name: str):
-#     return db.query(models.Tag).filter(models.Tag.name == name).first()
-
-
-def get_note_tags(db: Session, note: schemas.Note):
-    return db.query(models.Tag).filter(models.Tag.name.in_(note.tags)).all()
+def get_tag_by_name(db: Session, name: str):
+    return db.query(models.Tag).filter(models.Tag.name == name).first()
 
 
 def get_tags(db: Session):
