@@ -442,11 +442,8 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
 
 
 @app.post('/new_note')
-# async def save_note(text: str = Form(...), url):
 async def new_note_handle_form(request: Request, db: Session = Depends(get_db)):
-
     form = await request.form()
-
     note = schemas.NoteCreate(
         text=form.get('text') or None,
         url=form.get('url') or None,
@@ -454,6 +451,17 @@ async def new_note_handle_form(request: Request, db: Session = Depends(get_db)):
     )
     create_note(username='test_user', note=note, db=db)
     return RedirectResponse('/', status_code=HTTPStatus.FOUND)
+
+
+@app.post('/new_tag')
+async def new_tag_handle_form(request: Request, db: Session = Depends(get_db)):
+    form = await request.form()
+    tag = schemas.TagCreate(
+        name=form['name'],
+        color=form.get('color') or None,
+    )
+    create_tag(tag=tag, db=db)
+    return RedirectResponse('/tags', status_code=HTTPStatus.FOUND)
 
 
 @app.get('/new_note', response_class=HTMLResponse)
@@ -510,6 +518,39 @@ def new_note_form(db: Session = Depends(get_db)):
     </style>
     '''
     return html + css
+
+
+@app.get('/new_tag', response_class=HTMLResponse)
+def new_tag_form(db: Session = Depends(get_db)):
+    html = f'''
+    {CSS_FRAMEWORK}
+    {util.header(new_note=False)}
+    <h1>create tag</h1>
+    <form action="/new_tag" method="post" id="tag_form">
+      <p>
+        <label>name</label>
+        <input type="text" name="name">
+      </p>
+      <p>
+        <label>color</label>
+        <input type="color" name="url">
+      </p>
+      </p>
+      <p>
+        <button>create</button>
+      </p>
+    </form>
+    '''
+
+    css = f'''
+    <style>
+    input[name=name] {{
+        width: 100%;
+    }}
+    </style>
+    '''
+    return html + css
+
 
 @app.get('/', response_class=HTMLResponse)
 def root(db: Session = Depends(get_db)):
