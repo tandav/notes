@@ -91,6 +91,8 @@ def read_tags(db: Session = Depends(get_db), accept=Header('application/json')):
             return tags
         if is_html:
             return HTMLResponse('<h1>tags</h1>')
+    else:
+        return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'detail': '415 Unsupported Media Type'})
 
 
 @app.get(

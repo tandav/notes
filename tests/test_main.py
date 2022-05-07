@@ -80,7 +80,18 @@ def test_get_tags(client):
     assert [tag['name'] for tag in r.json()] == ['books', 'groceries']
 
     # test json
-    # assert client.get('/tags/1', headers={'Accept': 'application/json'}).ok
+    assert client.get('/tags/', headers={'Accept': 'application/json'}).ok
+
+    # test html
+    r = client.get('/tags/', headers={'Accept': 'text/html'})
+    assert r.text
+    with pytest.raises(JSONDecodeError):
+        r.json()
+
+    # test unsupported media type
+    r = client.get('/tags', headers={'Accept': 'image/png'})
+    assert r.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+    assert r.json() == {'detail': '415 Unsupported Media Type'}
 
 
 def test_create_note_with_tags(client):
