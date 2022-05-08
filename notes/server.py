@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, HTTPException, Form, Header
+from fastapi import Depends, FastAPI, HTTPException, Form, Header, Query
 from sqlalchemy.orm import Session
 from fastapi.responses import HTMLResponse
 from fastapi.responses import RedirectResponse
@@ -451,8 +451,12 @@ def note_form(
 ):
     if action == 'new_note':
         button_text = 'create'
-        text = ''
-        url = ''
+        if note is not None and isinstance(note, schemas.NoteCreate):
+            text = note.text
+            url = note.url
+        else:
+            text = ''
+            url = ''
         form_action = '/new_note'
     elif action == 'edit_note':
         # assert note_id is not None
@@ -473,7 +477,13 @@ def note_form(
     tags = crud.get_tags(db)
     tags_checkboxes = []
     for tag in crud.get_tags(db):
-        checked = ' checked' if action == 'edit_note' and tag in note.tags else ''
+        if isinstance(note, models.Note) and tag in note.tags:
+            checked = ' checked'
+        elif isinstance(note, schemas.NoteCreate) and tag.name in note.tags:
+            checked = ' checked'
+        else:
+            checked = ''
+
         # {"" if action == "edit_note" and tag.name in note_tags}
         s = f'<label class="tag" id="{tag.name}"><input type="checkbox" name="tags" value="{tag.name}"{checked}>{tag.name}</label>'
         tags_checkboxes.append(s)
@@ -490,7 +500,7 @@ def note_form(
       </p>
       <p>
         <label>url (optional)</label><br>
-        <input type="text" name="url"{url}>
+        <input type="text" name="url" value="{url}"/>
       </p>
       <p>
         <label>tags</label><br>
@@ -524,8 +534,19 @@ def note_form(
 
 
 @app.get('/new_note', response_class=HTMLResponse)
-def new_note_form(db: Session = Depends(get_db)):
-    return note_form(db, action='new_note')
+def new_note_form(
+    text: str | None = None,
+    url: str | None = None,
+    tags: str | None = None,
+    db: Session = Depends(get_db),
+):
+    if text or url or tags:
+        if tags is not None:
+            tags = tags.split(',')
+        note = schemas.NoteCreate(text=text, url=url, tags=tags)
+    else:
+        note = None
+    return note_form(db, action='new_note', note=note)
 
 
 @app.get('/notes/{note_id}/edit', response_class=HTMLResponse)
