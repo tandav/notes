@@ -473,7 +473,6 @@ def note_form(
     else:
         raise ValueError
 
-
     tags = crud.get_tags(db)
     tags_checkboxes = []
     for tag in crud.get_tags(db):
@@ -540,9 +539,9 @@ def new_note_form(
     tags: str | None = None,
     db: Session = Depends(get_db),
 ):
+    # breakpoint()
     if text or url or tags:
-        if tags is not None:
-            tags = tags.split(',')
+        tags = [] if tags is None else  tags.split(',')
         note = schemas.NoteCreate(text=text, url=url, tags=tags)
     else:
         note = None
