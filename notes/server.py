@@ -8,6 +8,7 @@ from fastapi import Request
 from notes import crud
 from notes import util
 from notes import schemas
+from notes import models
 from notes.database import SessionLocal, engine
 from fastapi.responses import JSONResponse
 
@@ -444,19 +445,27 @@ async def new_tag_handle_form(request: Request, db: Session = Depends(get_db)):
     return RedirectResponse('/tags', status_code=HTTPStatus.FOUND)
 
 
-def note_form(db: Session, action: str, note_id: int | None = None):
+def note_form(
+    db: Session, action: str,#, note_id: int | None = None,
+    note: schemas.NoteCreate | models.Note | None = None,
+):
     if action == 'new_note':
         button_text = 'create'
         text = ''
         url = ''
         form_action = '/new_note'
     elif action == 'edit_note':
-        assert note_id is not None
-        note = crud.get_note(db, note_id)
+        # assert note_id is not None
+        # note = crud.get_note(db, note_id)
+        # text = note.text
+        # url = note.url
+        # button_text = 'save'
+        # form_action = f'/notes/{note_id}/edit'
+        assert note is not None and isinstance(note, models.Note)
         text = note.text
         url = note.url
         button_text = 'save'
-        form_action = f'/notes/{note_id}/edit'
+        form_action = f'/notes/{note.id}/edit'
     else:
         raise ValueError
 
@@ -521,7 +530,8 @@ def new_note_form(db: Session = Depends(get_db)):
 
 @app.get('/notes/{note_id}/edit', response_class=HTMLResponse)
 def edit_note_form(note_id: int, db: Session = Depends(get_db)):
-    return note_form(db, action='edit_note', note_id=note_id)
+    note = crud.get_note(db, note_id)
+    return note_form(db, action='edit_note', note=note)
 
 
 @app.get('/new_tag', response_class=HTMLResponse)
@@ -537,7 +547,7 @@ def new_tag_form():
       </p>
       <p>
         <label>color</label>
-        <input type="color" name="color">
+        <input type="color" name="color" value="none">
       </p>
       </p>
       <p>

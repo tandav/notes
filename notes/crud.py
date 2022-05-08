@@ -57,7 +57,16 @@ def get_tag(db: Session, name: str):
 
 
 def get_notes(db: Session, skip: int = 0, limit: int = 100):
-    return [note.to_dict() for note in db.query(models.Note).order_by(models.Note.id.desc()).offset(skip).limit(limit).all()]
+    return [
+        note.to_dict()
+        for note in
+        db
+        .query(models.Note)
+        .order_by(models.Note.id.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    ]
 
 
 def delete_note(db: Session, note_id: int):
@@ -109,7 +118,7 @@ def create_tag(db: Session, tag: schemas.TagCreate):
     now = datetime.datetime.now()
     tag_dict = tag.dict()
 
-    if tag_dict.get('color') is None:
+    if tag_dict.get('color') is None or tag_dict['color'] == '#000000':
         tag_dict['color'] = f"#{int.from_bytes(random.randbytes(3), 'little'):06x}"
 
     db_tag = models.Tag(**tag_dict, created_time=now, updated_time=now)
