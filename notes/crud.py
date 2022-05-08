@@ -47,7 +47,7 @@ def create_user(db: Session, user: schemas.UserCreate) -> schemas.User:
 def get_note(db: Session, note_id: int):
     note = db.query(models.Note).filter(models.Note.id == note_id).first()
     if note is None:
-        raise NoteNotExistsError
+        raise NoteNotExistsError(note_id)
     return note
 
 
@@ -70,41 +70,38 @@ def delete_tag(db: Session, name: str):
     db.commit()
 
 
-# def get_tags_by_names(db: Session, tags: list[str]):
-#     return db.query(models.Tag).filter(models.Tag.name.in_(tags)).all()
-
-
 def create_note(db: Session, note: schemas.NoteCreate, username: str):
     user = get_user_by_username(db, username)
     now = datetime.datetime.now()
-
-    # sam = User()
-    # sam.name = 'sam'
-    # sam_teams = session.query(Teams).filter(Teams.name.in_(['wildcats', 'jokers'])).all()
-    # sam.teams = [team for team in sam_teams]
-
     note_dict = note.dict()
 
     if note.tags:
-        # tags = get_note_tags(db, note)
         tags = db.query(models.Tag).filter(models.Tag.name.in_(note.tags)).all()
         if unknown_tags := set(note.tags) - {tag.name for tag in tags}:
             raise TagNotExistsError(list(unknown_tags))
-
         note_dict = {**note.dict(), 'tags': tags}
 
     db_note = models.Note(**note_dict, user_id=user.id, created_time=now, updated_time=now)
-    # db_note.tags = [tag for tag in db.query(models.Tag).filter(models.Tag.name.in_([note.tags])).all()]
-
     db.add(db_note)
     db.commit()
     db.refresh(db_note)
+    return db_note.to_dict()
 
-    # convert tags to str befor return
-    # db_note.tags = [tag.name for tag in db_note.tags]
+
+def edit_note(db: Session, note: schemas.NoteCreate, note_id: int):
+    db_note = get_note(db, note_id)
+    db_note.text = note.text
+    db_note.url = note.url
+    db_note.updated_time = datetime.datetime.now()
+
     # if note.tags:
     #     breakpoint()
-    return db_note.to_dict()
+    tags = db.query(models.Tag).filter(models.Tag.name.in_(note.tags)).all()
+    if unknown_tags := set(note.tags) - {tag.name for tag in tags}:
+        raise TagNotExistsError(list(unknown_tags))
+    db_note.tags = tags
+    db.refresh(db_note)
+    return db_note
 
 
 def create_tag(db: Session, tag: schemas.TagCreate):

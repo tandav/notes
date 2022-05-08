@@ -116,7 +116,7 @@ def test_create_note_with_tags(client):
         "url": fake.uri(),
         "tags": ['books', 'groceries', 'tag_does_not_exist'],
     })
-    assert r.status_code == HTTPStatus.BAD_REQUEST
+    assert r.status_code == HTTPStatus.NOT_FOUND
     assert r.json() == {"detail": {"tags dont exists": ['tag_does_not_exist']}}
 
 
@@ -233,5 +233,29 @@ def test_get_user_by_username(client):
     assert r.json()['id'] == 1
 
 
-# def test_edit_note (change tags, change text/title/url) (check updated_time changed)
-# def read_notes_of user private/public (use tag)
+
+# @pytest.mark.parametrize('text', [])
+# @pytest.mark.parametrize('url', [])
+# @pytest.mark.parametrize('tags', [])
+# def test_edit_note(client, text, url, tags, edit_text, edit_url, edit_tags):
+#     assert client.post('/users/test_user/notes/', json={
+#         "text": fake.text(max_nb_chars=200),
+#         ""
+#         "tags": ['books', 'groceries'],
+#     }).ok
+
+
+def test_edit_note_not_exists(client):
+    # test error raised when try to edit non-existing note
+    r = client.post('/notes/42/edit/', json={'text': 'test', 'tags': []})
+    assert r.status_code == HTTPStatus.NOT_FOUND
+    assert r.json() == {'detail': {'note dont exists': 42}}
+
+    # test error raised when try to use add tags which not exists
+    r = client.post('/users/test_user/notes/', json={'text': 'test'})
+    assert r.ok
+    note_id = r.json()['id']
+    r = client.post(f'/notes/{note_id}/edit/', json={'text': 'test', 'tags': ['books', 'unknown_tag']})
+    assert r.status_code == HTTPStatus.NOT_FOUND
+    assert r.json() == {'detail': {'tags dont exists': ['unknown_tag']}}
+
