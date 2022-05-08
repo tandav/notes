@@ -100,8 +100,9 @@ def edit_note(db: Session, note: schemas.NoteCreate, note_id: int):
     if unknown_tags := set(note.tags) - {tag.name for tag in tags}:
         raise TagNotExistsError(list(unknown_tags))
     db_note.tags = tags
+    db.commit()
     db.refresh(db_note)
-    return db_note
+    return db_note.to_dict()
 
 
 def create_tag(db: Session, tag: schemas.TagCreate):

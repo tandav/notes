@@ -46,6 +46,8 @@ class NoteCreate(NoteBase):
 class Note(NoteBase):
     id: int
     user_id: int
+    created_time: datetime.datetime
+    updated_time: datetime.datetime
 
     class Config:
         orm_mode = True

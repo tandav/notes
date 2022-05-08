@@ -234,22 +234,33 @@ def test_get_user_by_username(client):
 
 
 
-# @pytest.mark.parametrize('text', [])
-# @pytest.mark.parametrize('url', [])
-# @pytest.mark.parametrize('tags', [])
-# def test_edit_note(client, text, url, tags, edit_text, edit_url, edit_tags):
-#     assert client.post('/users/test_user/notes/', json={
-#         "text": fake.text(max_nb_chars=200),
-#         ""
-#         "tags": ['books', 'groceries'],
-#     }).ok
+@pytest.mark.parametrize('text', [None, 'test'])
+@pytest.mark.parametrize('url', [None, 'https://test.com'])
+@pytest.mark.parametrize('tags', [[], ['books']])
+@pytest.mark.parametrize('edit_text', [None, 'edit_test'])
+@pytest.mark.parametrize('edit_url', [None, 'https://edit.com'])
+@pytest.mark.parametrize('edit_tags', [[], ['groceries'], ['books', 'groceries']])
+def test_edit_note(client, text, url, tags, edit_text, edit_url, edit_tags):
+    r = client.post('/users/test_user/notes/', json={"text": text, "url": url, "tags": tags})
+    assert r.ok
+    initial = r.json()
+
+    r = client.post(f'/notes/{initial["id"]}/edit/', json={"text": edit_text, "url": edit_url, "tags": edit_tags})
+    assert r.ok
+    edited = r.json()
+
+    assert edited['text'] == edit_text
+    assert edited['url'] == edit_url
+    assert edited['tags'] == edit_tags
+    assert initial['created_time'] == edited['created_time'], str(initial)
+    assert initial['updated_time'] < edited['updated_time'], str(initial)
 
 
 def test_edit_note_not_exists(client):
     # test error raised when try to edit non-existing note
-    r = client.post('/notes/42/edit/', json={'text': 'test', 'tags': []})
+    r = client.post('/notes/442/edit/', json={'text': 'test', 'tags': []})
     assert r.status_code == HTTPStatus.NOT_FOUND
-    assert r.json() == {'detail': {'note dont exists': 42}}
+    assert r.json() == {'detail': {'note dont exists': 442}}
 
     # test error raised when try to use add tags which not exists
     r = client.post('/users/test_user/notes/', json={'text': 'test'})
