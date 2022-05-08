@@ -25,7 +25,6 @@ def test_create_user(client):
     assert j.pop('updated_time')
     assert j == {
         'id': 1,
-        'notes': [],
         'username': 'test_user',
     }
 
@@ -142,6 +141,11 @@ def test_get_note(client):
     r = client.get('/notes/1', headers={'Accept': 'image/png'})
     assert r.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
 
+    # test note dont exists
+    r = client.get('/notes/42')
+    assert r.status_code == HTTPStatus.NOT_FOUND
+    assert r.json() == {"note dont exists": 42}, r.json()
+
 
 def test_get_notes(client):
     # test default json works
@@ -169,24 +173,29 @@ def test_get_notes(client):
 
 def test_get_tag(client):
     # test default json works
-    r = client.get('/tags/1')
+    r = client.get('/tags/books')
     assert r.ok
     assert r.json()['id'] == 1
     assert r.json()['name'] == 'books'
     assert r.json()['color'] == '#c0ffee'
 
     # test json
-    assert client.get('/tags/1', headers={'Accept': 'application/json'}).ok
+    assert client.get('/tags/books', headers={'Accept': 'application/json'}).ok
 
     # test html
-    r = client.get('/tags/1', headers={'Accept': 'text/html'})
+    r = client.get('/tags/books', headers={'Accept': 'text/html'})
     assert r.ok
     assert r.text
     ElementTree.fromstring(r.text)
 
     # test unsupported media type
-    r = client.get('/tags/1', headers={'Accept': 'image/png'})
+    r = client.get('/tags/books', headers={'Accept': 'image/png'})
     assert r.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+
+    # test tag dont exists
+    r = client.get('/tags/notexists')
+    assert r.status_code == HTTPStatus.NOT_FOUND
+    assert r.json() == {"tag dont exists": 'notexists'}, r.json()
 
 
 def test_delete_note(client):
@@ -198,12 +207,12 @@ def test_delete_note(client):
     assert 2 not in {note['id'] for note in client.get('/notes').json()}
 
 
-def test_get_notes_by_tag(client):
-    r = client.get('/tags/1/notes')
+def test_get_tag_notes(client):
+    r = client.get('/tags/books/notes')
     assert r.ok
     assert [note['id'] for note in r.json()] == [4, 5]
 
-    r = client.get('/tags/2/notes')
+    r = client.get('/tags/groceries/notes')
     assert r.ok
     assert [note['id'] for note in r.json()] == [5]
 
@@ -211,12 +220,17 @@ def test_get_notes_by_tag(client):
 def test_delete_tag(client):
     r = client.post('/tags/', json={'name': 'tag_to_be_removed', 'color': '#ffaace'})
     assert r.ok
-    tag_id = r.json()['id']
     r = client.post('/users/test_user/notes/', json={"text": 'fake_text', "tags": ['tag_to_be_removed']})
     assert r.ok
     note_id = r.json()['id']
-    assert client.delete(f'/tags/{tag_id}').ok
+    assert client.delete(f'/tags/tag_to_be_removed').ok
     assert 'tag_to_be_removed' not in client.get(f'/notes/{note_id}').json()['tags']
+
+
+def test_get_user_by_username(client):
+    r = client.get('/users/test_user')
+    assert r.ok
+    assert r.json()['id'] == 1
 
 
 # def test_edit_note (change tags, change text/title/url) (check updated_time changed)

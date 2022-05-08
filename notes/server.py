@@ -45,7 +45,7 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 
 
 @app.get("/users/{username}", response_model=schemas.User)
-def read_user(username: str, db: Session = Depends(get_db)):
+def read_user_by_name(username: str, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=username)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -65,7 +65,7 @@ def create_note(
 
 @app.post('/tags/', response_model=schemas.Tag)
 def create_tag(tag: schemas.TagCreate, db: Session = Depends(get_db)):
-    db_tag = crud.get_tag_by_name(db, name=tag.name)
+    db_tag = crud.get_tag(db, name=tag.name)
     if db_tag:
         raise HTTPException(status_code=400, detail=f"tag with name {tag.name} username already exists")
     return crud.create_tag(db, tag)
@@ -94,8 +94,8 @@ def read_tags(db: Session = Depends(get_db), accept=Header('application/json')):
             rows = '\n'.join(
                 f'''
                   <tr>
-                      <td><a href='/tags/{tag.id}'>{tag.id}</a></td>
-                      <td>{tag.name}</td>
+                      <td>{tag.id}</td>
+                      <td><a href='/tags/{tag.name}'>{tag.name}</a></td>
                       <td id="{tag.name}">{tag.color}</td>
                       <td title="{util.format_time(tag.updated_time, absolute=True)}">{util.format_time(tag.updated_time)}</td>
                   </tr>
@@ -244,7 +244,7 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
         try:
             note = crud.get_note(db, note_id)
         except crud.NoteNotExistsError:
-            return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={f"note dont exists: {note_id}"})
+            return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={"note dont exists": note_id})
         else:
             if is_html:
                 tags = '\n'.join(
@@ -308,13 +308,21 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
 
 
-@app.get('/tags/{tag_id}/notes')
-def get_tag_notes(tag_id: int, db: Session = Depends(get_db)):
-    return crud.get_tag(db, tag_id).notes
+@app.get('/tags/{name}/notes')
+def get_tag_notes(name: str, db: Session = Depends(get_db)):
+    return crud.get_tag(db, name).notes
+
+
+# @app.get("/tags/{name}", response_model=schemas.Tag)
+# def read_tag_by_name(name: str, db: Session = Depends(get_db)):
+#     tag = crud.get_tag(db, name=name)
+#     if tag is None:
+#         raise HTTPException(status_code=404, detail="User not found")
+#     return tag
 
 
 @app.get(
-    "/tags/{tag_id}",
+    "/tags/{name}",
     response_model=schemas.Tag,
     responses={
         200: {
@@ -325,112 +333,68 @@ def get_tag_notes(tag_id: int, db: Session = Depends(get_db)):
         404: {"model": schemas.Message},
     }
 )
-def get_tag(tag_id: int, db: Session = Depends(get_db), accept=Header('application/json')):
+def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application/json')):
     accept = accept.split(',')
     is_html = accept[0] == 'text/html'
     is_json = 'application/json' in accept or '*/*' in accept
     if is_html or is_json:
-        try:
-            tag = crud.get_tag(db, tag_id)
-        except crud.NoteNotExistsError:
-            return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={f"tag dont exists: {tag_id}"})
-        else:
-            if is_json:
-                return tag
-            if is_html:
-                tags_colors = util.tags_css([tag])
+        tag = crud.get_tag(db, name)
+        if tag is None:
+            return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={"tag dont exists": name})
+        if is_json:
+            return tag
+        if is_html:
+            tags_colors = util.tags_css([tag])
 
-                table_html, table_css = notes_table([note.to_dict() for note in tag.notes])
-                return HTMLResponse(f'''
-                <html>
-                <head>
-                {CSS_FRAMEWORK}
-                </head>
-                <body>
-                ''' + '''
-                <script>
-                const delete_tag = tag_id => {
-                    if (confirm('delete confirmation')) {
-                        fetch(`/tags/${tag_id}`, {method: 'DELETE'})
-                        window.location = "/tags"
-                    }
+            table_html, table_css = notes_table([note.to_dict() for note in tag.notes])
+            return HTMLResponse(f'''
+            <html>
+            <head>
+            {CSS_FRAMEWORK}
+            </head>
+            <body>
+            ''' + '''
+            <script>
+            const delete_tag = name => {
+                if (confirm('delete confirmation')) {
+                    fetch(`/tags/${name}`, {method: 'DELETE'})
+                    window.location = "/tags"
                 }
-                </script>
-                ''' + f'''
-                <header>
-                <nav>
-                {util.header(new_tag=True)}
-                <button class="delete_button" onclick='delete_tag({tag_id})'>delete</button>
-                </nav>
-                <span class='metadata'>last edit: {tag.updated_time:%Y %b %d %H:%M}</span>
-                </header>
-                <h1><span>{tag.name}</span></h1>
-                {table_html}
-                ''' + f'''
-                <style>
-                .delete_button {{
-                    background-color: #EF5350;
-                }}
-                {tags_colors}
-                header {{
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }}
-                h1 span {{
-                    background-color: {tag.color};
-                    padding: 0.25em;
-                    border-radius: 4px;
-                }}
-                {table_css}
-                </style>
-                </body>
-                </html>
-                ''')
-                # tags = '\n'.join(
-                #     f'<a href="/tags/{tag.name}"><label class="tag" id="{tag.name}">{tag.name}</label></a>'
-                #     for tag in note.tags
-                # )
-                # tags_colors = util.tags_css(note.tags)
-                #
-                # url = f"<p>url: <a href='{note.url}'>{note.url}</a></p>" if note.url else ''
-                # text = f"<p>{note.text}</p>" if note.text else ''
-                # return HTMLResponse(f'''
-                # <html>
-                # <head>
-                # {CSS_FRAMEWORK}
-                # </head>
-                # ''' + '''
-                # <body>
-                # <script>
-                # const delete_note = note_id => {
-                #     if (confirm('delete confirmation')) {
-                #         console.log(note_id)
-                #         fetch(`/notes/${note_id}`, {method: 'DELETE'})
-                #         window.location = "/notes"
-                #     }
-                # }
-                # </script>
-                # ''' + f'''
-                # <header>
-                # <nav>
-                # {util.header(new_note=True)}
-                # <button class="delete_button" onclick='delete_note({note_id})'>delete</button>
-                # </nav>
-                # <span class='metadata'><a href='/users/{note.user_id}'>user_{note.user_id}</a> last edit: {note.updated_time:%Y %b %d %H:%M}</span>
-                # </header>
-                # {url}
-                # <p></p>
-                # <div class='tags'>
-                # {tags}
-                # </div>
-                # <hr/>
-                # {text}
-
-
+            }
+            </script>
+            ''' + f'''
+            <header>
+            <nav>
+            {util.header(new_tag=True)}
+            <button class="delete_button" onclick='delete_tag({name})'>delete</button>
+            </nav>
+            <span class='metadata'>last edit: {tag.updated_time:%Y %b %d %H:%M}</span>
+            </header>
+            <h1><span>{tag.name}</span></h1>
+            {table_html}
+            ''' + f'''
+            <style>
+            .delete_button {{
+                background-color: #EF5350;
+            }}
+            {tags_colors}
+            header {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }}
+            h1 span {{
+                background-color: {tag.color};
+                padding: 0.25em;
+                border-radius: 4px;
+            }}
+            {table_css}
+            </style>
+            </body>
+            </html>
+            ''')
     else:
-        return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
-                            content={'message': '415 Unsupported Media Type'})
+        return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
 
 
 @app.delete("/notes/{note_id}", response_model=list[schemas.Note])
@@ -441,12 +405,12 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail={"note dont exists": note_id})
 
 
-@app.delete("/tags/{tag_id}", response_model=list[schemas.Tag])
-def delete_note(tag_id: int, db: Session = Depends(get_db)):
+@app.delete("/tags/{name}", response_model=list[schemas.Tag])
+def delete_tag(name: str, db: Session = Depends(get_db)):
     try:
-        crud.delete_tag(db, tag_id)
+        crud.delete_tag(db, name)
     except crud.NoteNotExistsError:
-        raise HTTPException(status_code=404, detail={"note dont exists": tag_id})
+        raise HTTPException(status_code=404, detail={"note dont exists": name})
 
 
 @app.post('/new_note')

@@ -63,7 +63,8 @@ class UserCreate(UserBase):
 
 class User(UserBase):
     id: int
-    notes: list[Note] = []
+    # notes: list[Note] = []
+    # notes: list[str] = []
     created_time: datetime.datetime
     updated_time: datetime.datetime
 

@@ -45,11 +45,15 @@ def create_user(db: Session, user: schemas.UserCreate) -> schemas.User:
 
 
 def get_note(db: Session, note_id: int):
-    return db.query(models.Note).filter(models.Note.id == note_id).first()
+    note = db.query(models.Note).filter(models.Note.id == note_id).first()
+    if note is None:
+        raise NoteNotExistsError
+    return note
 
 
-def get_tag(db: Session, tag_id: int):
-    return db.query(models.Tag).filter(models.Tag.id == tag_id).first()
+def get_tag(db: Session, name: str):
+    tag = db.query(models.Tag).filter(models.Tag.name == name).first()
+    return tag
 
 
 def get_notes(db: Session, skip: int = 0, limit: int = 100):
@@ -61,8 +65,8 @@ def delete_note(db: Session, note_id: int):
     db.commit()
 
 
-def delete_tag(db: Session, tag_id: int):
-    db.query(models.Tag).filter(models.Tag.id == tag_id).delete()
+def delete_tag(db: Session, name: str):
+    db.query(models.Tag).filter(models.Tag.name == name).delete()
     db.commit()
 
 
@@ -115,10 +119,6 @@ def create_tag(db: Session, tag: schemas.TagCreate):
     db.commit()
     db.refresh(db_tag)
     return db_tag
-
-
-def get_tag_by_name(db: Session, name: str):
-    return db.query(models.Tag).filter(models.Tag.name == name).first()
 
 
 def get_tags(db: Session):
