@@ -48,6 +48,8 @@ def format_time(t: datetime.datetime, absolute: bool = False) -> str:
 def header(
     new_note: bool = False,
     new_tag: bool = False,
+    edit_note: int = 0,
+    edit_tag: int = 0,
 ) -> str:
     items = [
         '<a href="/notes">[notes]</a>',
@@ -57,6 +59,8 @@ def header(
         items.append('<a href="/new_note"><button>new note</button></a>')
     if new_tag:
         items.append('<a href="/new_tag"><button>new tag</button></a>')
+    if edit_note:
+        items.append(f'<a href="/notes/{edit_note}/edit"><button>edit</button></a>')
     return '\n'.join(items)
 
 

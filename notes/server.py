@@ -141,7 +141,7 @@ def notes_table(notes: list) -> tuple[str, str]:
         <tr>
             <td><a href='/notes/{note['id']}'>{note['id']}</a></td>
             <td><a href='/users/{note['user_id']}'>{note['user_id']}</a></td>
-            <td>{note['text']}</td>
+            <td>{note['text'] or ''}</td>
             <td>{util.format_url(note['url'])}</td>
             <td>{','.join(f'<a href="/tags/{tag}">{tag}</a>' for tag in note['tags'])}</td>
             <td title="{util.format_time(note['updated_time'], absolute=True)}">{util.format_time(note['updated_time'])}</td>
@@ -273,7 +273,7 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 ''' + f'''
                 <header>
                 <nav>
-                {util.header(new_note=True)}
+                {util.header(new_note=True, edit_note=note_id)}
                 <button class="delete_button" onclick='delete_note({note_id})'>delete</button>
                 </nav>
                 <span class='metadata'><a href='/users/{note.user_id}'>user_{note.user_id}</a> last edit: {note.updated_time:%Y %b %d %H:%M}</span>
@@ -307,6 +307,90 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
     else:
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
 
+
+# @app.get(
+#     "/notes/{note_id}/edit",
+#     response_model=schemas.Note,
+#     responses={
+#         200: {
+#             "content": {"text/html": {}},
+#             "description": "Return the html page with note",
+#         },
+#         415: {"model": schemas.Message},
+#         404: {"model": schemas.Message},
+#     }
+# )
+# def edit_note(note_id: int, db: Session = Depends(get_db), accept=Header('application/json')):
+#     accept = accept.split(',')
+#     is_html = accept[0] == 'text/html'
+#     is_json = 'application/json' in accept or '*/*' in accept
+#     if is_html or is_json:
+#         try:
+#             note = crud.get_note(db, note_id)
+#         except crud.NoteNotExistsError:
+#             return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={"note dont exists": note_id})
+#         else:
+#             if is_html:
+#                 tags = '\n'.join(
+#                     f'<a href="/tags/{tag.name}"><label class="tag" id="{tag.name}">{tag.name}</label></a>'
+#                     for tag in note.tags
+#                 )
+#                 tags_colors = util.tags_css(note.tags)
+#
+#                 url = f"<p>url: <a href='{note.url}'>{note.url}</a></p>" if note.url else ''
+#                 text = f"<p>{note.text}</p>" if note.text else ''
+#                 return HTMLResponse(f'''
+#                 <html>
+#                 <head>
+#                 {CSS_FRAMEWORK}
+#                 </head>
+#                 ''' + '''
+#                 <body>
+#                 <script>
+#                 const delete_note = note_id => {
+#                     if (confirm('delete confirmation')) {
+#                         fetch(`/notes/${note_id}`, {method: 'DELETE'})
+#                         window.location = "/notes"
+#                     }
+#                 }
+#                 </script>
+#                 ''' + f'''
+#                 <header>
+#                 <nav>
+#                 {util.header(new_note=True)}
+#                 <button class="delete_button" onclick='delete_note({note_id})'>delete</button>
+#                 </nav>
+#                 <span class='metadata'><a href='/users/{note.user_id}'>user_{note.user_id}</a> last edit: {note.updated_time:%Y %b %d %H:%M}</span>
+#                 </header>
+#                 {url}
+#                 <p></p>
+#                 <div class='tags'>
+#                 {tags}
+#                 </div>
+#                 <hr/>
+#                 {text}
+#                 ''' + f'''
+#                 <style>
+#                 .delete_button {{
+#                     background-color: #EF5350;
+#                 }}
+#                 {tags_colors}
+#
+#
+#                 header {{
+#                     display: flex;
+#                     justify-content: space-between;
+#                     align-items: center;
+#                 }}
+#                 </style>
+#                 </body>
+#                 </html>
+#                 ''')
+#             if is_json:
+#                 return note
+#     else:
+#         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
+#
 
 @app.get('/tags/{name}/notes')
 def get_tag_notes(name: str, db: Session = Depends(get_db)):
@@ -366,7 +450,7 @@ def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application
             <header>
             <nav>
             {util.header(new_tag=True)}
-            <button class="delete_button" onclick='delete_tag({name})'>delete</button>
+            <button class="delete_button" onclick='delete_tag("{name}")'>delete</button>
             </nav>
             <span class='metadata'>last edit: {tag.updated_time:%Y %b %d %H:%M}</span>
             </header>
@@ -422,7 +506,7 @@ async def new_note_handle_form(request: Request, db: Session = Depends(get_db)):
         tags=form.getlist('tags'),
     )
     create_note(username='test_user', note=note, db=db)
-    return RedirectResponse('/', status_code=HTTPStatus.FOUND)
+    return RedirectResponse('/notes', status_code=HTTPStatus.FOUND)
 
 
 @app.post('/new_tag')
@@ -436,29 +520,42 @@ async def new_tag_handle_form(request: Request, db: Session = Depends(get_db)):
     return RedirectResponse('/tags', status_code=HTTPStatus.FOUND)
 
 
-@app.get('/new_note', response_class=HTMLResponse)
-def new_note_form(db: Session = Depends(get_db)):
+def note_form(db: Session, action: str, note_id: int | None = None):
+    if action == 'new_note':
+        button_text = 'create'
+        text = ''
+        url = ''
+    elif action == 'edit_note':
+        assert note_id is not None
+        note = crud.get_note(db, note_id)
+        text = note.text
+        url = note.url
+        button_text = 'save'
+    else:
+        raise ValueError
+
+
     tags = crud.get_tags(db)
-    tags_checkboxes = '\n'.join(
-        # f'<label class="tag" id="{tag.name}"><input type="checkbox" name="{tag.name}" value="{tag.name}">{tag.name}</label>'
-        f'<label class="tag" id="{tag.name}"><input type="checkbox" name="tags" value="{tag.name}">{tag.name}</label>'
-        # f'<label class="tag" id="{tag.name}"><input type="checkbox" name="{tag.name}">{tag.name}</label>'
-        for tag in tags
-    )
-    # colors = {tag.name}
+    tags_checkboxes = []
+    for tag in crud.get_tags(db):
+        checked = ' checked' if action == 'edit_note' and tag in note.tags else ''
+        # {"" if action == "edit_note" and tag.name in note_tags}
+        s = f'<label class="tag" id="{tag.name}"><input type="checkbox" name="tags" value="{tag.name}"{checked}>{tag.name}</label>'
+        tags_checkboxes.append(s)
+    tags_checkboxes = '\n'.join(tags_checkboxes)
 
     html = f"""
     {CSS_FRAMEWORK}
     {util.header(new_note=False)}
     <h1>create note</h1>
-    <form action="/new_note" method="post" id="note_form">
+    <form action="/{action}" method="post" id="note_form">
       <p>
         <label for="textarea">text</label>
-        <textarea type="input" placeholder="Enter your note here" form="note_form" name="text"></textarea>
+        <textarea type="input" placeholder="Enter your note here" form="note_form" name="text">{text}</textarea>
       </p>
       <p>
         <label>url (optional)</label><br>
-        <input type="text" name="url">
+        <input type="text" name="url"{url}>
       </p>
       <p>
         <label>tags</label><br>
@@ -467,36 +564,45 @@ def new_note_form(db: Session = Depends(get_db)):
           </p>
       </p>
       <p>
-        <button>create</button>
+        <button>{button_text}</button>
       </p>
     </form>
     """
 
     tags_colors = util.tags_css(tags)
 
-
     css = f'''
     <style>
     input[name=url] {{
         width: 100%;
     }}
-    
+
     textarea {{
         font-family: monospace;
         font-size: 9pt;
     }}
-    
+
     {tags_colors}
     </style>
     '''
     return html + css
 
 
+@app.get('/new_note', response_class=HTMLResponse)
+def new_note_form(db: Session = Depends(get_db)):
+    return note_form(db, action='new_note')
+
+
+@app.get('/notes/{note_id}/edit', response_class=HTMLResponse)
+def edit_note(note_id: int, db: Session = Depends(get_db)):
+    return note_form(db, action='edit_note', note_id=note_id)
+
+
 @app.get('/new_tag', response_class=HTMLResponse)
-def new_tag_form(db: Session = Depends(get_db)):
+def new_tag_form():
     html = f'''
     {CSS_FRAMEWORK}
-    {util.header(new_note=False)}
+    {util.header()}
     <h1>create tag</h1>
     <form action="/new_tag" method="post" id="tag_form">
       <p>
@@ -505,7 +611,7 @@ def new_tag_form(db: Session = Depends(get_db)):
       </p>
       <p>
         <label>color</label>
-        <input type="color" name="url">
+        <input type="color" name="color">
       </p>
       </p>
       <p>
