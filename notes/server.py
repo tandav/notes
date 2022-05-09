@@ -107,7 +107,6 @@ def read_tags(db: Session = Depends(get_db), accept=Header('application/json')):
                   '''
                 for tag in tags
             )
-            tags_colors = util.tags_css(tags)
             # f'<a href="/tags/{tag.name}"><label class="tag" id="{tag.name}">{tag.name}</label></a>'
             return HTMLResponse(f'''
             <html>
@@ -131,7 +130,7 @@ def read_tags(db: Session = Depends(get_db), accept=Header('application/json')):
             </tbody>
             </table>
             <style>
-            {tags_colors}
+            {util.tags_css(tags)}
             </style>
             </body>
             </html>
@@ -145,7 +144,6 @@ def notes_table(notes: list) -> tuple[str, str]:
         f'''
         <tr>
             <td><a href='/notes/{note['id']}'>{note['id']}</a></td>
-            <td><a href='/users/{note['user_id']}'>{note['user_id']}</a></td>
             <td>{note['text'] or ''}</td>
             <td>{util.format_url(note['url'])}</td>
             <td>{','.join(f'<a href="/tags/{tag}">{tag}</a>' for tag in note['tags'])}</td>
@@ -159,7 +157,6 @@ def notes_table(notes: list) -> tuple[str, str]:
     <thead>
         <tr>
             <th>id</th>
-            <th>user_id</th>
             <th>text</th>
             <th>url</th>
             <th>tags</th>
@@ -367,7 +364,7 @@ def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application
             </nav>
             <span class='metadata'>last edit: {tag.updated_time:%Y %b %d %H:%M}</span>
             </header>
-            <h1><span>{tag.name}</span></h1>
+            <h1><span id={tag.name}>{tag.name}</span></h1>
             {table_html}
             ''' + f'''
             <style>
@@ -379,11 +376,6 @@ def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-            }}
-            h1 span {{
-                background-color: {tag.color};
-                padding: 0.25em;
-                border-radius: 4px;
             }}
             {table_css}
             </style>
