@@ -364,7 +364,7 @@ def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application
             </nav>
             <span class='metadata'>last edit: {tag.updated_time:%Y %b %d %H:%M}</span>
             </header>
-            <h1><span id={tag.name}>{tag.name}</span></h1>
+            <h1><span id="{tag.name}">{tag.name}</span></h1>
             {table_html}
             ''' + f'''
             <style>
@@ -429,10 +429,13 @@ async def edit_note_handle_form(note_id: int, request: Request, db: Session = De
 @app.post('/new_tag')
 async def new_tag_handle_form(request: Request, db: Session = Depends(get_db)):
     form = await request.form()
-    tag = schemas.TagCreate(
-        name=form['name'],
-        color=form.get('color') or None,
-    )
+    try:
+        tag = schemas.TagCreate(
+            name=form['name'],
+            color=form.get('color') or None,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     create_tag(tag=tag, db=db)
     return RedirectResponse('/tags', status_code=HTTPStatus.FOUND)
 

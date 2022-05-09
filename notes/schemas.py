@@ -80,6 +80,12 @@ class TagBase(BaseModel):
     name: str
     color: str | None = None
 
+    @validator('name')
+    def not_empty(cls, v):
+        if v == '':
+            raise ValueError('tag name cant be empty')
+        return v
+
     @validator('color')
     def color_string_check(cls, v):
         if v is None:

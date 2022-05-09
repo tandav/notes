@@ -71,6 +71,11 @@ def test_create_tags(client):
     r = client.post('/tags/', json={'name': 'fake', 'color': 'bad-color'})
     assert r.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
+    # test empty name raises
+    r = client.post('/tags/', json={'name': '', 'color': '#c0ffee'})
+    assert r.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert r.json() == {'detail': [{'loc': ['body', 'name'], 'msg': 'tag name cant be empty', 'type': 'value_error'}]}
+
 
 def test_get_tags(client):
     # test default json works
