@@ -54,6 +54,15 @@ def test_create_note(client):
         })
         assert r.ok, r.json()
 
+    # test url validation
+    r = client.post('/users/test_user/notes/', json={"url": "ff", "tags": []})
+    assert r.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert r.json() == {'detail': [{'loc': ['body', 'url'], 'msg': 'url must starts with http', 'type': 'value_error'}]}
+
+    r = client.post('/users/test_user/notes/', json={"url": "https://example.com?q=hello world", "tags": []})
+    assert r.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert r.json() == {'detail': [{'loc': ['body', 'url'], 'msg': 'url cant contain spaces', 'type': 'value_error'}]}
+
 
 def test_create_tags(client):
     r = client.post('/tags/', json={'name': 'books', 'color': '#c0ffee'})

@@ -15,9 +15,13 @@ class NoteBase(BaseModel):
     tags: list[str] = []
 
     @validator('url')
-    def url_starts_with_http(cls, v):
-        if v is not None and not v.startswith('http'):
+    def validate_url(cls, v):
+        if v is None:
+            return v
+        if not v.startswith('http'):
             raise ValueError('url must starts with http')
+        if ' ' in v:
+            raise ValueError('url cant contain spaces')
         return v
 
     # @root_validator(pre=True)
