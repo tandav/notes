@@ -30,7 +30,7 @@ def get_db():
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=user.username)
     if db_user:
-        raise HTTPException(status_code=400, detail="username already registered")
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="username already registered")
     return crud.create_user(db=db, user=user)
 
 
@@ -44,7 +44,7 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 def read_user_by_name(username: str, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=username)
     if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="User not found")
     return db_user
 
 
@@ -53,7 +53,7 @@ def create_note(username: str, note: schemas.NoteCreate, db: Session = Depends(g
     try:
         res = crud.create_note(db, note, username)
     except crud.TagNotExistsError as e:
-        raise HTTPException(status_code=404, detail={"tags dont exists": e.args[0]})
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"tags dont exists": e.args[0]})
     return res
 
 
@@ -62,9 +62,9 @@ def edit_note(note_id: int, note: schemas.NoteCreate, db: Session = Depends(get_
     try:
         res = crud.edit_note(db, note, note_id)
     except crud.NoteNotExistsError as e:
-        raise HTTPException(status_code=404, detail={"note dont exists": e.args[0]})
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"note dont exists": e.args[0]})
     except crud.TagNotExistsError as e:
-        raise HTTPException(status_code=404, detail={"tags dont exists": e.args[0]})
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"tags dont exists": e.args[0]})
     return res
 
 
@@ -72,7 +72,7 @@ def edit_note(note_id: int, note: schemas.NoteCreate, db: Session = Depends(get_
 def create_tag(tag: schemas.TagCreate, db: Session = Depends(get_db)):
     db_tag = crud.get_tag(db, name=tag.name)
     if db_tag:
-        raise HTTPException(status_code=400, detail=f"tag with name {tag.name} username already exists")
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=f"tag with name {tag.name} username already exists")
     return crud.create_tag(db, tag)
 
 
@@ -265,9 +265,9 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 ''' + '''
                 <body>
                 <script>
-                const delete_note = note_id => {
-                    if (confirm('delete confirmation')) {
-                        fetch(`/notes/${note_id}`, {method: 'DELETE'})
+                const archive_note = note_id => {
+                    if (confirm('archiive confirmation')) {
+                        fetch(`/notes/${note_id}/archive`, {method: 'DELETE'})
                         window.location = "/notes"
                     }
                 }
@@ -276,7 +276,7 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 <header>
                 <nav>
                 {util.header(new_note=True, edit_note=note_id)}
-                <button class="delete_button" onclick='delete_note({note_id})'>delete</button>
+                <button class="archive_button" onclick='archive_note({note_id})'>archive</button>
                 </nav>
                 <span class='metadata'><a href='/users/{note.user_id}'>user_{note.user_id}</a> last edit: {note.updated_time:%Y %b %d %H:%M}</span>
                 </header>
@@ -289,7 +289,7 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 {text}
                 ''' + f'''
                 <style>
-                .delete_button {{
+                .archive_button {{
                     background-color: #EF5350;
                 }}
                 {tags_colors}
@@ -386,12 +386,22 @@ def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
 
 
+@app.delete("/notes/{note_id}/archive", response_model=list[schemas.Note])
+def archive_note(note_id: int, db: Session = Depends(get_db)):
+    try:
+        crud.archive_note(db, note_id)
+    except crud.NoteNotExistsError:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"note dont exists": note_id})
+    except crud.NoteAlreadyArchived:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail={"note already archived": note_id})
+
+
 @app.delete("/notes/{note_id}", response_model=list[schemas.Note])
 def delete_note(note_id: int, db: Session = Depends(get_db)):
     try:
         crud.delete_note(db, note_id)
     except crud.NoteNotExistsError:
-        raise HTTPException(status_code=404, detail={"note dont exists": note_id})
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"note dont exists": note_id})
 
 
 @app.delete("/tags/{name}", response_model=list[schemas.Tag])
@@ -399,7 +409,7 @@ def delete_tag(name: str, db: Session = Depends(get_db)):
     try:
         crud.delete_tag(db, name)
     except crud.NoteNotExistsError:
-        raise HTTPException(status_code=404, detail={"note dont exists": name})
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"note dont exists": name})
 
 
 @app.post('/new_note')
@@ -435,7 +445,7 @@ async def new_tag_handle_form(request: Request, db: Session = Depends(get_db)):
             color=form.get('color') or None,
         )
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=str(e))
     create_tag(tag=tag, db=db)
     return RedirectResponse('/tags', status_code=HTTPStatus.FOUND)
 

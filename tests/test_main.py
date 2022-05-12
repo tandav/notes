@@ -261,6 +261,25 @@ def test_delete_note(client):
     assert 2 not in {note['id'] for note in client.get('/notes').json()}
 
 
+def test_archive_note(client):
+    r = client.post('/users/test_user/notes/', json={
+        "text": fake.text(max_nb_chars=200),
+        "url": fake.uri(),
+        "tags": [],
+    })
+    assert r.ok
+    note_id = r.json()['id']
+    r = client.delete(f'/notes/{note_id}/archive')
+    assert r.ok
+    r = client.get(f'/notes/{note_id}')
+    assert r.json()['tags'] == ['archive']
+
+    # test when trying to archive already archived note
+    r = client.delete(f'/notes/{note_id}/archive')
+    assert r.status_code == HTTPStatus.BAD_REQUEST
+    assert r.json() == {'detail': {'note already archived': 8}}
+
+
 def test_get_tag_notes(client):
     r = client.get('/tags/books/notes')
     assert r.ok
@@ -285,7 +304,6 @@ def test_get_user_by_username(client):
     r = client.get('/users/test_user')
     assert r.ok
     assert r.json()['id'] == 1
-
 
 
 @pytest.mark.parametrize('text', [None, 'test'])
