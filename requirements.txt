@@ -4,3 +4,4 @@ SQLAlchemy==1.4.36
 fastapi==0.76.0
 requests==2.27.1
 faker==13.7.0
+colortool==0.0.1
