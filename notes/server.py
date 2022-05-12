@@ -305,7 +305,7 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 </html>
                 ''')
             if is_json:
-                return note
+                return note.to_dict()
     else:
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
 
