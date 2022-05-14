@@ -1,9 +1,12 @@
-import pytest
 from http import HTTPStatus
-from notes import models
-from faker import Faker
 from xml.etree import ElementTree
+
+import pytest
+from faker import Faker
+
+from notes import models
 from notes.util import is_hex_color
+
 fake = Faker()
 
 
@@ -277,7 +280,18 @@ def test_archive_note(client):
     # test when trying to archive already archived note
     r = client.delete(f'/notes/{note_id}/archive')
     assert r.status_code == HTTPStatus.BAD_REQUEST
-    assert r.json() == {'detail': {'note already archived': 8}}
+    assert r.json() == {'detail': {'note already archived': note_id}}
+
+    # test unarchive note
+    r = client.post(f'/notes/{note_id}/archive')
+    assert r.ok
+    r = client.get(f'/notes/{note_id}')
+    assert 'archive' not in r.json()['tags']
+
+    # test unarchive not-archive note error
+    r = client.post(f'/notes/{note_id}/archive')
+    assert r.status_code == HTTPStatus.BAD_REQUEST
+    assert r.json() == {'detail': {'note already unarchived': note_id}}
 
 
 def test_get_tag_notes(client):

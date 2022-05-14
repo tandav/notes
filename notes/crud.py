@@ -1,17 +1,18 @@
 import datetime
-import secrets
 import hashlib
 import random
+import secrets
+
 from sqlalchemy.orm import Session
 
-from notes import models
-from notes import schemas
+from notes import models, schemas
 
 
 class CrudError(BaseException): pass
 class TagNotExistsError(CrudError): pass
 class NoteNotExistsError(CrudError): pass
 class NoteAlreadyArchived(CrudError): pass
+class NoteAlreadyUnarchived(CrudError): pass
 
 
 def get_user_by_username(db: Session, username: str):
@@ -84,6 +85,15 @@ def archive_note(db: Session, note_id: int):
     if archive_tag in note.tags:
         raise NoteAlreadyArchived
     note.tags.append(archive_tag)
+    db.commit()
+
+
+def unarchive_note(db: Session, note_id: int):
+    archive_tag = get_tag(db, 'archive')
+    note = get_note(db, note_id)
+    if archive_tag not in note.tags:
+        raise NoteAlreadyUnarchived
+    note.tags.remove(archive_tag)
     db.commit()
 
 

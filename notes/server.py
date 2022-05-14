@@ -1,16 +1,12 @@
-from fastapi import Depends, FastAPI, HTTPException, Form, Header, Query
-from sqlalchemy.orm import Session
-from fastapi.responses import HTMLResponse
-from fastapi.responses import RedirectResponse
 from http import HTTPStatus
-from fastapi import Request
 
-from notes import crud
-from notes import util
-from notes import schemas
-from notes import models
+from fastapi import (Depends, FastAPI, Form, Header, HTTPException, Query,
+                     Request)
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from sqlalchemy.orm import Session
+
+from notes import crud, models, schemas, util
 from notes.database import SessionLocal, engine
-from fastapi.responses import JSONResponse
 
 CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css"/>'
 
@@ -248,6 +244,13 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
         except crud.NoteNotExistsError:
             return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={"note dont exists": note_id})
         else:
+            if crud.get_tag(db, 'archive') in note.tags:
+                archive_button = f'''<button class="archive_button" onclick='archive_note({note_id}, "POST")'>unarchive</button>'''
+            else:
+                archive_button = f'''<button class="archive_button" onclick='archive_note({note_id}, "DELETE")'>archive</button>'''
+
+            # is_archived = crud.get_tag(db, 'archive') in note.tags
+            # archive_method = 'POST' if is_archived else 'DELETE'
             if is_html:
                 tags = '\n'.join(
                     f'<a href="/tags/{tag.name}"><label class="tag" id="{tag.name}">{tag.name}</label></a>'
@@ -265,9 +268,9 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 ''' + '''
                 <body>
                 <script>
-                const archive_note = note_id => {
-                    if (confirm('archiive confirmation')) {
-                        fetch(`/notes/${note_id}/archive`, {method: 'DELETE'})
+                const archive_note = (note_id, method) => {
+                    if (confirm('confirmation')) {
+                        fetch(`/notes/${note_id}/archive`, {method: method})
                         window.location = "/notes"
                     }
                 }
@@ -276,7 +279,7 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 <header>
                 <nav>
                 {util.header(new_note=True, edit_note=note_id)}
-                <button class="archive_button" onclick='archive_note({note_id})'>archive</button>
+                {archive_button}
                 </nav>
                 <span class='metadata'><a href='/users/{note.user_id}'>user_{note.user_id}</a> last edit: {note.updated_time:%Y %b %d %H:%M}</span>
                 </header>
@@ -394,6 +397,16 @@ def archive_note(note_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"note dont exists": note_id})
     except crud.NoteAlreadyArchived:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail={"note already archived": note_id})
+
+
+@app.post("/notes/{note_id}/archive", response_model=list[schemas.Note])
+def unarchive_note(note_id: int, db: Session = Depends(get_db)):
+    try:
+        crud.unarchive_note(db, note_id)
+    except crud.NoteNotExistsError:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"note dont exists": note_id})
+    except crud.NoteAlreadyUnarchived:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail={"note already unarchived": note_id})
 
 
 @app.delete("/notes/{note_id}", response_model=list[schemas.Note])

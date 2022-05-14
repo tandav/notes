@@ -1,6 +1,9 @@
 from __future__ import annotations
+
 import datetime
-from pydantic import BaseModel, validator, root_validator
+
+from pydantic import BaseModel, root_validator, validator
+
 from notes.util import is_hex_color
 
 # ===================================================================================

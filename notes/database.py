@@ -46,10 +46,12 @@
 #         self.connection.close()
 
 
+import sys
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 from notes import models
-import sys
 
 engine = create_engine("sqlite:///./test.db", connect_args={"check_same_thread": False}, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
