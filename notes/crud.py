@@ -4,6 +4,7 @@ import random
 import secrets
 
 from sqlalchemy.orm import Session
+from fastapi.security import HTTPBasicCredentials
 
 from notes import models, schemas
 
@@ -23,7 +24,7 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
-def create_user(db: Session, user: schemas.UserCreate) -> schemas.User:
+def create_user(db: Session, user: HTTPBasicCredentials) -> schemas.User:
     now = datetime.datetime.now()
     salt = secrets.token_hex(8)
     password_hashed = hashlib.pbkdf2_hmac(

@@ -21,7 +21,8 @@ def test_tables_empty(db, table):
 
 
 def test_create_user(client):
-    response = client.post("/users/", json={"username": "test_user", "password": "test_password"})
+    # response = client.post("/users/", json={"username": "test_user", "password": "test_password"})
+    response = client.post("/users/", auth=("test_user", "test_password"))
     assert response.ok, response.json()
     j = response.json()
     assert j.pop('created_time')
@@ -35,15 +36,11 @@ def test_create_user(client):
     for _ in range(2):
         username = fake.user_name()
         password = fake.password(length=32, special_chars=False)
-        assert client.post("/users/", json={"username": username, "password": password}).ok
+        assert client.post("/users/", auth=(username, password)).ok
 
 
 def test_username_already_registred(client):
-    response = client.post(
-        "/users/",
-        json={"username": "test_user", "password": "test_password"},
-    )
-
+    response = client.post("/users/", auth=("test_user", "test_password"))
     assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.json() == {'detail': 'username already registered'}
 
@@ -355,4 +352,3 @@ def test_edit_note_not_exists(client):
     r = client.post(f'/notes/{note_id}/edit/', json={'text': 'test', 'tags': ['books', 'unknown_tag']})
     assert r.status_code == HTTPStatus.NOT_FOUND
     assert r.json() == {'detail': {'tags dont exists': ['unknown_tag']}}
-

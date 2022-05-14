@@ -1,7 +1,9 @@
 from http import HTTPStatus
 
-from fastapi import (Depends, FastAPI, Form, Header, HTTPException, Query,
-                     Request)
+import secrets
+
+from fastapi import Depends, FastAPI, HTTPException, status, Header, Request
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -12,6 +14,7 @@ CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water
 
 
 app = FastAPI()
+security = HTTPBasic()
 
 
 def get_db():
@@ -23,11 +26,11 @@ def get_db():
 
 
 @app.post("/users/", response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_username(db, username=user.username)
+def create_user(credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_username(db, username=credentials.username)
     if db_user:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="username already registered")
-    return crud.create_user(db=db, user=user)
+    return crud.create_user(db=db, user=credentials)
 
 
 @app.get("/users/", response_model=list[schemas.User])
