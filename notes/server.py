@@ -520,7 +520,7 @@ def note_form(
       </p>
       <p>
         <label>url (optional)</label><br>
-        <input type="text" name="url" value="{url}"/>
+        <input type="url" name="url" value="{url}"/>
       </p>
       <p>
         <label>tags</label><br>
