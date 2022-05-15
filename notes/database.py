@@ -53,7 +53,7 @@ from sqlalchemy.orm import sessionmaker
 
 from notes import models
 
-engine = create_engine("sqlite:///./test.db", connect_args={"check_same_thread": False}, echo=True)
+engine = create_engine("sqlite:///./test.db", connect_args={"check_same_thread": False}, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
