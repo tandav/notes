@@ -1,51 +1,9 @@
+import pytest
 from http import HTTPStatus
 from xml.etree import ElementTree
 
-import pytest
-from faker import Faker
 
-from notes import models
-from notes.util import is_hex_color
-
-fake = Faker()
-
-
-@pytest.mark.parametrize('table', [
-    models.User,
-    models.Note,
-    models.Tag,
-    # models.Attachment,
-])
-def test_tables_empty(db, table):
-    assert db.query(table).count() == 0
-
-
-def test_create_user(client):
-    # response = client.post("/users/", json={"username": "test_user", "password": "test_password"})
-    response = client.post("/users/", auth=("test_user", "test_password"))
-    assert response.ok, response.json()
-    j = response.json()
-    assert j.pop('created_time')
-    assert j.pop('updated_time')
-    assert j == {
-        'id': 1,
-        'username': 'test_user',
-    }
-
-    # create more users
-    for _ in range(2):
-        username = fake.user_name()
-        password = fake.password(length=32, special_chars=False)
-        assert client.post("/users/", auth=(username, password)).ok
-
-
-def test_username_already_registred(client):
-    response = client.post("/users/", auth=("test_user", "test_password"))
-    assert response.status_code == HTTPStatus.BAD_REQUEST
-    assert response.json() == {'detail': 'username already registered'}
-
-
-def test_create_note(client):
+def test_create_note(client, fake, create_user):
     for _ in range(3):
         r = client.post('/users/test_user/notes/', json={
             "text": fake.text(max_nb_chars=200),
@@ -64,53 +22,7 @@ def test_create_note(client):
     assert r.json() == {'detail': [{'loc': ['body', 'url'], 'msg': 'url cant contain spaces', 'type': 'value_error'}]}
 
 
-def test_create_tags(client):
-    r = client.post('/tags/', json={'name': 'books', 'color': '#c0ffee'})
-    assert r.ok
-
-    r = client.post('/tags/', json={'name': 'archive', 'color': '#f0ffff'})
-    assert r.ok
-
-    # test already created
-    r = client.post('/tags/', json={'name': 'books', 'color': '#c0ffee'})
-    assert r.status_code == HTTPStatus.BAD_REQUEST
-    assert r.json() == {'detail': 'tag with name books username already exists'}
-
-    # test valid color generated
-    r = client.post('/tags/', json={'name': 'groceries'})
-    assert is_hex_color(r.json()['color'])
-
-    r = client.post('/tags/', json={'name': 'fake', 'color': 'bad-color'})
-    assert r.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-
-    # test empty name raises
-    r = client.post('/tags/', json={'name': '', 'color': '#c0ffee'})
-    assert r.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    assert r.json() == {'detail': [{'loc': ['body', 'name'], 'msg': 'tag name cant be empty', 'type': 'value_error'}]}
-
-
-def test_get_tags(client):
-    # test default json works
-    r = client.get('/tags/')
-    assert r.ok
-    assert [tag['name'] for tag in r.json()] == ['books', 'archive', 'groceries']
-
-    # test json
-    assert client.get('/tags/', headers={'Accept': 'application/json'}).ok
-
-    # test html
-    r = client.get('/tags/', headers={'Accept': 'text/html'})
-    assert r.ok
-    assert r.text
-    ElementTree.fromstring(r.text)
-
-    # test unsupported media type
-    r = client.get('/tags', headers={'Accept': 'image/png'})
-    assert r.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
-    assert r.json() == {'detail': '415 Unsupported Media Type'}
-
-
-def test_create_note_with_tags(client):
+def test_create_note_with_tags(client, fake, create_user, create_tags):
     # 1 tag
     r = client.post('/users/test_user/notes/', json={
         "text": fake.text(max_nb_chars=200),
@@ -144,7 +56,13 @@ def test_create_note_with_tags(client):
     assert r.json() == {"detail": {"tags dont exists": ['tag_does_not_exist']}}
 
 
-def test_get_note(client):
+def test_get_note(client, fake, create_user, create_tags):
+    r = client.post('/users/test_user/notes/', json={
+        "text": fake.text(max_nb_chars=200),
+        "url": fake.uri(),
+        "tags": [],
+    })
+
     # ==== note without tags ====
     # test default json works
     r = client.get('/notes/1')
@@ -196,7 +114,10 @@ def test_get_note(client):
     assert r.json() == {"note dont exists": 42}, r.json()
 
 
-def test_get_notes(client):
+def test_get_notes(client, fake, create_user, create_tags):
+    for _ in range(6):
+        client.post('/users/test_user/notes/', json={"text": fake.text(max_nb_chars=200), "tags": []})
+
     # test default json works
     r = client.get('/notes')
     assert r.ok
@@ -225,34 +146,9 @@ def test_get_notes(client):
         assert 'archive' not in note['tags']
 
 
-def test_get_tag(client):
-    # test default json works
-    r = client.get('/tags/books')
-    assert r.ok
-    assert r.json()['id'] == 1
-    assert r.json()['name'] == 'books'
-    assert r.json()['color'] == '#c0ffee'
+def test_delete_note(client, fake, create_user):
+    client.post('/users/test_user/notes/', json={"text": fake.text(max_nb_chars=200), "tags": []})
 
-    # test json
-    assert client.get('/tags/books', headers={'Accept': 'application/json'}).ok
-
-    # test html
-    r = client.get('/tags/books', headers={'Accept': 'text/html'})
-    assert r.ok
-    assert r.text
-    ElementTree.fromstring(r.text)
-
-    # test unsupported media type
-    r = client.get('/tags/books', headers={'Accept': 'image/png'})
-    assert r.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
-
-    # test tag dont exists
-    r = client.get('/tags/notexists')
-    assert r.status_code == HTTPStatus.NOT_FOUND
-    assert r.json() == {"tag dont exists": 'notexists'}, r.json()
-
-
-def test_delete_note(client):
     r = client.delete('/notes/1')
     assert r.ok
     assert 1 not in {note['id'] for note in client.get('/notes').json()}
@@ -261,7 +157,7 @@ def test_delete_note(client):
     assert 2 not in {note['id'] for note in client.get('/notes').json()}
 
 
-def test_archive_note(client):
+def test_archive_note(client, fake, create_user, create_tags):
     r = client.post('/users/test_user/notes/', json={
         "text": fake.text(max_nb_chars=200),
         "url": fake.uri(),
@@ -291,30 +187,18 @@ def test_archive_note(client):
     assert r.json() == {'detail': {'note already unarchived': note_id}}
 
 
-def test_get_tag_notes(client):
+def test_get_tag_notes(client, fake, create_user, create_tags):
+    client.post('/users/test_user/notes/', json={"text": fake.text(max_nb_chars=200), "tags": ['books']})
+    client.post('/users/test_user/notes/', json={"text": fake.text(max_nb_chars=200), "tags": ['books', 'groceries']})
+    client.post('/users/test_user/notes/', json={"text": fake.text(max_nb_chars=200), "tags": ['groceries']})
+
     r = client.get('/tags/books/notes')
     assert r.ok
-    assert [note['id'] for note in r.json()] == [4, 6, 7]
+    assert [note['id'] for note in r.json()] == [1, 2]
 
     r = client.get('/tags/groceries/notes')
     assert r.ok
-    assert [note['id'] for note in r.json()] == [6, 7]
-
-
-def test_delete_tag(client):
-    r = client.post('/tags/', json={'name': 'tag_to_be_removed', 'color': '#ffaace'})
-    assert r.ok
-    r = client.post('/users/test_user/notes/', json={"text": 'fake_text', "tags": ['tag_to_be_removed']})
-    assert r.ok
-    note_id = r.json()['id']
-    assert client.delete(f'/tags/tag_to_be_removed').ok
-    assert 'tag_to_be_removed' not in client.get(f'/notes/{note_id}').json()['tags']
-
-
-def test_get_user_by_username(client):
-    r = client.get('/users/test_user')
-    assert r.ok
-    assert r.json()['id'] == 1
+    assert [note['id'] for note in r.json()] == [2, 3]
 
 
 @pytest.mark.parametrize('text', [None, 'test'])
@@ -323,7 +207,10 @@ def test_get_user_by_username(client):
 @pytest.mark.parametrize('edit_text', [None, 'edit_test'])
 @pytest.mark.parametrize('edit_url', [None, 'https://edit.com'])
 @pytest.mark.parametrize('edit_tags', [[], ['groceries'], ['books', 'groceries']])
-def test_edit_note(client, text, url, tags, edit_text, edit_url, edit_tags):
+def test_edit_note(
+    client, create_user, create_tags,
+    text, url, tags, edit_text, edit_url, edit_tags,
+):
     r = client.post('/users/test_user/notes/', json={"text": text, "url": url, "tags": tags})
     assert r.ok
     initial = r.json()
@@ -339,7 +226,7 @@ def test_edit_note(client, text, url, tags, edit_text, edit_url, edit_tags):
     assert initial['updated_time'] < edited['updated_time'], str(initial)
 
 
-def test_edit_note_not_exists(client):
+def test_edit_note_not_exists(client, create_user, create_tags):
     # test error raised when try to edit non-existing note
     r = client.post('/notes/442/edit/', json={'text': 'test', 'tags': []})
     assert r.status_code == HTTPStatus.NOT_FOUND
