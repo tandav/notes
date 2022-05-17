@@ -160,4 +160,4 @@ def create_tag(db: Session, tag: schemas.TagCreate):
 
 
 def get_tags(db: Session):
-    return db.query(models.Tag).all()
+    return db.query(models.Tag).order_by(models.Tag.updated_time.desc()).all()
