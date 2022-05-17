@@ -5,3 +5,5 @@ fastapi==0.76.0
 requests==2.27.1
 faker==13.7.0
 colortool==0.0.1
+markdown2==2.4.3
+python-multipart==0.0.5
