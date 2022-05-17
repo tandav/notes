@@ -1,8 +1,10 @@
+import operator
 from http import HTTPStatus
 
 import secrets
+import markdown2
 
-from fastapi import Depends, FastAPI, HTTPException, status, Header, Request
+from fastapi import Depends, FastAPI, HTTPException, status, Header, Request, Form
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
@@ -12,9 +14,11 @@ from notes.database import SessionLocal, engine
 
 CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css"/>'
 
+markdowner = markdown2.Markdown(extras=['fenced-code-blocks'])
 
 app = FastAPI()
 security = HTTPBasic()
+security_optional = HTTPBasic(auto_error=False)
 
 
 def get_db():
@@ -23,6 +27,192 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+# def check_authorization(credentials: HTTPBasicCredentials = Depends(security_optional)):
+#     """
+#     states:
+#         - credentials is None: return None (to render unauth page)
+#         - credentials is not None and valid: return username (to render public and public notes of a user)
+#         - merged error: user does not exist or wrong password
+#             - credentials is not None and user does not exist
+#             - credentials is not None and user exist but wrong password
+#     """
+
+class CheckAuthorization:
+    def __init__(self, optional: bool = False):
+        self.optional = optional
+
+    def __call__(self, credentials: HTTPBasicCredentials = Depends(security_optional)):
+        if credentials is None and self.optional:
+            return
+        correct_username = secrets.compare_digest(credentials.username, "stanleyjobson")
+        correct_password = secrets.compare_digest(credentials.password, "swordfish")
+        if not (correct_username and correct_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect user or password",
+                headers={"WWW-Authenticate": "Basic"},
+            )
+        return credentials.username
+
+
+authorization = CheckAuthorization()
+authorization_optional = CheckAuthorization(optional=True)
+
+
+# def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
+#     correct_username = secrets.compare_digest(credentials.username, "stanleyjobson")
+#     correct_password = secrets.compare_digest(credentials.password, "swordfish")
+#     if not (correct_username and correct_password):
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Incorrect email or password",
+#             headers={"WWW-Authenticate": "Basic"},
+#         )
+#     return credentials.username
+#
+#
+# @app.get("/users/me")
+# def read_current_user(username: str = Depends(get_current_username)):
+#     return {"username": username}
+
+
+# @app.get("/sign", response_class=HTMLResponse)
+# def sign(username: str = Depends(get_current_username)):
+#     return f'''
+#     <html>
+#     <head>
+#     {CSS_FRAMEWORK}
+#     </head>
+#     <body>
+#     {util.header(signout=True)}
+#     <h1>Signed-in as {username}</h1>
+#     </style>
+#     </body>
+#     </html>
+#     '''
+#     return f'''
+#     <html>
+#     <head>
+#     {CSS_FRAMEWORK}
+#     </head>
+#     <body>
+#     <h1>Sign-in / Sign-up</h1>
+#     <form action="/sign" method="post" id="tag_form">
+#       <p>
+#         <label>username</label>
+#         <input type="text" name="username">
+#       </p>
+#       <p>
+#         <label>password</label>
+#         <input type="text" name="password">
+#       </p>
+#       <p>
+#         <button>create</button>
+#       </p>
+#     </form>
+#     <style>
+#     input {{
+#         width: 100%;
+#     }}
+#     </style>
+#     </body>
+#     </html>
+#     '''
+
+
+# def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), accept=Header('application/json'),
+#     credentials: HTTPBasicCredentials = Depends(security),
+# ):
+# @app.get("/signout", response_class=HTMLResponse)
+# def signout():
+#     raise HTTPException(
+#         status_code=HTTPStatus.UNAUTHORIZED,
+#         detail="Not authenticated",
+#         headers={"WWW-Authenticate": "Basic"},
+#     )
+#     # return read_notes()
+#     # return RedirectResponse("/notes/", status_code=status.HTTP_401_UNAUTHORIZED)
+#     # return RedirectResponse("/notes/?signout=true", status_code=status.HTTP_401_UNAUTHORIZED)
+#
+
+# @app.get("/signup/")
+# def create_user(credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_db)):
+#     db_user = crud.get_user_by_username(db, username=credentials.username)
+#     if db_user:
+#         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="username already registered")
+#     crud.create_user(db=db, user=credentials)
+#     return f'''
+#     {CSS_FRAMEWORK}
+#     <h1>user <code>{credentials.username}</code> created</h1>
+#     <a href="/notes">/notes</a>
+#     '''
+#     # return RedirectResponse('/notes/')
+# username: str = Form(''), password: str = Form('')
+
+
+@app.post('/signup', response_model=schemas.User)
+def signup_handle_form(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_username(db, username)
+    if db_user:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="username already registered")
+    return crud.create_user(db, HTTPBasicCredentials(username=username, password=password))
+
+
+@app.get('/signup', response_class=HTMLResponse)
+def signup():
+    return f'''
+    {CSS_FRAMEWORK}
+    {util.header()}
+    <h1>create user</h1>
+    <form action="/signup" method="post">
+      <p>
+        <label>username</label>
+        <input type="text" name="username">
+      </p>
+      <p>
+        <label>password</label>
+        <input type="password" name="password">
+      </p>
+      <p>
+        <button>create</button>
+      </p>
+    </form>
+    '''
+
+
+@app.get('/signin', response_class=HTMLResponse)
+def signin(credentials: HTTPBasicCredentials = Depends(security)):
+    return f'''
+    {CSS_FRAMEWORK}
+    {util.header()}
+    <h1>signed in successfully as <code>{credentials.username}</code></h1>
+    '''
+
+
+# @app.get('/signout', response_class=HTMLResponse)
+# def signout():
+#     return f'''
+#     {CSS_FRAMEWORK}
+#     {util.header()}
+#     <p>You have been logged out. Redirecting to home...</p>
+#     ''' + '''
+#     <div></div>
+#
+#     <script>
+#         fetch("/notes", {headers: {"Authorization": "Basic " + btoa("log" + ":" + "out")}})
+#
+#         setTimeout(function () {
+#             window.location.href = "/notes";
+#         }, 3000);
+#     </script>
+#     '''
+
+
+@app.get('/signout', response_class=HTMLResponse)
+def signout():
+    return HTMLResponse('signout', status_code=HTTPStatus.UNAUTHORIZED, headers={"WWW-Authenticate": "Basic"})
 
 
 @app.post("/users/", response_model=schemas.User)
@@ -180,6 +370,7 @@ def notes_table(notes: list) -> tuple[str, str]:
     return html, css
 
 
+
 @app.get(
     "/notes/",
     response_model=list[schemas.Note],
@@ -191,13 +382,25 @@ def notes_table(notes: list) -> tuple[str, str]:
         415: {"model": schemas.Message},
     }
 )
-def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), accept=Header('application/json')):
+def read_notes(request: Request, skip: int = 0, limit: int = 100, db: Session = Depends(get_db), accept: str | None = Header(default='application/json'),
+    # authorization: str | None = Header(default=None),
+    # credentials: HTTPBasicCredentials = Depends(security),
+    username: str = Depends(authorization_optional),
+    # signout: bool = False,
+):
+#     breakpoint()
+#     print('>'*100, f'{credentials=}')
     accept = accept.split(',')
     is_html = accept[0] == 'text/html'
     is_json = 'application/json' in accept or '*/*' in accept
-
     if is_html or is_json:
-        notes = crud.get_notes(db, skip=skip, limit=limit)
+        if username:
+            header = util.header(new_note=True, signout=True)
+            notes = crud.get_notes(db, skip=skip, limit=limit)
+        else:
+            header = util.header(new_note=True, signup=True, signin=True)
+            notes = crud.get_notes(db, skip=skip, limit=limit)
+
         if is_json:
             return notes
         if is_html:
@@ -209,7 +412,7 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
             </head>
             <body>
             <nav>
-            {util.header(new_note=True)}
+            {header}
             </nav>
             <h1>Notes</h1>
             {table_html}
@@ -220,7 +423,6 @@ def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), a
             </body>
             </html>
             ''')
-
     else:
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'detail': '415 Unsupported Media Type'})
 
@@ -262,7 +464,13 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 tags_colors = util.tags_css(note.tags)
 
                 url = f"<p>url: <a href='{note.url}'>{note.url}</a></p>" if note.url else ''
-                text = f"<p>{note.text}</p>" if note.text else ''
+                # text = f"<p>{note.text}</p>" if note.text else ''
+                if note.text:
+                    text = util.add_notes_and_tags_links(note.text)
+                    text = markdowner.convert(text)
+                else:
+                    text = ''
+
                 return HTMLResponse(f'''
                 <html>
                 <head>
@@ -284,10 +492,16 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 {util.header(new_note=True, edit_note=note_id)}
                 {archive_button}
                 </nav>
-                <span class='metadata'><a href='/users/{note.user_id}'>user_{note.user_id}</a> last edit: {note.updated_time:%Y %b %d %H:%M}</span>
+                <span class='metadata'>
+                <a href='/users/{note.user_id}'>user_{note.user_id}</a>
+                <div id='time'>
+                <span title="{util.format_time(note.created_time, absolute=True)}">created: {util.format_time(note.created_time)}</span>
+                <span title="{util.format_time(note.updated_time, absolute=True)}">last edit: {util.format_time(note.updated_time)}</span>
+                </div>
+                </span>
                 </header>
                 {url}
-                <p></p>
+                <br/>
                 <div class='tags'>
                 {tags}
                 </div>
@@ -305,6 +519,10 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
+                }}
+                #time {{
+                    display: flex;
+                    flex-direction: column;
                 }}
                 </style>
                 </body>
@@ -346,7 +564,11 @@ def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application
         if is_html:
             tags_colors = util.tags_css([tag])
 
-            table_html, table_css = notes_table([note.to_dict() for note in tag.notes])
+            table_html, table_css = notes_table([
+                note.to_dict()
+                for note in sorted(tag.notes, key=operator.attrgetter('updated_time'), reverse=True)
+            ])
+
             return HTMLResponse(f'''
             <html>
             <head>
@@ -370,7 +592,11 @@ def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application
             </nav>
             <span class='metadata'>last edit: {tag.updated_time:%Y %b %d %H:%M}</span>
             </header>
-            <h1><span id="{tag.name}">{tag.name}</span></h1>
+            <br/>
+            <div class='tags'>
+            <span id="{tag.name}">{tag.name}</span>
+            <br/><br/>
+            </div>
             {table_html}
             ''' + f'''
             <style>
@@ -436,8 +662,8 @@ async def new_note_handle_form(request: Request, db: Session = Depends(get_db)):
         url=form.get('url') or None,
         tags=form.getlist('tags'),
     )
-    create_note(username='test_user', note=note, db=db)
-    return RedirectResponse('/notes', status_code=HTTPStatus.FOUND)
+    note_db = create_note(username='test_user', note=note, db=db)
+    return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)
 
 
 @app.post('/notes/{note_id}/edit')
@@ -449,7 +675,7 @@ async def edit_note_handle_form(note_id: int, request: Request, db: Session = De
         tags=form.getlist('tags'),
     )
     edit_note(note_id, note, db)
-    return RedirectResponse('/notes', status_code=HTTPStatus.FOUND)
+    return RedirectResponse(f'/notes/{note_id}', status_code=HTTPStatus.FOUND)
 
 
 @app.post('/new_tag')
@@ -488,7 +714,7 @@ def note_form(
         # form_action = f'/notes/{note_id}/edit'
         assert note is not None and isinstance(note, models.Note)
         text = note.text
-        url = note.url
+        url = note.url or ''
         button_text = 'save'
         form_action = f'/notes/{note.id}/edit'
     else:

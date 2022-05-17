@@ -1,5 +1,6 @@
 import datetime
 import string
+import re
 
 import colortool
 
@@ -53,6 +54,9 @@ def header(
     new_tag: bool = False,
     edit_note: int = 0,
     edit_tag: int = 0,
+    signup: bool = False,
+    signin: bool = False,
+    signout: bool = False,
 ) -> str:
     items = [
         '<a href="/notes">[notes]</a>',
@@ -64,6 +68,12 @@ def header(
         items.append('<a href="/new_tag"><button>new tag</button></a>')
     if edit_note:
         items.append(f'<a href="/notes/{edit_note}/edit"><button>edit</button></a>')
+    if signup:
+        items.append('<a href="/signup">[signup]</a>')
+    if signin:
+        items.append('<a href="/signin">[signin]</a>')
+    if signout:
+        items.append('<a href="/signout">[signout]</a>')
     return '\n'.join(items)
 
 
@@ -82,3 +92,17 @@ def tags_css(tags) -> str:
         }}
         ''')
     return '\n'.join(items)
+
+
+def add_notes_and_tags_links(s: str) -> str:
+    def repl_note(match):
+        g = match.group()
+        return f"[{g}](/notes/{g[1:]})"
+
+    def repl_tag(match):
+        g = match.group()
+        return f"[{g}](/tags/{g[1:]})"
+
+    s = re.sub(r'#\d+', repl_note, s)
+    s = re.sub(r'#[A-Za-z](\w|-)+', repl_tag, s)
+    return s
