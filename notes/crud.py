@@ -112,6 +112,8 @@ def create_note(db: Session, note: schemas.NoteCreate, username: str):
         tags = db.query(models.Tag).filter(models.Tag.name.in_(note.tags)).all()
         if unknown_tags := set(note.tags) - {tag.name for tag in tags}:
             raise TagNotExistsError(list(unknown_tags))
+        for tag in tags:
+            tag.updated_time = now
         note_dict = {**note.dict(), 'tags': tags}
 
     db_note = models.Note(**note_dict, user_id=user.id, created_time=now, updated_time=now)
@@ -125,13 +127,18 @@ def edit_note(db: Session, note: schemas.NoteCreate, note_id: int):
     db_note = get_note(db, note_id)
     db_note.text = note.text
     db_note.url = note.url
-    db_note.updated_time = datetime.datetime.now()
+    now = datetime.datetime.now()
+    db_note.updated_time = now
 
     # if note.tags:
     #     breakpoint()
     tags = db.query(models.Tag).filter(models.Tag.name.in_(note.tags)).all()
     if unknown_tags := set(note.tags) - {tag.name for tag in tags}:
         raise TagNotExistsError(list(unknown_tags))
+
+    for tag in tags:
+        tag.updated_time = now
+
     db_note.tags = tags
     db.commit()
     db.refresh(db_note)
