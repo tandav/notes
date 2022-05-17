@@ -27,6 +27,18 @@ def test_create_tags(client):
     assert r.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert r.json() == {'detail': [{'loc': ['body', 'name'], 'msg': 'tag name cant be empty', 'type': 'value_error'}]}
 
+    # test valid characters
+    for name in ('fdf&', 'ffdf dfs', '!'):
+        r = client.post('/tags/', json={'name': name, 'color': '#c0ffee'})
+        assert r.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        assert r.json() == {'detail': [{'loc': ['body', 'name'], 'msg': 'tag name can only contain letters, digints and "_", "-" special characters', 'type': 'value_error'}]}
+
+    # test startswith letter
+    for name in ('1name', '_', '_t', '-', '-4'):
+        r = client.post('/tags/', json={'name': name, 'color': '#c0ffee'})
+        assert r.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        assert r.json() == {'detail': [{'loc': ['body', 'name'], 'msg': 'tag name should must start with a letter', 'type': 'value_error'}]}
+
 
 def test_get_tags(client, create_tags):
     # test default json works

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import string
 
 from pydantic import BaseModel, root_validator, validator
 
@@ -92,6 +93,19 @@ class TagBase(BaseModel):
         if v == '':
             raise ValueError('tag name cant be empty')
         return v
+
+    @validator('name')
+    def valid_characters(cls, v):
+        if not set(v) <= set(string.ascii_letters + string.digits + '-_'):
+            raise ValueError('tag name can only contain letters, digints and "_", "-" special characters')
+        return v
+
+    @validator('name')
+    def startswith_letter(cls, v):
+        if not v[0].isalpha():
+            raise ValueError('tag name should must start with a letter')
+        return v
+
 
     @validator('color')
     def color_string_check(cls, v):
