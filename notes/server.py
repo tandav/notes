@@ -14,7 +14,10 @@ from notes.database import SessionLocal, engine
 
 CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css"/>'
 
-markdowner = markdown2.Markdown(extras=['fenced-code-blocks'])
+markdowner = markdown2.Markdown(extras=[
+    'fenced-code-blocks',
+    'code-friendly',  # https://github.com/trentm/python-markdown2/issues/38
+])
 
 app = FastAPI()
 security = HTTPBasic()

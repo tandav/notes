@@ -46,7 +46,3 @@ from notes.util import add_notes_and_tags_links
 ])
 def test_parse_links(text, expected):
     assert add_notes_and_tags_links(text) == expected
-
-
-def test_markdown():
-    pass
