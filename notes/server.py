@@ -701,6 +701,7 @@ def note_form(
 ):
     if action == 'new_note':
         button_text = 'create'
+        heading = 'create note'
         if note is not None and isinstance(note, schemas.NoteCreate):
             text = note.text
             url = note.url
@@ -709,6 +710,7 @@ def note_form(
             url = ''
         form_action = '/new_note'
     elif action == 'edit_note':
+        heading = 'edit note'
         # assert note_id is not None
         # note = crud.get_note(db, note_id)
         # text = note.text
@@ -741,7 +743,7 @@ def note_form(
     html = f"""
     {CSS_FRAMEWORK}
     {util.header(new_note=False)}
-    <h1>create note</h1>
+    <h1>{heading}</h1>
     <form action="{form_action}" method="post" id="note_form">
       <p>
         <label for="textarea">text</label>
