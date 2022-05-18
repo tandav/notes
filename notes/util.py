@@ -59,8 +59,8 @@ def header(
     signout: bool = False,
 ) -> str:
     items = [
-        '<a href="/notes">[notes]</a>',
-        '<a href="/tags">[tags]</a>',
+        '<a href="/notes/">[notes]</a>',
+        '<a href="/tags/">[tags]</a>',
     ]
     if new_note:
         items.append('<a href="/new_note"><button>new note</button></a>')
