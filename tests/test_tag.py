@@ -96,3 +96,17 @@ def test_delete_tag(client, create_user):
     note_id = r.json()['id']
     assert client.delete(f'/tags/tag_to_be_removed').ok
     assert 'tag_to_be_removed' not in client.get(f'/notes/{note_id}').json()['tags']
+
+
+def test_updated_time(client, create_user, create_tags):
+    """Tag.updated_time should updates when you create or modify a note with this tag"""
+    t0 = client.get('/tags/books').json()['updated_time']
+
+    note_id = client.post('/users/test_user/notes/', json={"text": None, "url": None, "tags": ['books']}).json()['id']
+    t1 = client.get('/tags/books').json()['updated_time']
+
+    assert t1 > t0
+    client.post(f'/notes/{note_id}/edit/', json={'text': '1', 'tags': ['books', 'groceries']})
+    t2 = client.get('/tags/books').json()['updated_time']
+
+    assert t2 > t1
