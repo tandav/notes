@@ -728,9 +728,12 @@ def note_form(
     tags = crud.get_tags(db)
     tags_checkboxes = []
     for tag in crud.get_tags(db):
-        if isinstance(note, models.Note) and tag in note.tags:
-            checked = ' checked'
-        elif isinstance(note, schemas.NoteCreate) and tag.name in note.tags:
+
+        if (
+            (isinstance(note, models.Note) and tag in note.tags) or
+            (isinstance(note, schemas.NoteCreate) and tag.name in note.tags) or
+            (action == 'new_note' and tag.name == 'private')
+        ):
             checked = ' checked'
         else:
             checked = ''
