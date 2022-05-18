@@ -123,6 +123,9 @@ def test_get_notes(client, fake, create_user, create_tags):
     assert r.ok
     assert len(r.json()) == 6, r.json()
 
+    # test sorted by updated_time
+    assert r.json() == sorted(r.json(), key=lambda x: x['updated_time'], reverse=True)
+
     # test json
     r = client.get('/notes', headers={'Accept': 'application/json'})
     assert r.ok

@@ -44,7 +44,10 @@ def test_get_tags(client, create_tags):
     # test default json works
     r = client.get('/tags/')
     assert r.ok
-    assert [tag['name'] for tag in r.json()] == ['books', 'archive', 'groceries']
+    assert [tag['name'] for tag in r.json()] == ['groceries', 'archive', 'books']
+
+    # test sorted by updated_time
+    assert r.json() == sorted(r.json(), key=lambda x: x['updated_time'], reverse=True)
 
     # test json
     assert client.get('/tags/', headers={'Accept': 'application/json'}).ok
