@@ -4,7 +4,7 @@ from http import HTTPStatus
 import secrets
 import markdown2
 
-from fastapi import Depends, FastAPI, HTTPException, status, Header, Request, Form
+from fastapi import Depends, FastAPI, HTTPException, status, Header, Request, Form, APIRouter
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
@@ -19,9 +19,6 @@ markdowner = markdown2.Markdown(extras=[
     'code-friendly',  # https://github.com/trentm/python-markdown2/issues/38
 ])
 
-app = FastAPI()
-security = HTTPBasic()
-security_optional = HTTPBasic(auto_error=False)
 
 
 def get_db():
@@ -31,6 +28,42 @@ def get_db():
     finally:
         db.close()
 
+http_basic = HTTPBasic()
+http_basic_optional = HTTPBasic(auto_error=False)
+
+
+# class AuthError(BaseException): pass
+# class WrongUsernameOrPassword(BaseException): pass
+WrongUsernameOrPassword = HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="username not exists or incorrect password")
+
+
+def _authenticate(db: Session, credentials: HTTPBasicCredentials, optional: bool) -> str | None:
+    if credentials is None:
+        if optional:
+            return
+        else:
+            raise WrongUsernameOrPassword
+    elif not crud.check_credentials(db, credentials):
+        raise WrongUsernameOrPassword
+    return credentials.username
+
+
+def authenticate_optional(
+    db: Session = Depends(get_db),
+    credentials: HTTPBasicCredentials = Depends(http_basic_optional),
+) -> str | None:
+    return _authenticate(db, credentials, optional=True)
+
+
+def authenticate(
+    db: Session = Depends(get_db),
+    credentials: HTTPBasicCredentials = Depends(http_basic),
+) -> str:
+    return _authenticate(db, credentials, optional=False)
+
+
+# app = FastAPI(dependencies=[Depends(authenticate)])
+app = FastAPI()
 
 # def check_authorization(credentials: HTTPBasicCredentials = Depends(security_optional)):
 #     """
@@ -41,27 +74,30 @@ def get_db():
 #             - credentials is not None and user does not exist
 #             - credentials is not None and user exist but wrong password
 #     """
+#
+# class CheckAuthorization:
+#     def __init__(self, optional: bool = False):
+#         self.optional = optional
+#
+#     def __call__(self, credentials: HTTPBasicCredentials = Depends(security_optional)):
+#         if credentials is None and self.optional:
+#             return
+#         correct_username = secrets.compare_digest(credentials.username, "stanleyjobson")
+#         correct_password = secrets.compare_digest(credentials.password, "swordfish")
+#         if not (correct_username and correct_password):
+#             raise HTTPException(
+#                 status_code=status.HTTP_401_UNAUTHORIZED,
+#                 detail="Incorrect user or password",
+#                 headers={"WWW-Authenticate": "Basic"},
+#             )
+#         return credentials.username
 
-class CheckAuthorization:
-    def __init__(self, optional: bool = False):
-        self.optional = optional
-
-    def __call__(self, credentials: HTTPBasicCredentials = Depends(security_optional)):
-        if credentials is None and self.optional:
-            return
-        correct_username = secrets.compare_digest(credentials.username, "stanleyjobson")
-        correct_password = secrets.compare_digest(credentials.password, "swordfish")
-        if not (correct_username and correct_password):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect user or password",
-                headers={"WWW-Authenticate": "Basic"},
-            )
-        return credentials.username
 
 
-authorization = CheckAuthorization()
-authorization_optional = CheckAuthorization(optional=True)
+# router = APIRouter(dependencies=[Depends(authenticate)])
+
+# authorization = CheckAuthorization()
+# authorization_optional = CheckAuthorization(optional=True)
 
 
 # def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
@@ -80,6 +116,10 @@ authorization_optional = CheckAuthorization(optional=True)
 # def read_current_user(username: str = Depends(get_current_username)):
 #     return {"username": username}
 
+
+@app.get('/signin')
+def signin(username: str = Depends(authenticate)):
+    return RedirectResponse('/notes')
 
 # @app.get("/sign", response_class=HTMLResponse)
 # def sign(username: str = Depends(get_current_username)):
@@ -128,7 +168,16 @@ authorization_optional = CheckAuthorization(optional=True)
 # def read_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), accept=Header('application/json'),
 #     credentials: HTTPBasicCredentials = Depends(security),
 # ):
-# @app.get("/signout", response_class=HTMLResponse)
+
+@app.get("/signout", response_class=HTMLResponse)
+def signout():
+    return f'''
+    {CSS_FRAMEWORK}
+    {util.header()}
+    <hr/>
+    Implementing signout in http basic auth is tricky.
+    You can try just close the browser in order to sign out.
+    '''
 # def signout():
 #     raise HTTPException(
 #         status_code=HTTPStatus.UNAUTHORIZED,
@@ -155,14 +204,14 @@ authorization_optional = CheckAuthorization(optional=True)
 # username: str = Form(''), password: str = Form('')
 
 
-@app.post('/signup', response_model=schemas.User)
-def signup_handle_form(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_username(db, username)
-    if db_user:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="username already registered")
-    return crud.create_user(db, HTTPBasicCredentials(username=username, password=password))
-
-
+# @app.post('/signup', response_model=schemas.User)
+# def signup_handle_form(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+#     db_user = crud.get_user_by_username(db, username)
+#     if db_user:
+#         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="username already registered")
+#     return crud.create_user(db, HTTPBasicCredentials(username=username, password=password))
+#
+#
 @app.get('/signup', response_class=HTMLResponse)
 def signup():
     return f'''
@@ -184,14 +233,13 @@ def signup():
     </form>
     '''
 
-
-@app.get('/signin', response_class=HTMLResponse)
-def signin(credentials: HTTPBasicCredentials = Depends(security)):
-    return f'''
-    {CSS_FRAMEWORK}
-    {util.header()}
-    <h1>signed in successfully as <code>{credentials.username}</code></h1>
-    '''
+# @app.get('/signin', response_class=HTMLResponse)
+# def signin(credentials: HTTPBasicCredentials = Depends(http_basic)):
+#     return f'''
+#     {CSS_FRAMEWORK}
+#     {util.header()}
+#     <h1>signed in successfully as <code>{credentials.username}</code></h1>
+#     '''
 
 
 # @app.get('/signout', response_class=HTMLResponse)
@@ -213,13 +261,13 @@ def signin(credentials: HTTPBasicCredentials = Depends(security)):
 #     '''
 
 
-@app.get('/signout', response_class=HTMLResponse)
-def signout():
-    return HTMLResponse('signout', status_code=HTTPStatus.UNAUTHORIZED, headers={"WWW-Authenticate": "Basic"})
-
+# @app.get('/signout', response_class=HTMLResponse)
+# def signout():
+#     return HTMLResponse('signout', status_code=HTTPStatus.UNAUTHORIZED, headers={"WWW-Authenticate": "Basic"})
+#
 
 @app.post("/users/", response_model=schemas.User)
-def create_user(credentials: HTTPBasicCredentials = Depends(security), db: Session = Depends(get_db)):
+def create_user(credentials: HTTPBasicCredentials = Depends(http_basic), db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=credentials.username)
     if db_user:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="username already registered")
@@ -227,7 +275,7 @@ def create_user(credentials: HTTPBasicCredentials = Depends(security), db: Sessi
 
 
 @app.get("/users/", response_model=list[schemas.User])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), username=Depends(authenticate)):
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
 
@@ -372,8 +420,6 @@ def notes_table(notes: list) -> tuple[str, str]:
 
     return html, css
 
-
-
 @app.get(
     "/notes/",
     response_model=list[schemas.Note],
@@ -385,24 +431,25 @@ def notes_table(notes: list) -> tuple[str, str]:
         415: {"model": schemas.Message},
     }
 )
-def read_notes(request: Request, skip: int = 0, limit: int = 100, db: Session = Depends(get_db), accept: str | None = Header(default='application/json'),
-    # authorization: str | None = Header(default=None),
-    # credentials: HTTPBasicCredentials = Depends(security),
-    username: str = Depends(authorization_optional),
-    # signout: bool = False,
+def read_notes(
+    request: Request,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    accept: str | None = Header(default='application/json'),
+    username: str | None = Depends(authenticate_optional),
+    # credentials: HTTPBasicCredentials = Depends(security_optional),
+    drop_archived: bool = True,
 ):
-#     breakpoint()
-#     print('>'*100, f'{credentials=}')
     accept = accept.split(',')
     is_html = accept[0] == 'text/html'
     is_json = 'application/json' in accept or '*/*' in accept
     if is_html or is_json:
-        if username:
-            header = util.header(new_note=True, signout=True)
-            notes = crud.get_notes(db, skip=skip, limit=limit)
+        if username is not None:
+            header = util.header(notes_archive=True, new_note=True, signout=True, username=username)
         else:
-            header = util.header(new_note=True, signup=True, signin=True)
-            notes = crud.get_notes(db, skip=skip, limit=limit)
+            header = util.header(notes_archive=True, new_note=True, signup=True, signin=True)
+        notes = crud.get_notes(db, skip=skip, limit=limit, drop_archived=drop_archived)
 
         if is_json:
             return notes
@@ -542,35 +589,40 @@ def get_tag_notes(name: str, db: Session = Depends(get_db)):
     return crud.get_tag(db, name).notes
 
 
-@app.get(
-    "/tags/{name}",
-    response_model=schemas.Tag,
-    responses={
-        200: {
-            "content": {"text/html": {}},
-            "description": "Return the html page with note",
-        },
-        415: {"model": schemas.Message},
-        404: {"model": schemas.Message},
-    }
-)
-def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application/json')):
+def _get_tag(name: str, db: Session = Depends(get_db), accept=Header('application/json'), archive: bool = False):
     accept = accept.split(',')
     is_html = accept[0] == 'text/html'
     is_json = 'application/json' in accept or '*/*' in accept
     if is_html or is_json:
         tag = crud.get_tag(db, name)
+
         if tag is None:
             return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={"tag dont exists": name})
         if is_json:
             return tag
         if is_html:
             tags_colors = util.tags_css([tag])
+            archive_tag = crud.get_tag(db, 'archive')
 
-            table_html, table_css = notes_table([
-                note.to_dict()
-                for note in sorted(tag.notes, key=operator.attrgetter('updated_time'), reverse=True)
-            ])
+            # todo: rewrite this using sqalchemy queries
+            notes = [note.to_dict() for note in tag.notes]
+
+            if archive or name == 'archive':
+                notes = [note for note in notes if 'archive' in note['tags']]
+                header = util.header(new_note=True)
+                # tag.notes.query(models.Note).filter(models.Tag.name == 'archive')
+                # notes = db.query(models.Note).filter(models.Tag.name == 'archive')
+                README = ''
+            else:
+                header = util.header(new_note=True, tag_notes_archive=tag.name, delete_tag=True)
+                notes = [note for note in notes if 'archive' not in note['tags']]
+                # tag.notes.query(models.Note).filter(models.Tag.name != 'archive')
+                # notes = db.query(models.Note).filter(models.Tag.name != 'archive')
+                README = 'README'
+
+
+            notes = sorted(notes, key=operator.itemgetter('updated_time'), reverse=True)
+            table_html, table_css = notes_table(notes)
 
             return HTMLResponse(f'''
             <html>
@@ -590,8 +642,8 @@ def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application
             ''' + f'''
             <header>
             <nav>
-            {util.header(new_tag=True)}
-            <button class="delete_button" onclick='delete_tag("{name}")'>delete</button>
+            {header}
+            
             </nav>
             <span class='metadata'>last edit: {tag.updated_time:%Y %b %d %H:%M}</span>
             </header>
@@ -600,6 +652,7 @@ def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application
             <span id="{tag.name}">{tag.name}</span>
             <br/><br/>
             </div>
+            {README}
             {table_html}
             ''' + f'''
             <style>
@@ -619,6 +672,37 @@ def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application
             ''')
     else:
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
+
+
+@app.get(
+    "/tags/{name}",
+    response_model=schemas.Tag,
+    responses={
+        200: {
+            "content": {"text/html": {}},
+            "description": "Return the html page with note",
+        },
+        415: {"model": schemas.Message},
+        404: {"model": schemas.Message},
+    }
+)
+def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application/json')):
+    return _get_tag(name, db, accept, archive=False)
+
+@app.get(
+    "/tags/{name}/archive",
+    response_model=schemas.Tag,
+    responses={
+        200: {
+            "content": {"text/html": {}},
+            "description": "Return the html page with note",
+        },
+        415: {"model": schemas.Message},
+        404: {"model": schemas.Message},
+    }
+)
+def get_tag_archive(name: str, db: Session = Depends(get_db), accept=Header('application/json')):
+    return _get_tag(name, db, accept, archive=True)
 
 
 @app.delete("/notes/{note_id}/archive", response_model=list[schemas.Note])
@@ -797,7 +881,10 @@ def new_note_form(
     # breakpoint()
     if text or url or tags:
         tags = [] if tags is None else  tags.split(',')
-        note = schemas.NoteCreate(text=text, url=url, tags=tags)
+        try:
+            note = schemas.NoteCreate(text=text, url=url, tags=tags)
+        except ValueError as e:
+            return str(e)
     else:
         note = None
     return note_form(db, action='new_note', note=note)

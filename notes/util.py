@@ -57,11 +57,19 @@ def header(
     signup: bool = False,
     signin: bool = False,
     signout: bool = False,
+    username: str | None = None,
+    tag_notes_archive: str | None = False,
+    notes_archive: bool = False,
+    delete_tag: bool = False,
 ) -> str:
     items = [
         '<a href="/notes/">[notes]</a>',
         '<a href="/tags/">[tags]</a>',
     ]
+    if tag_notes_archive:
+        items.append(f'<a href="/tags/{tag_notes_archive}/archive">[archive]</a>',)
+    if notes_archive:
+        items.append(f'<a href="/tags/archive">[archive]</a>',)
     if new_note:
         items.append('<a href="/new_note"><button>new note</button></a>')
     if new_tag:
@@ -74,6 +82,10 @@ def header(
         items.append('<a href="/signin">[signin]</a>')
     if signout:
         items.append('<a href="/signout">[signout]</a>')
+    if username:
+        items.append(f'<a href="/users/{username}">[{username}]</a>')
+    if delete_tag:
+        items.append('''<button class="delete_button" onclick='delete_tag("{name}")'>delete tag</button>''')
     return '\n'.join(items)
 
 

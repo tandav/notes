@@ -47,6 +47,20 @@ def create_user(db: Session, user: HTTPBasicCredentials) -> schemas.User:
     return db_user
 
 
+def check_credentials(db: Session, credentials: HTTPBasicCredentials) -> bool:
+    user = get_user_by_username(db, credentials.username)
+    if user is None:
+        return False
+    if hashlib.pbkdf2_hmac(
+        hash_name='sha256',
+        password=credentials.password.encode(),
+        salt=user.salt.encode(),
+        iterations=500_000,
+    ) != user.password:
+        return False
+    return True
+
+
 def get_note(db: Session, note_id: int):
     note = db.query(models.Note).filter(models.Note.id == note_id).first()
     if note is None:
@@ -54,15 +68,32 @@ def get_note(db: Session, note_id: int):
     return note
 
 
-def get_tag(db: Session, name: str):
+def get_tag(db: Session, name: str, not_found_error: bool = False):
     tag = db.query(models.Tag).filter(models.Tag.name == name).first()
+    if not_found_error and tag is None:
+        raise TagNotExistsError
     return tag
 
 
-def get_notes(db: Session, skip: int = 0, limit: int = 100):
+def get_notes(
+    db: Session,
+    skip: int = 0, limit: int = 100,
+    user: models.User | None = None,
+    drop_archived: bool = True,
+    drop_private: bool = True,
+):
     query = db.query(models.Note)
-    if archive_tag := get_tag(db, 'archive'):
-        query = query.filter(~models.Note.tags.contains(archive_tag))
+
+    if user is not None:
+        query = query.filter(~models.Note.user == user)
+
+    if drop_archived:
+        tag = get_tag(db, 'archive', not_found_error=True)
+        query = query.filter(~models.Note.tags.contains(tag))
+
+    if drop_private:
+        tag = get_tag(db, 'private', not_found_error=True)
+        query = query.filter(~models.Note.tags.contains(tag))
 
     query = (
         query
@@ -73,6 +104,24 @@ def get_notes(db: Session, skip: int = 0, limit: int = 100):
     )
 
     return [note.to_dict() for note in query]
+
+
+def get_public_notes(
+    db: Session,
+    skip: int = 0, limit: int = 100,
+    drop_archived: bool = True,
+):
+    return get_notes(db, skip, limit, drop_archived, drop_private=True)
+
+
+def get_private_notes(
+    db: Session,
+    username: str,
+    skip: int = 0, limit: int = 100,
+    drop_archived: bool = True,
+):
+    user = get_user_by_username(db, username)
+    return get_notes(db, skip, limit, user, drop_archived, drop_private=True)
 
 
 def delete_note(db: Session, note_id: int):
@@ -161,3 +210,8 @@ def create_tag(db: Session, tag: schemas.TagCreate):
 
 def get_tags(db: Session):
     return db.query(models.Tag).order_by(models.Tag.updated_time.desc()).all()
+
+
+# def get_notes_by_tags(db: Session, tags: list[str]):
+#     tags = db.query(models.Tag).filter(models.Tag.name.in_(tags)).all()
+#     notes =

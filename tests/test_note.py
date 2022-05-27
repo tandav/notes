@@ -242,3 +242,7 @@ def test_edit_note_not_exists(client, create_user, create_tags):
     r = client.post(f'/notes/{note_id}/edit/', json={'text': 'test', 'tags': ['books', 'unknown_tag']})
     assert r.status_code == HTTPStatus.NOT_FOUND
     assert r.json() == {'detail': {'tags dont exists': ['unknown_tag']}}
+
+
+def test_note_by_tags():
+    raise
