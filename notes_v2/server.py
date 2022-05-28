@@ -19,7 +19,6 @@ markdowner = markdown2.Markdown(extras=[
 ])
 
 
-
 app = FastAPI(
     title='Notes API',
     description=config.API_DESCRIPTION,
@@ -31,7 +30,21 @@ app = FastAPI(
 )
 app.include_router(users.router)
 
-
+#
+# @app.middleware('http')
+# def determine_media_type(request: Request, call_next):
+#     # mediatype = util.MediaType(request.headers['Accept'])
+#     accept = request.headers.get('Accept')
+#     if accept is None:
+#         request.headers['Accept'] = 'application/json'
+#     accept = request.headers.get['Accept'].split(',')
+#
+#     if mediatype.is_unsupported:
+#         raise util.MediaType.UNSUPPORTED_EXCEPTION
+#     response
+#     response = await call_next(request)
+#     response.headers["X-Process-Time"] = str(process_time)
+#     return response
 
 
 # @app.post('/notes/', response_model=schemas.Note)
