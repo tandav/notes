@@ -1,4 +1,5 @@
 import pytest
+
 from notes_v2 import models
 
 

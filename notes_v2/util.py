@@ -1,8 +1,11 @@
 from collections.abc import Iterable
+
+import colortool
 from fastapi import Header
 from fastapi.responses import JSONResponse
-from http import HTTPStatus
+
 from notes_v2.config import CSS_FRAMEWORK
+
 
 def drop_keys(kv: dict | Iterable[dict], keys: set[str]):
     if isinstance(kv, dict):

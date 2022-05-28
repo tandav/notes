@@ -1,7 +1,6 @@
-from textwrap import dedent
-from notes_v2.config import CSS_FRAMEWORK
 from xml.etree import ElementTree
 
+from notes_v2.config import CSS_FRAMEWORK
 
 # def header(
 #     new_note: bool = False,
@@ -99,7 +98,7 @@ def is_valid_xml(xml: str) -> bool:
         ElementTree.fromstring(xml)
     except ElementTree.ParseError:
         return False
-    except:
+    except BaseException:
         raise
     else:
         return True

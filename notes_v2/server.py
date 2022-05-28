@@ -1,14 +1,22 @@
 import markdown2
-
-from fastapi import Depends, FastAPI, HTTPException, status, Header, Request, Form, APIRouter
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import FastAPI
+from fastapi import Form
+from fastapi import Header
+from fastapi import HTTPException
+from fastapi import Request
+from fastapi import status
+from fastapi.responses import HTMLResponse
+from fastapi.responses import JSONResponse
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
+from notes_v2 import config
 from notes_v2 import crud
 from notes_v2 import models
 from notes_v2 import schemas
 from notes_v2 import util
-from notes_v2 import config
 from notes_v2.routes import users
 
 CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css"/>'
@@ -23,9 +31,9 @@ app = FastAPI(
     title='Notes API',
     description=config.API_DESCRIPTION,
     contact={
-        "name": "Alexander Rodionov",
-        "url": "https://tandav.me",
-        "email": "tandav@tandav.me",
+        'name': 'Alexander Rodionov',
+        'url': 'https://tandav.me',
+        'email': 'tandav@tandav.me',
     },
 )
 app.include_router(users.router)

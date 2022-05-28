@@ -1,9 +1,13 @@
 from http import HTTPStatus
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi import Depends, HTTPException, Header
-from fastapi import Request
+
 from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import Header
+from fastapi import HTTPException
+from fastapi import Request
 from fastapi.responses import HTMLResponse
+from fastapi.security import HTTPBasic
+from fastapi.security import HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
@@ -15,38 +19,37 @@ from notes_v2.dependencies import guess_type
 from notes_v2.dependencies import http_basic
 from notes_v2.dependencies import http_basic_optional
 
-
 # TODO: maybe set prefix /users here is a good idea
 # https://fastapi.tiangolo.com/tutorial/bigger-applications/?h=files#another-module-with-apirouter
 router = APIRouter(
     tags=['users'],
 )
 
-templates = Jinja2Templates(directory="notes_v2/templates")
+templates = Jinja2Templates(directory='notes_v2/templates')
 
 
-@router.post("/users/", response_model=schemas.User)
+@router.post('/users/', response_model=schemas.User)
 def create_user(credentials: HTTPBasicCredentials = Depends(http_basic), db: Session = Depends(get_db)):
     """Create a user using username and password
     if user already exists returns an error
     """
     db_user = crud.user.read_by_username(db, username=credentials.username)
     if db_user:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="username already registered")
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail='username already registered')
     return crud.user.create(db=db, user=credentials)
 
 
 @router.get(
-    "/users/",
+    '/users/',
     response_model=list[schemas.User],
-    responses={200: {"content": {"text/html": {}}}}
+    responses={200: {'content': {'text/html': {}}}}
 )
 def read_users(
     request: Request,
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    mediatype = Depends(guess_type),
+    mediatype=Depends(guess_type),
 ):
     users = crud.user.read_many(db, skip=skip, limit=limit)
     if mediatype == 'json':
@@ -90,9 +93,9 @@ def read_users(
 
 
 @router.get(
-    "/users/{username}",
+    '/users/{username}',
     response_model=schemas.User,
-    responses={200: {"content": {"text/html": {}}}}
+    responses={200: {'content': {'text/html': {}}}}
 )
 def read_user_by_name(
     request: Request,
@@ -102,7 +105,7 @@ def read_user_by_name(
 ):
     db_user = crud.user.read_by_username(db, username=username)
     if db_user is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="User not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='User not found')
     if mediatype == 'json':
         return db_user
     # return templates.TemplateResponse('user.html', {
@@ -111,4 +114,4 @@ def read_user_by_name(
     # })
     # breakpoint()
     user = schemas.User.from_orm(db_user).dict()
-    return templates.TemplateResponse('user.html', {"request": request, **user})
+    return templates.TemplateResponse('user.html', {'request': request, **user})

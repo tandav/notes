@@ -1,7 +1,9 @@
 import datetime
-from pydantic import BaseModel, root_validator, validator
-from fastapi.security import HTTPBasicCredentials
 
+from fastapi.security import HTTPBasicCredentials
+from pydantic import BaseModel
+from pydantic import root_validator
+from pydantic import validator
 
 # class UserBase(BaseModel):
 #     username: str
@@ -12,6 +14,8 @@ UserCreate = HTTPBasicCredentials
 # ================================================================
 
 # class User(UserBase):
+
+
 class User(BaseModel):
     username: str
     id: int
@@ -22,6 +26,7 @@ class User(BaseModel):
         orm_mode = True
 
 # ================================================================
+
 
 class Message(BaseModel):
     detail: str

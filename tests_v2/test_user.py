@@ -1,9 +1,10 @@
 from http import HTTPStatus
+
 from notes_v2 import util
 
 
 def test_create_user(client, fake):
-    response = client.post("/users/", auth=("test_user", "test_password"))
+    response = client.post('/users/', auth=('test_user', 'test_password'))
     assert response.ok, response.json()
     j = response.json()
     assert j.pop('created_time')
@@ -17,11 +18,11 @@ def test_create_user(client, fake):
     for _ in range(2):
         username = fake.user_name()
         password = fake.password(length=32, special_chars=False)
-        assert client.post("/users/", auth=(username, password)).ok
+        assert client.post('/users/', auth=(username, password)).ok
 
 
 def test_already_registred(client, create_user):
-    response = client.post("/users/", auth=("test_user", "test_password"))
+    response = client.post('/users/', auth=('test_user', 'test_password'))
     assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.json() == {'detail': 'username already registered'}
 
@@ -34,13 +35,13 @@ def test_get_user_by_username(client, create_user):
 
 def test_read(client, create_users):
     drop_keys = {'created_time', 'updated_time'}
-    assert util.drop_keys(client.get('/users/').json(),drop_keys) == [
+    assert util.drop_keys(client.get('/users/').json(), drop_keys) == [
         {'id': 1, 'username': 'test_user1'},
         {'id': 2, 'username': 'test_user2'},
         {'id': 3, 'username': 'test_user3'},
     ]
 
     # test pagination
-    assert util.drop_keys(client.get('/users/?skip=1&limit=1').json(),drop_keys) == [
+    assert util.drop_keys(client.get('/users/?skip=1&limit=1').json(), drop_keys) == [
         {'id': 2, 'username': 'test_user2'},
     ]

@@ -1,10 +1,13 @@
-import secrets
-from notes_v2.database import SessionLocal, engine
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from http import HTTPStatus
+
 from fastapi import Header
 from fastapi import HTTPException
-from http import HTTPStatus
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBasic
+from fastapi.security import HTTPBasicCredentials
+
+from notes_v2.database import SessionLocal
+from notes_v2.database import engine
 
 
 def get_db():
@@ -17,7 +20,7 @@ http_basic = HTTPBasic()
 http_basic_optional = HTTPBasic(auto_error=False)
 
 
-def guess_type(accept = Header(default='application/json')):
+def guess_type(accept=Header(default='application/json')):
     accept = accept.split(',')
     if accept[0] == 'text/html':
         return 'html'

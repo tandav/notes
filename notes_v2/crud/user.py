@@ -1,7 +1,9 @@
-from sqlalchemy.orm import Session
 import datetime
 import hashlib
 import secrets
+
+from sqlalchemy.orm import Session
+
 from notes_v2 import models
 from notes_v2 import schemas
 
