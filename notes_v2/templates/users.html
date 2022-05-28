@@ -19,8 +19,8 @@
     <tr>
         <td>{{user.id}}</td>
         <td><a href='/users/{{user.username}}'>{{user.username}}</a></td>
-        <td>{{user.created_time}}</td>
-        <td>{{user.updated_time}}</td>
+        <td title='{{user.created_time|format_time(absolute=True)}}'>{{user.created_time|format_time}}</td>
+        <td title='{{user.updated_time|format_time(absolute=True)}}'>{{user.updated_time|format_time}}</td>
     </tr>
 {% endfor %}
 </tbody>

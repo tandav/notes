@@ -1,3 +1,4 @@
+from functools import partial
 from http import HTTPStatus
 
 from fastapi import APIRouter
@@ -13,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from notes_v2 import crud
 from notes_v2 import schemas
+from notes_v2 import util
 
 # from notes_v2.util import header
 from notes_v2.dependencies import get_db
@@ -27,7 +29,9 @@ router = APIRouter(
 )
 
 templates = Jinja2Templates(directory='notes_v2/templates')
-
+templates.env.filters['format_time'] = util.format_time
+# templates.env.filters['relative_time'] = partial(util.format_time, absolute=False)
+# templates.env.filters['absolute_time'] = partial(util.format_time, absolute=True)
 
 @router.post('/users/', response_model=schemas.User)
 def create_user(credentials: HTTPBasicCredentials = Depends(http_basic), db: Session = Depends(get_db)):
