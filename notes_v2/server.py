@@ -8,6 +8,7 @@ from notes_v2 import crud
 from notes_v2 import models
 from notes_v2 import schemas
 from notes_v2 import util
+from notes_v2 import config
 from notes_v2.routes import users
 
 CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css"/>'
@@ -19,7 +20,15 @@ markdowner = markdown2.Markdown(extras=[
 
 
 
-app = FastAPI()
+app = FastAPI(
+    title='Notes API',
+    description=config.API_DESCRIPTION,
+    contact={
+        "name": "Alexander Rodionov",
+        "url": "https://tandav.me",
+        "email": "tandav@tandav.me",
+    },
+)
 app.include_router(users.router)
 
 

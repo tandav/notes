@@ -41,11 +41,18 @@ def fake():
     yield Faker()
 
 
-# @pytest.fixture
-# def create_user(client):
-#     yield client.post("/users/", auth=("test_user", "test_password"))
-#
-#
+@pytest.fixture
+def create_user(client):
+    client.post("/users/", auth=("test_user", "test_password"))
+
+
+@pytest.fixture
+def create_users(client):
+    client.post("/users/", auth=("test_user1", "test_password1"))
+    client.post("/users/", auth=("test_user2", "test_password2"))
+    client.post("/users/", auth=("test_user3", "test_password3"))
+
+
 # @pytest.fixture
 # def create_tags(client):
 #     client.post('/tags/', json={'name': 'books', 'color': '#c0ffee'})

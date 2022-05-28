@@ -1,10 +1,13 @@
 from sqlalchemy.orm import Session
 import datetime
 import hashlib
-import random
 import secrets
 from notes_v2 import models
 from notes_v2 import schemas
+
+
+def read_many(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.User).offset(skip).limit(limit).all()
 
 
 def read_by_username(db: Session, username: str):

@@ -3,9 +3,10 @@ import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from notes import models
+from notes_v2 import models
+from notes_v2.config import DB_URL
 
-engine = create_engine("sqlite:///./notes_v2.db", connect_args={"check_same_thread": False}, echo=False)
+engine = create_engine(DB_URL, connect_args={"check_same_thread": False}, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
