@@ -4,6 +4,10 @@ from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
+
+# ================================================================
+
+
 note_to_note = Table("note_to_note", Base.metadata,
     Column("left_note_id", Integer, ForeignKey("note.id"), primary_key=True),
     Column("right_note_id", Integer, ForeignKey("note.id"), primary_key=True)
@@ -12,13 +16,13 @@ note_to_note = Table("note_to_note", Base.metadata,
 class Note(Base):
     __tablename__ = 'note'
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'))
     is_private = Column(Boolean, default=True)
     is_archived = Column(Boolean, default=False)
     tag = Column(String, unique=True, index=True, nullable=True)  # defines is tag/readme page if not null (kinda is_tag: considered tag if not null)
     color = Column(String, nullable=True)
     created_time = Column(DateTime, nullable=False)
     updated_time = Column(DateTime, nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey('user.id'))
     right_notes = relationship(
         "Note",
         secondary=note_to_note,
@@ -26,6 +30,7 @@ class Note(Base):
         secondaryjoin=id==note_to_note.c.right_note_id,
         backref="left_notes"
     )
+    user = relationship('User', back_populates='notes')
 
 
 # ================================================================

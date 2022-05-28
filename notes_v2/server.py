@@ -1,18 +1,14 @@
-from notes_v2 import schemas
-
-import operator
-from http import HTTPStatus
-
-import secrets
 import markdown2
 
 from fastapi import Depends, FastAPI, HTTPException, status, Header, Request, Form, APIRouter
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
-from notes import crud, models, schemas, util
-from notes.database import SessionLocal, engine
+from notes_v2 import crud
+from notes_v2 import models
+from notes_v2 import schemas
+from notes_v2 import util
+from notes_v2.routes import users
 
 CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css"/>'
 
@@ -22,14 +18,11 @@ markdowner = markdown2.Markdown(extras=[
 ])
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 app = FastAPI()
+app.include_router(users.router)
+
+
 
 
 # @app.post('/notes/', response_model=schemas.Note)

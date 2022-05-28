@@ -3,10 +3,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+from faker import Faker
 
 from notes_v2 import models
-# from notes_v2.server import app, get_db
-# from faker import Faker
+from notes_v2.server import app
+from notes_v2.dependencies import get_db
+
 
 @pytest.fixture
 def db():
@@ -20,9 +22,32 @@ def db():
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     models.Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        # models.Base.metadata.drop_all(bind=engine)
-        db.close()
+    yield db
+    # models.Base.metadata.drop_all(bind=engine)
+    db.close()
 
+
+@pytest.fixture
+def client(db):
+    def override_get_db():
+        yield db
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+
+
+
+@pytest.fixture
+def fake():
+    yield Faker()
+
+
+# @pytest.fixture
+# def create_user(client):
+#     yield client.post("/users/", auth=("test_user", "test_password"))
+#
+#
+# @pytest.fixture
+# def create_tags(client):
+#     client.post('/tags/', json={'name': 'books', 'color': '#c0ffee'})
+#     client.post('/tags/', json={'name': 'archive', 'color': '#f0ffff'})
+#     client.post('/tags/', json={'name': 'groceries'})
