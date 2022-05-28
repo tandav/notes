@@ -1,7 +1,6 @@
 from http import HTTPStatus
 
 
-
 def test_create_user(client, fake):
     response = client.post("/users/", auth=("test_user", "test_password"))
     assert response.ok, response.json()

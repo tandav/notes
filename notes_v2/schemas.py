@@ -9,6 +9,7 @@ from fastapi.security import HTTPBasicCredentials
 
 UserCreate = HTTPBasicCredentials
 
+# ================================================================
 
 # class User(UserBase):
 class User(BaseModel):
@@ -19,3 +20,8 @@ class User(BaseModel):
 
     class Config:
         orm_mode = True
+
+# ================================================================
+
+class Message(BaseModel):
+    detail: str
