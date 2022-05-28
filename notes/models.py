@@ -1,5 +1,7 @@
-from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Integer, String,
-                        Table)
+from sqlalchemy import (
+    Boolean, Column, DateTime, ForeignKey, Integer, String,
+    Table,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -20,7 +22,8 @@ class User(Base):
     updated_time = Column(DateTime, nullable=False, index=True)
 
 
-notes_tags = Table('notes_tags', Base.metadata,
+notes_tags = Table(
+    'notes_tags', Base.metadata,
     Column('note_id', ForeignKey('note.id'), primary_key=True),
     Column('tag_id', ForeignKey('tag.id'), primary_key=True),
 )

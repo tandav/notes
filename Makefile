@@ -25,38 +25,38 @@ create:
 
 .PHONY: coverage
 coverage:
-	poetry run coverage run -m pytest
-	poetry run coverage report
-	poetry run coverage xml
+	$(python) -m coverage run -m pytest
+	$(python) -m coverage report
+	$(python) -m coverage xml
 
 .PHONY: tox-test
 tox-test:
-	poetry run tox -vv --parallel --parallel-live
+	$(python) -m tox -vv --parallel --parallel-live
 
 .PHONY: check-isort
 check-isort:
-	poetry run isort --diff --check-only --settings-path pyproject.toml $(LINTING_DIRS)
+	$(python) -m isort --diff --check-only --settings-path pyproject.toml $(LINTING_DIRS)
 
 .PHONY: check-autoflake
 check-autoflake:
-	poetry run autoflake --recursive $(LINTING_DIRS)
+	$(python) -m autoflake --recursive $(LINTING_DIRS)
 
 .PHONY: check-flake8
 check-flake8:
-	poetry run python -m flake8 $(LINTING_DIRS)
+	$(python) -m python -m flake8 $(LINTING_DIRS)
 
 .PHONY: check-mypy
 check-mypy:
-	poetry run mypy --config-file pyproject.toml $(LINTING_DIRS)
+	$(python) -m mypy --config-file pyproject.toml $(LINTING_DIRS)
 
 
 .PHONY: fix-isort
 fix-isort:
-	poetry run isort --settings-path pyproject.toml $(LINTING_DIRS)
+	$(python) -m isort --settings-path pyproject.toml $(LINTING_DIRS)
 
 .PHONY: fix-autoflake
 fix-autoflake:
-	poetry run autoflake --recursive --in-place $(LINTING_DIRS)
+	$(python) -m autoflake --recursive --in-place $(LINTING_DIRS)
 
 .PHONY: check-lint
 check-lint:

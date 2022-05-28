@@ -21,10 +21,12 @@ from notes_v2.routes import users
 
 CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css"/>'
 
-markdowner = markdown2.Markdown(extras=[
-    'fenced-code-blocks',
-    'code-friendly',  # https://github.com/trentm/python-markdown2/issues/38
-])
+markdowner = markdown2.Markdown(
+    extras=[
+        'fenced-code-blocks',
+        'code-friendly',  # https://github.com/trentm/python-markdown2/issues/38
+    ],
+)
 
 
 app = FastAPI(

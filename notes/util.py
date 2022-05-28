@@ -67,9 +67,9 @@ def header(
         '<a href="/tags/">[tags]</a>',
     ]
     if tag_notes_archive:
-        items.append(f'<a href="/tags/{tag_notes_archive}/archive">[archive]</a>',)
+        items.append(f'<a href="/tags/{tag_notes_archive}/archive">[archive]</a>')
     if notes_archive:
-        items.append(f'<a href="/tags/archive">[archive]</a>',)
+        items.append(f'<a href="/tags/archive">[archive]</a>')
     if new_note:
         items.append('<a href="/new_note"><button>new note</button></a>')
     if new_tag:

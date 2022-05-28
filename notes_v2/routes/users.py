@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from notes_v2 import crud
 from notes_v2 import schemas
+
 # from notes_v2.util import header
 from notes_v2.dependencies import get_db
 from notes_v2.dependencies import guess_type
@@ -42,7 +43,7 @@ def create_user(credentials: HTTPBasicCredentials = Depends(http_basic), db: Ses
 @router.get(
     '/users/',
     response_model=list[schemas.User],
-    responses={200: {'content': {'text/html': {}}}}
+    responses={200: {'content': {'text/html': {}}}},
 )
 def read_users(
     request: Request,
@@ -86,16 +87,18 @@ def read_users(
     # return HTMLResponse(header())
     # return HTMLResponse('hello')
     users = [schemas.User.from_orm(u) for u in users]
-    return templates.TemplateResponse('users.html', {
-        'request': request,
-        'users': users,
-    })
+    return templates.TemplateResponse(
+        'users.html', {
+            'request': request,
+            'users': users,
+        },
+    )
 
 
 @router.get(
     '/users/{username}',
     response_model=schemas.User,
-    responses={200: {'content': {'text/html': {}}}}
+    responses={200: {'content': {'text/html': {}}}},
 )
 def read_user_by_name(
     request: Request,

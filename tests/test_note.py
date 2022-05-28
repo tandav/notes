@@ -5,11 +5,13 @@ from xml.etree import ElementTree
 
 def test_create_note(client, fake, create_user):
     for _ in range(3):
-        r = client.post('/users/test_user/notes/', json={
-            "text": fake.text(max_nb_chars=200),
-            "url": fake.uri(),
-            "tags": [],
-        })
+        r = client.post(
+            '/users/test_user/notes/', json={
+                "text": fake.text(max_nb_chars=200),
+                "url": fake.uri(),
+                "tags": [],
+            },
+        )
         assert r.ok, r.json()
 
     # test url validation
@@ -24,44 +26,54 @@ def test_create_note(client, fake, create_user):
 
 def test_create_note_with_tags(client, fake, create_user, create_tags):
     # 1 tag
-    r = client.post('/users/test_user/notes/', json={
-        "text": fake.text(max_nb_chars=200),
-        "url": fake.uri(),
-        "tags": ['books'],
-    })
+    r = client.post(
+        '/users/test_user/notes/', json={
+            "text": fake.text(max_nb_chars=200),
+            "url": fake.uri(),
+            "tags": ['books'],
+        },
+    )
     assert r.ok
 
-    r = client.post('/users/test_user/notes/', json={
-        "text": fake.text(max_nb_chars=200),
-        "url": fake.uri(),
-        "tags": ['archive'],
-    })
+    r = client.post(
+        '/users/test_user/notes/', json={
+            "text": fake.text(max_nb_chars=200),
+            "url": fake.uri(),
+            "tags": ['archive'],
+        },
+    )
     assert r.ok
 
     # 2 tag
-    r = client.post('/users/test_user/notes/', json={
-        # "title": fake.text(max_nb_chars=30),
-        "text": fake.text(max_nb_chars=200),
-        "tags": ['books', 'groceries'],
-    })
+    r = client.post(
+        '/users/test_user/notes/', json={
+            # "title": fake.text(max_nb_chars=30),
+            "text": fake.text(max_nb_chars=200),
+            "tags": ['books', 'groceries'],
+        },
+    )
     assert r.ok
 
     # test error when tags does not exists
-    r = client.post('/users/test_user/notes/', json={
-        "text": fake.text(max_nb_chars=200),
-        "url": fake.uri(),
-        "tags": ['books', 'groceries', 'tag_does_not_exist'],
-    })
+    r = client.post(
+        '/users/test_user/notes/', json={
+            "text": fake.text(max_nb_chars=200),
+            "url": fake.uri(),
+            "tags": ['books', 'groceries', 'tag_does_not_exist'],
+        },
+    )
     assert r.status_code == HTTPStatus.NOT_FOUND
     assert r.json() == {"detail": {"tags dont exists": ['tag_does_not_exist']}}
 
 
 def test_get_note(client, fake, create_user, create_tags):
-    r = client.post('/users/test_user/notes/', json={
-        "text": fake.text(max_nb_chars=200),
-        "url": fake.uri(),
-        "tags": [],
-    })
+    r = client.post(
+        '/users/test_user/notes/', json={
+            "text": fake.text(max_nb_chars=200),
+            "url": fake.uri(),
+            "tags": [],
+        },
+    )
 
     # ==== note without tags ====
     # test default json works
@@ -85,10 +97,12 @@ def test_get_note(client, fake, create_user, create_tags):
     assert r.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
 
     # ==== note with tags ====
-    r = client.post('/users/test_user/notes/', json={
-        "text": fake.text(max_nb_chars=200),
-        "tags": ['books', 'groceries'],
-    })
+    r = client.post(
+        '/users/test_user/notes/', json={
+            "text": fake.text(max_nb_chars=200),
+            "tags": ['books', 'groceries'],
+        },
+    )
     note_id = r.json()['id']
     # test default json works
     r = client.get(f'/notes/{note_id}')
@@ -161,11 +175,13 @@ def test_delete_note(client, fake, create_user):
 
 
 def test_archive_note(client, fake, create_user, create_tags):
-    r = client.post('/users/test_user/notes/', json={
-        "text": fake.text(max_nb_chars=200),
-        "url": fake.uri(),
-        "tags": [],
-    })
+    r = client.post(
+        '/users/test_user/notes/', json={
+            "text": fake.text(max_nb_chars=200),
+            "url": fake.uri(),
+            "tags": [],
+        },
+    )
     assert r.ok
     note_id = r.json()['id']
     r = client.delete(f'/notes/{note_id}/archive')

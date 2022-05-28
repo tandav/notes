@@ -14,10 +14,12 @@ from notes.database import SessionLocal, engine
 
 CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css"/>'
 
-markdowner = markdown2.Markdown(extras=[
-    'fenced-code-blocks',
-    'code-friendly',  # https://github.com/trentm/python-markdown2/issues/38
-])
+markdowner = markdown2.Markdown(
+    extras=[
+        'fenced-code-blocks',
+        'code-friendly',  # https://github.com/trentm/python-markdown2/issues/38
+    ],
+)
 
 
 
@@ -325,7 +327,7 @@ def create_tag(tag: schemas.TagCreate, db: Session = Depends(get_db)):
             "description": "Return the html page with list of notes",
         },
         415: {"model": schemas.Message},
-    }
+    },
 )
 def read_tags(db: Session = Depends(get_db), accept=Header('application/json')):
     accept = accept.split(',')
@@ -429,7 +431,7 @@ def notes_table(notes: list) -> tuple[str, str]:
             "description": "Return the html page with list of notes",
         },
         415: {"model": schemas.Message},
-    }
+    },
 )
 def read_notes(
     request: Request,
@@ -455,7 +457,8 @@ def read_notes(
             return notes
         if is_html:
             table_html, table_css = notes_table(notes)
-            return HTMLResponse(f'''
+            return HTMLResponse(
+                f'''
             <html>
             <head>
             {CSS_FRAMEWORK}
@@ -472,7 +475,8 @@ def read_notes(
             </style>
             </body>
             </html>
-            ''')
+            ''',
+            )
     else:
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'detail': '415 Unsupported Media Type'})
 
@@ -487,7 +491,7 @@ def read_notes(
         },
         415: {"model": schemas.Message},
         404: {"model": schemas.Message},
-    }
+    },
 )
 def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('application/json')):
     accept = accept.split(',')
@@ -521,7 +525,8 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 else:
                     text = ''
 
-                return HTMLResponse(f'''
+                return HTMLResponse(
+                    f'''
                 <html>
                 <head>
                 {CSS_FRAMEWORK}
@@ -564,7 +569,7 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 }}
                 {tags_colors}
 
-  
+
                 header {{
                     display: flex;
                     justify-content: space-between;
@@ -577,7 +582,8 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
                 </style>
                 </body>
                 </html>
-                ''')
+                ''',
+                )
             if is_json:
                 return note.to_dict()
     else:
@@ -624,7 +630,8 @@ def _get_tag(name: str, db: Session = Depends(get_db), accept=Header('applicatio
             notes = sorted(notes, key=operator.itemgetter('updated_time'), reverse=True)
             table_html, table_css = notes_table(notes)
 
-            return HTMLResponse(f'''
+            return HTMLResponse(
+                f'''
             <html>
             <head>
             {CSS_FRAMEWORK}
@@ -643,7 +650,7 @@ def _get_tag(name: str, db: Session = Depends(get_db), accept=Header('applicatio
             <header>
             <nav>
             {header}
-            
+
             </nav>
             <span class='metadata'>last edit: {tag.updated_time:%Y %b %d %H:%M}</span>
             </header>
@@ -669,7 +676,8 @@ def _get_tag(name: str, db: Session = Depends(get_db), accept=Header('applicatio
             </style>
             </body>
             </html>
-            ''')
+            ''',
+            )
     else:
         return JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'message': '415 Unsupported Media Type'})
 
@@ -684,7 +692,7 @@ def _get_tag(name: str, db: Session = Depends(get_db), accept=Header('applicatio
         },
         415: {"model": schemas.Message},
         404: {"model": schemas.Message},
-    }
+    },
 )
 def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application/json')):
     return _get_tag(name, db, accept, archive=False)
@@ -699,7 +707,7 @@ def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application
         },
         415: {"model": schemas.Message},
         404: {"model": schemas.Message},
-    }
+    },
 )
 def get_tag_archive(name: str, db: Session = Depends(get_db), accept=Header('application/json')):
     return _get_tag(name, db, accept, archive=True)

@@ -14,10 +14,11 @@ Base = declarative_base()
 # ================================================================
 
 
-note_to_note = Table('note_to_note', Base.metadata,
-                     Column('left_note_id', Integer, ForeignKey('note.id'), primary_key=True),
-                     Column('right_note_id', Integer, ForeignKey('note.id'), primary_key=True)
-                     )
+note_to_note = Table(
+    'note_to_note', Base.metadata,
+    Column('left_note_id', Integer, ForeignKey('note.id'), primary_key=True),
+    Column('right_note_id', Integer, ForeignKey('note.id'), primary_key=True),
+)
 
 
 class Note(Base):
@@ -35,7 +36,7 @@ class Note(Base):
         secondary=note_to_note,
         primaryjoin=id == note_to_note.c.left_note_id,
         secondaryjoin=id == note_to_note.c.right_note_id,
-        backref='left_notes'
+        backref='left_notes',
     )
     user = relationship('User', back_populates='notes')
 
