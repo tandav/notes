@@ -1,6 +1,5 @@
 import secrets
 from notes_v2.database import SessionLocal, engine
-from notes_v2.util import MediaType
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi import Header
 from fastapi import HTTPException
@@ -26,7 +25,3 @@ def guess_type(accept = Header(default='application/json')):
         return 'json'
     else:
         raise HTTPException(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, detail='415 Unsupported Media Type')
-        # raise JSONResponse(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE, content={'detail': '415 Unsupported Media Type'})
-    # is_html = accept[0] == 'text/html'
-    # is_json = 'application/json' in accept or '*/*' in accept
-    # is_unsupported = not (self.is_html or self.is_json)

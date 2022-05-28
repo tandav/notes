@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 
 from notes_v2 import crud
 from notes_v2 import schemas
-from notes_v2.util import MediaType
 # from notes_v2.util import header
 from notes_v2.dependencies import get_db
 from notes_v2.dependencies import guess_type
@@ -47,7 +46,6 @@ def read_users(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    # accept=Header(default='application/json'),
     mediatype = Depends(guess_type),
 ):
     users = crud.user.read_many(db, skip=skip, limit=limit)
@@ -83,8 +81,13 @@ def read_users(
     # </table>
     # '''
     # return HTMLResponse(header())
-    return HTMLResponse('hello')
-    # return templates.TemplateResponse('users.html')
+    # return HTMLResponse('hello')
+    users = [schemas.User.from_orm(u) for u in users]
+    return templates.TemplateResponse('users.html', {
+        'request': request,
+        'users': users,
+    })
+
 
 @router.get(
     "/users/{username}",
@@ -95,19 +98,17 @@ def read_user_by_name(
     request: Request,
     username: str,
     db: Session = Depends(get_db),
-    # accept=Header(default='application/json'),
     mediatype=Depends(guess_type),
 ):
-
-    # mediatype = MediaType(accept)
-    # if mediatype.is_unsupported:
-    #     raise MediaType.UNSUPPORTED_EXCEPTION
     db_user = crud.user.read_by_username(db, username=username)
     if db_user is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="User not found")
     if mediatype == 'json':
         return db_user
-    return templates.TemplateResponse('user.html', {
-        "request": request, "id": db_user.id,
-        'username': db_user.username,
-    })
+    # return templates.TemplateResponse('user.html', {
+    #     "request": request, "id": db_user.id,
+    #     'username': db_user.username,
+    # })
+    # breakpoint()
+    user = schemas.User.from_orm(db_user).dict()
+    return templates.TemplateResponse('user.html', {"request": request, **user})
