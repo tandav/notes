@@ -1,9 +1,6 @@
-<html>
-<head>
-    <title>User Details</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css"/>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}Users{% endblock %}
+{% block content %}
 <h1>Users</h1>
 <table>
 <thead>
@@ -25,5 +22,4 @@
 {% endfor %}
 </tbody>
 </table>
-</body>
-</html>
+{% endblock %}

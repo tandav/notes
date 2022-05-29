@@ -30,8 +30,7 @@ router = APIRouter(
 
 templates = Jinja2Templates(directory='notes_v2/templates')
 templates.env.filters['format_time'] = util.format_time
-# templates.env.filters['relative_time'] = partial(util.format_time, absolute=False)
-# templates.env.filters['absolute_time'] = partial(util.format_time, absolute=True)
+
 
 @router.post('/users/', response_model=schemas.User)
 def create_user(credentials: HTTPBasicCredentials = Depends(http_basic), db: Session = Depends(get_db)):
@@ -59,42 +58,10 @@ def read_users(
     users = crud.user.read_many(db, skip=skip, limit=limit)
     if mediatype == 'json':
         return users
-    # rows = '\n'.join(
-    #     f'''
-    #     <tr>
-    #         <td><a href='/notes/{note['id']}'>{note['id']}</a></td>
-    #         <td>{note['text'] or ''}</td>
-    #         <td>{util.format_url(note['url'])}</td>
-    #         <td>{','.join(f'<a href="/tags/{tag}">{tag}</a>' for tag in note['tags'])}</td>
-    #         <td title="{util.format_time(note['updated_time'], absolute=True)}">{util.format_time(note['updated_time'])}</td>
-    #     </tr>
-    #     '''
-    #     for note in notes
-    # )
-    #
-    # html = f'''
-    # <table>
-    # <thead>
-    #     <tr>
-    #         <th>id</th>
-    #         <th>text</th>
-    #         <th>url</th>
-    #         <th>tags</th>
-    #         <th>last edit</th>
-    #     </tr>
-    # </thead>
-    # <tbody>
-    # {rows}
-    # </tbody>
-    # </table>
-    # '''
-    # return HTMLResponse(header())
-    # return HTMLResponse('hello')
-    users = [schemas.User.from_orm(u) for u in users]
     return templates.TemplateResponse(
         'users.html', {
             'request': request,
-            'users': users,
+            'users': [schemas.User.from_orm(u) for u in users],
         },
     )
 
@@ -115,10 +82,5 @@ def read_user_by_name(
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='User not found')
     if mediatype == 'json':
         return db_user
-    # return templates.TemplateResponse('user.html', {
-    #     "request": request, "id": db_user.id,
-    #     'username': db_user.username,
-    # })
-    # breakpoint()
     user = schemas.User.from_orm(db_user).dict()
     return templates.TemplateResponse('user.html', {'request': request, **user})
