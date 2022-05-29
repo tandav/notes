@@ -2,6 +2,7 @@ import datetime
 
 from fastapi.security import HTTPBasicCredentials
 from pydantic import BaseModel
+from pydantic import Json
 from pydantic import root_validator
 from pydantic import validator
 
@@ -30,3 +31,15 @@ class User(BaseModel):
 
 class Message(BaseModel):
     detail: str
+
+
+# ================================================================
+
+
+class Node(BaseModel):
+    id: int
+    # data: Json
+    data: dict
+
+    class Config:
+        orm_mode = True

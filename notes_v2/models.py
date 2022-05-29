@@ -64,9 +64,9 @@ class User(Base):
 
 class Node(Base):
     __tablename__ = 'node'
-
+    id = Column(Integer, primary_key=True, index=True)
     data = Column(JSON)
-    id = Column(Integer, Computed("json_extract(data, '$.id')", persisted=False), unique=True, nullable=False)
-    __mapper_args__ = {
-        'primary_key': id,
-    }
+    # id = Column(Integer, Computed("json_extract(data, '$.id')", persisted=False), unique=True, nullable=False)
+    # __mapper_args__ = {
+    #     'primary_key': id,
+    # }

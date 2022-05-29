@@ -31,7 +31,7 @@ templates = Jinja2Templates(directory='notes_v2/templates')
 templates.env.filters['format_time'] = util.format_time
 
 
-@router.post('/nodes/', response_model=schemas.User)
+@router.post('/nodes/', response_model=schemas.Node)
 def create_node(db: Session = Depends(get_db)):
     """Create a user using username and password
     if user already exists returns an error
