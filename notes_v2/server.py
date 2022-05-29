@@ -17,6 +17,7 @@ from notes_v2 import crud
 from notes_v2 import models
 from notes_v2 import schemas
 from notes_v2 import util
+from notes_v2.routes import nodes
 from notes_v2.routes import users
 
 CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css"/>'
@@ -39,6 +40,7 @@ app = FastAPI(
     },
 )
 app.include_router(users.router)
+app.include_router(nodes.router)
 
 #
 # @app.middleware('http')

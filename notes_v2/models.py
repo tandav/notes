@@ -1,5 +1,9 @@
+from __future__ import annotations
+
+from sqlalchemy import JSON
 from sqlalchemy import Boolean
 from sqlalchemy import Column
+from sqlalchemy import Computed
 from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
@@ -53,3 +57,16 @@ class User(Base):
     notes = relationship('Note', back_populates='user')
     created_time = Column(DateTime, nullable=False)
     updated_time = Column(DateTime, nullable=False, index=True)
+
+
+# ================================================================
+
+
+class Node(Base):
+    __tablename__ = 'node'
+
+    data = Column(JSON)
+    id = Column(Integer, Computed("json_extract(data, '$.id')", persisted=False), unique=True, nullable=False)
+    __mapper_args__ = {
+        'primary_key': id,
+    }
