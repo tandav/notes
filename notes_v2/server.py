@@ -23,6 +23,7 @@ from notes_v2.dependencies import get_db
 from notes_v2.dependencies import get_db_cm
 from notes_v2.routes import nodes
 from notes_v2.routes import users
+from notes_v2.templates import templates
 
 CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css"/>'
 
@@ -82,6 +83,6 @@ def create_anon_user_if_not_exists():
 #     #     raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"tags dont exists": e.args[0]})
 #     # return res
 
-@app.get('/')
-def root():
-    return RedirectResponse('/users/')
+@app.get('/', response_class=HTMLResponse)
+def root(request: Request):
+    return templates.TemplateResponse('root.html', {'request': request})
