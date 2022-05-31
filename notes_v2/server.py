@@ -10,6 +10,7 @@ from fastapi import status
 from fastapi.responses import HTMLResponse
 from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from notes_v2 import config
@@ -41,6 +42,7 @@ app = FastAPI(
 )
 app.include_router(users.router)
 app.include_router(nodes.router)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 #
 # @app.middleware('http')
@@ -66,3 +68,7 @@ app.include_router(nodes.router)
 #     # except crud.TagNotExistsError as e:
 #     #     raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"tags dont exists": e.args[0]})
 #     # return res
+
+@app.get('/')
+def root():
+    return RedirectResponse('/users/')

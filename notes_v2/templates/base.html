@@ -1,11 +1,26 @@
 <html>
 <head>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css"/>
+    <link rel="stylesheet" href="/static/main.css"/>
     <title>{% block title %}{% endblock %}</title>
 </head>
 <body>
-    <header>header</header>
-    <nav>nav</nav>
+    <nav>
+        <div class="navbar-left">
+            <a href="/notes">[notes]</a>
+            <a href="/notes/archive">[archive]</a>
+            <a href="/tags">[tags]</a>
+        </div>
+        <div class="navbar-right">
+            {% if authenticated_username %}
+            <a href="/users/{{authenticated_username}}">{{authenticated_username}}</a>
+            <a href="/signout">[signout]</a>
+            {% else %}
+            <a href="/signup">[signup]</a>
+            <a href="/signin">[signin]</a>
+            {% endif %}
+        </div>
+    </nav>
     <section>{% block content %}{% endblock %}</section>
 </body>
 </html>

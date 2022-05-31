@@ -38,7 +38,7 @@ def test_read(client, create_users):
     assert util.drop_keys(client.get('/users/').json(), drop_keys) == [
         {'id': 1, 'username': 'test_user1'},
         {'id': 2, 'username': 'test_user2'},
-        {'id': 3, 'username': 'test_user3'},
+        {'id': 3, 'username': 'anon'},
     ]
 
     # test pagination

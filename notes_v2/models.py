@@ -30,6 +30,8 @@ class Note(Base):
     id = Column(Integer, primary_key=True)
     is_private = Column(Boolean, default=True)
     is_archived = Column(Boolean, default=False)
+    text = Column(String, nullable=True)
+    url = Column(String, nullable=True)
     tag = Column(String, unique=True, index=True, nullable=True)  # defines is tag/readme page if not null (kinda is_tag: considered tag if not null)
     color = Column(String, nullable=True)
     created_time = Column(DateTime, nullable=False)

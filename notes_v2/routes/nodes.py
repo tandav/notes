@@ -27,9 +27,6 @@ router = APIRouter(
     tags=['nodes'],
 )
 
-templates = Jinja2Templates(directory='notes_v2/templates')
-templates.env.filters['format_time'] = util.format_time
-
 
 @router.post('/nodes/', response_model=schemas.Node)
 def create_node(db: Session = Depends(get_db)):

@@ -1,6 +1,4 @@
 import datetime
-import hashlib
-import secrets
 
 from sqlalchemy.orm import Session
 
@@ -20,11 +18,6 @@ def create(db: Session):
     now = datetime.datetime.now()
     db_node = models.Node(
         data={'hello': 1, 'world': 2, 'created_time': now.isoformat(), 'id': 42},
-        # username=user.username,
-        # password=password_hashed,
-        # salt=salt,
-        # created_time=now,
-        # updated_time=now,
     )
     db.add(db_node)
     db.commit()

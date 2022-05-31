@@ -7,9 +7,9 @@ from fastapi import Header
 from fastapi import HTTPException
 from fastapi import Request
 from fastapi.responses import HTMLResponse
+from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPBasic
 from fastapi.security import HTTPBasicCredentials
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from notes_v2 import crud
@@ -17,19 +17,20 @@ from notes_v2 import schemas
 from notes_v2 import util
 
 # from notes_v2.util import header
+from notes_v2.dependencies import WrongUsernameOrPassword
+from notes_v2.dependencies import authenticate
+from notes_v2.dependencies import authenticate_optional
 from notes_v2.dependencies import get_db
 from notes_v2.dependencies import guess_type
 from notes_v2.dependencies import http_basic
 from notes_v2.dependencies import http_basic_optional
+from notes_v2.templates import templates
 
 # TODO: maybe set prefix /users here is a good idea
 # https://fastapi.tiangolo.com/tutorial/bigger-applications/?h=files#another-module-with-apirouter
 router = APIRouter(
     tags=['users'],
 )
-
-templates = Jinja2Templates(directory='notes_v2/templates')
-templates.env.filters['format_time'] = util.format_time
 
 
 @router.post('/users/', response_model=schemas.User)
@@ -54,6 +55,7 @@ def read_users(
     limit: int = 100,
     db: Session = Depends(get_db),
     mediatype=Depends(guess_type),
+    authenticated_username: str | None = Depends(authenticate_optional),
 ):
     users = crud.user.read_many(db, skip=skip, limit=limit)
     if mediatype == 'json':
@@ -62,6 +64,7 @@ def read_users(
         'users.html', {
             'request': request,
             'users': [schemas.User.from_orm(u) for u in users],
+            'authenticated_username': authenticated_username,
         },
     )
 
@@ -76,6 +79,7 @@ def read_user_by_name(
     username: str,
     db: Session = Depends(get_db),
     mediatype=Depends(guess_type),
+    authenticated_username: str | None = Depends(authenticate_optional),
 ):
     db_user = crud.user.read_by_username(db, username=username)
     if db_user is None:
@@ -83,4 +87,31 @@ def read_user_by_name(
     if mediatype == 'json':
         return db_user
     user = schemas.User.from_orm(db_user).dict()
-    return templates.TemplateResponse('user.html', {'request': request, **user})
+    return templates.TemplateResponse(
+        'user.html', {
+            'request': request, **user,
+                'authenticated_username': authenticated_username,
+        },
+    )
+
+
+# ================================ auth ================================
+
+
+@router.get('/signin')
+def signin(username: str = Depends(authenticate)):
+    return RedirectResponse('/users')
+
+
+@router.get('/signout', response_class=HTMLResponse)
+def signout():
+    """https://stackoverflow.com/a/32325848/4204843"""
+    return '''
+    <h1>signing out...</h1>
+    <script>
+    fetch("/signin", {headers: {"Authorization": "Basic wrong_credentials"}})
+    setTimeout(function () {
+        window.location.href = '/'
+    }, 200)
+    </script>
+    '''

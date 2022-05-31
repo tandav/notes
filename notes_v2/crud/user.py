@@ -2,6 +2,7 @@ import datetime
 import hashlib
 import secrets
 
+from fastapi.security import HTTPBasicCredentials
 from sqlalchemy.orm import Session
 
 from notes_v2 import models
@@ -36,3 +37,17 @@ def create(db: Session, user: schemas.UserCreate) -> schemas.User:
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def check_credentials(db: Session, credentials: HTTPBasicCredentials) -> bool:
+    user = read_by_username(db, credentials.username)
+    if user is None:
+        return False
+    if hashlib.pbkdf2_hmac(
+        hash_name='sha256',
+        password=credentials.password.encode(),
+        salt=user.salt.encode(),
+        iterations=500_000,
+    ) != user.password:
+        return False
+    return True
