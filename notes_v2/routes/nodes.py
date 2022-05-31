@@ -11,6 +11,7 @@ from fastapi.security import HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
+import notes_v2.crud.node
 from notes_v2 import crud
 from notes_v2 import schemas
 from notes_v2 import util

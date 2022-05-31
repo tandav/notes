@@ -12,6 +12,7 @@ from fastapi.security import HTTPBasic
 from fastapi.security import HTTPBasicCredentials
 from sqlalchemy.orm import Session
 
+import notes_v2.crud.user
 from notes_v2 import crud
 from notes_v2 import schemas
 from notes_v2 import util
@@ -96,6 +97,18 @@ def read_user_by_name(
 
 
 # ================================ auth ================================
+
+
+@router.get('/signup')
+def signup(
+    db: Session = Depends(get_db),
+    credentials = Depends(http_basic),
+):
+    db_user = crud.user.read_by_username(db, username=credentials.username)
+    if db_user:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="username already registered")
+    crud.user.create(db, credentials)
+    return RedirectResponse('/')
 
 
 @router.get('/signin')
