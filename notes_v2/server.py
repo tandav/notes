@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import markdown2
 from fastapi import APIRouter
 from fastapi import Depends
@@ -7,6 +9,7 @@ from fastapi import Header
 from fastapi import HTTPException
 from fastapi import Request
 from fastapi import status
+from fastapi.responses import FileResponse
 from fastapi.responses import HTMLResponse
 from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
@@ -24,8 +27,6 @@ from notes_v2.dependencies import get_db_cm
 from notes_v2.routes import nodes
 from notes_v2.routes import users
 from notes_v2.templates import templates
-
-CSS_FRAMEWORK = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css"/>'
 
 markdowner = markdown2.Markdown(
     extras=[
@@ -46,7 +47,9 @@ app = FastAPI(
 )
 app.include_router(users.router)
 app.include_router(nodes.router)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+
+static_folder = Path('static')
+app.mount("/static", StaticFiles(directory=static_folder), name="static")
 
 
 @app.on_event("startup")
@@ -86,3 +89,7 @@ def create_anon_user_if_not_exists():
 @app.get('/', response_class=HTMLResponse)
 def root(request: Request):
     return templates.TemplateResponse('root.html', {'request': request})
+
+
+@app.get("/favicon.ico", response_class=FileResponse)
+async def favicon(): return static_folder / 'favicon.ico'
