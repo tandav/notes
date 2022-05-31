@@ -13,11 +13,14 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
+import notes_v2.crud.user
 from notes_v2 import config
 from notes_v2 import crud
 from notes_v2 import models
 from notes_v2 import schemas
 from notes_v2 import util
+from notes_v2.dependencies import get_db
+from notes_v2.dependencies import get_db_cm
 from notes_v2.routes import nodes
 from notes_v2.routes import users
 
@@ -44,7 +47,17 @@ app.include_router(users.router)
 app.include_router(nodes.router)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-#
+
+@app.on_event("startup")
+def create_anon_user_if_not_exists():
+    with get_db_cm() as db:
+        user = schemas.UserCreate(username=config.ANON_SERVICE_ACCOUNT_USERNAME, password=config.ANON_SERVICE_ACCOUNT_PASSWORD)
+        db_user = crud.user.read_by_username(db, username=user.username)
+        if db_user:
+            return
+        crud.user.create(db=db, user=user)
+
+
 # @app.middleware('http')
 # def determine_media_type(request: Request, call_next):
 #     # mediatype = util.MediaType(request.headers['Accept'])
