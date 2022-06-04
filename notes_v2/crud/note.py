@@ -2,21 +2,50 @@ import datetime
 
 from sqlalchemy.orm import Session
 
+import notes_v2.crud.user
+from notes_v2 import crud
 from notes_v2 import models
 from notes_v2 import schemas
 
 
-def read_many(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Node).offset(skip).limit(limit).all()
+def read_many(db: Session, skip: int = 0, limit: int = 100) -> list[models.Note]:
+    return db.query(models.Note).offset(skip).limit(limit).all()
 
 
-# def create(db: Session):
-#     now = datetime.datetime.now()
-#     user = httpbasic credentials
-#     db_node = models.Note(
-#
-#     )
-#     db.add(db_node)
-#     db.commit()
-#     db.refresh(db_node)
-#     return db_node
+def read_by_tag(db: Session, tag: str) -> list[models.Note]:
+    return db.query(models.Note).filter(models.Note.tag == tag).all()
+
+
+def read_by_tags(db: Session, tags: list[str]) -> list[models.Note]:
+    return db.query(models.Note).filter(models.Note.tag.in_(tags)).all()
+
+
+def create(
+    db: Session,
+    note: schemas.NoteCreate,
+    authenticated_username: str | None = None,
+):
+    now = datetime.datetime.now()
+
+    if authenticated_username is None:
+        authenticated_username = 'anon'
+    user = crud.user.read_by_username(db, authenticated_username)
+
+    note_dict = note.dict()
+
+    if note.tags:
+        note_dict['right_notes'] = read_by_tags(db, note.tags)
+
+
+    del note_dict['tags']
+    db_note = models.Note(
+        **note_dict,
+        user=user,
+        created_time=now,
+        updated_time=now,
+    )
+    db.add(db_note)
+    db.commit()
+    db.refresh(db_note)
+    # breakpoint()
+    return db_note

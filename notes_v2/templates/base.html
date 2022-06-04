@@ -7,9 +7,12 @@
 <body>
     <nav>
         <div class="navbar-left">
-            <a href="/notes">[notes]</a>
-            <a href="/notes/archive">[archive]</a>
-            <a href="/tags">[tags]</a>
+            <a href="/notes/">[notes]</a>
+            {% if notes_archive %}
+            <a href="archive">[archive]</a>
+            {% endif %}
+            <a href="/tags/">[tags]</a>
+            <a href="/notes/create" class="green-link">[new note]</a>
         </div>
         <div class="navbar-right">
             {% if authenticated_username %}

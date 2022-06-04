@@ -35,7 +35,7 @@ router = APIRouter(
 
 
 @router.post('/users/', response_model=schemas.User)
-def create_user(credentials: HTTPBasicCredentials = Depends(http_basic), db: Session = Depends(get_db)):
+def create(credentials: HTTPBasicCredentials = Depends(http_basic), db: Session = Depends(get_db)):
     """Create a user using username and password
     if user already exists returns an error
     """
@@ -50,7 +50,7 @@ def create_user(credentials: HTTPBasicCredentials = Depends(http_basic), db: Ses
     response_model=list[schemas.User],
     responses={200: {'content': {'text/html': {}}}},
 )
-def read_users(
+def read_many(
     request: Request,
     skip: int = 0,
     limit: int = 100,

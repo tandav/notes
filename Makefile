@@ -20,7 +20,7 @@ testv2:
 
 .PHONY: create
 create:
-	$(python) -m notes.database create
+	$(python) -m notes_v2.database create
 
 
 .PHONY: coverage

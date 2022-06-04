@@ -22,9 +22,11 @@ from notes_v2 import crud
 from notes_v2 import models
 from notes_v2 import schemas
 from notes_v2 import util
+from notes_v2.dependencies import authenticate_optional
 from notes_v2.dependencies import get_db
 from notes_v2.dependencies import get_db_cm
 from notes_v2.routes import nodes
+from notes_v2.routes import notes
 from notes_v2.routes import users
 from notes_v2.templates import templates
 
@@ -46,7 +48,7 @@ app = FastAPI(
     },
 )
 app.include_router(users.router)
-app.include_router(nodes.router)
+app.include_router(notes.router)
 
 static_folder = Path('static')
 app.mount("/static", StaticFiles(directory=static_folder), name="static")
@@ -87,8 +89,8 @@ def create_anon_user_if_not_exists():
 #     # return res
 
 @app.get('/', response_class=HTMLResponse)
-def root(request: Request):
-    return templates.TemplateResponse('root.html', {'request': request})
+def root(request: Request, authenticated_username: str | None = Depends(authenticate_optional)):
+    return templates.TemplateResponse('root.html', {'request': request, 'authenticated_username': authenticated_username})
 
 
 @app.get("/favicon.ico", response_class=FileResponse)
