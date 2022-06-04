@@ -76,3 +76,19 @@ a:hover {
     display: flex;
     flex-direction: column;
 }
+
+#text_field, #url_field {
+    font-family: monospace;
+    font-size: 9pt;
+}
+
+#url_field {
+    width: 100%;
+}
+
+td {
+    max-width:100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
