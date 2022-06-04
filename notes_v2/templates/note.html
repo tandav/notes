@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Note Details{% endblock %}
+{% block content %}
+    <h1>Note ID: {{ note.id }}</h1>
+    <h1>username: {{ note.username }}</h1>
+    {{note.url}}
+    <hr/>
+    <p>
+        {{note.text}}
+    </p>
+{% endblock %}

@@ -8,8 +8,16 @@ from notes_v2 import models
 from notes_v2 import schemas
 
 
+def read_by_id(db: Session, id: int) -> models.Note:
+    return db.query(models.Note).filter(models.Note.id == id).first()
+
+
 def read_many(db: Session, skip: int = 0, limit: int = 100) -> list[models.Note]:
     return db.query(models.Note).offset(skip).limit(limit).all()
+
+
+def read_by_ids(db: Session, ids: list[int]) -> list[models.Note]:
+    return db.query(models.Note).filter(models.Note.id.in_(ids)).all()
 
 
 def read_by_tag(db: Session, tag: str) -> list[models.Note]:
@@ -33,11 +41,17 @@ def create(
 
     note_dict = note.dict()
 
+
+    note_dict['right_notes'] = []
+
     if note.tags:
-        note_dict['right_notes'] = read_by_tags(db, note.tags)
+        tags = read_by_tags(db, note.tags)
+        note_dict['right_notes'] += tags
 
-
+    if note.right_notes:
+        note_dict['right_notes'] += read_by_ids(db, note.right_notes)
     del note_dict['tags']
+
     db_note = models.Note(
         **note_dict,
         user=user,
@@ -47,5 +61,7 @@ def create(
     db.add(db_note)
     db.commit()
     db.refresh(db_note)
-    # breakpoint()
-    return db_note
+
+    # if db_note.right_notes:
+    #     breakpoint()
+    return db_note.to_dict()

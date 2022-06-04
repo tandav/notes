@@ -52,6 +52,12 @@ def create_users(client):
     client.post('/users/', auth=('anon', 'test_password3'))
 
 
+@pytest.fixture
+def create_tag_notes(client, create_users):
+    client.post('/notes/', json={'tag': 'books'})
+    client.post('/notes/', json={'tag': 'groceries'})
+
+
 # @pytest.fixture
 # def create_tags(client):
 #     client.post('/tags/', json={'name': 'books', 'color': '#c0ffee'})

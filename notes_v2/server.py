@@ -25,7 +25,6 @@ from notes_v2 import util
 from notes_v2.dependencies import authenticate_optional
 from notes_v2.dependencies import get_db
 from notes_v2.dependencies import get_db_cm
-from notes_v2.routes import nodes
 from notes_v2.routes import notes
 from notes_v2.routes import users
 from notes_v2.templates import templates

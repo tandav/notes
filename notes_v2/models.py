@@ -46,6 +46,23 @@ class Note(Base):
     )
     user = relationship('User', back_populates='notes')
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'is_private': self.is_private,
+            'is_archived': self.is_archived,
+            'text': self.text,
+            'url': self.url,
+            'tag': self.tag,
+            'color': self.color,
+            'created_time': self.created_time,
+            'updated_time': self.updated_time,
+            'user_id': self.user_id,
+            'username': self.user.username,
+            'right_notes': [note.id for note in self.right_notes],
+            'tags': [note.tag for note in self.right_notes if note.tag is not None],
+        }
+
 
 # ================================================================
 
@@ -64,11 +81,11 @@ class User(Base):
 # ================================================================
 
 
-class Node(Base):
-    __tablename__ = 'node'
-    id = Column(Integer, primary_key=True, index=True)
-    data = Column(JSON)
-    # id = Column(Integer, Computed("json_extract(data, '$.id')", persisted=False), unique=True, nullable=False)
-    # __mapper_args__ = {
-    #     'primary_key': id,
-    # }
+# class Node(Base):
+#     __tablename__ = 'node'
+#     id = Column(Integer, primary_key=True, index=True)
+#     data = Column(JSON)
+#     # id = Column(Integer, Computed("json_extract(data, '$.id')", persisted=False), unique=True, nullable=False)
+#     # __mapper_args__ = {
+#     #     'primary_key': id,
+#     # }

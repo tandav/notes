@@ -6,6 +6,7 @@ from fastapi import Header
 from fastapi import HTTPException
 from fastapi import Request
 from fastapi.responses import HTMLResponse
+from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPBasic
 from fastapi.security import HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
@@ -130,25 +131,55 @@ def create(
 #     </style>
 #     '''
 #     return html + css
-#
-# @router.get('/notes/create', response_model=HTMLResponse)
-# def create_form(
-#     text: str | None = None,
-#     url: str | None = None,
-#     tags: str | None = None,
-#     db: Session = Depends(get_db),
-# ):
-#     # breakpoint()
-#     if text or url or tags:
-#         tags = [] if tags is None else tags.split(',')
-#         try:
-#             note = schemas.NoteCreate(text=text, url=url, tags=tags)
-#         except ValueError as e:
-#             return str(e)
-#     else:
-#         note = None
-#     return note_form(db, action='new_note', note=note)
 
+
+@router.post('/notes/new_note')
+async def new_note_handle_form(
+    request: Request,
+    db: Session = Depends(get_db),
+    authenticated_username: str | None = Depends(authenticate_optional),
+):
+    form = await request.form()
+    note = schemas.NoteCreate(
+        text=form.get('text') or None,
+        url=form.get('url') or None,
+        tags=form.getlist('tags'),
+    )
+    note_db = create(note, db, authenticated_username)
+    return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)
+
+
+@router.get('/notes/create', response_class=HTMLResponse)
+def create_form(
+    request: Request,
+    text: str | None = None,
+    url: str | None = None,
+    tags: str | None = None,
+    db: Session = Depends(get_db),
+    authenticated_username: str | None = Depends(authenticate_optional),
+):
+    # breakpoint()
+    if text or url or tags:
+        tags = [] if tags is None else tags.split(',')
+        try:
+            note = schemas.NoteCreate(text=text, url=url, tags=tags)
+        except ValueError as e:
+            return str(e)
+    else:
+        note = None
+    # return note_form(db, action='new_note', note=note)
+    # return '<h1>create note form</h1>'
+    return templates.TemplateResponse(
+        'create_note_form.html', {
+            'request': request,
+            'form_action': 'new_note',
+            'button_text': 'create',
+            'text': '',
+            'url': '',
+            # 'notes': [schemas.Note.from_orm(u) for u in notes],
+            'authenticated_username': authenticated_username,
+        },
+    )
 
 @router.get(
     '/notes/',
@@ -170,7 +201,32 @@ def read_many(
     return templates.TemplateResponse(
         'notes.html', {
             'request': request,
-            'notes': [schemas.Note.from_orm(u) for u in notes],
+            'notes': [schemas.Note(**n.to_dict()) for n in notes],
+            'authenticated_username': authenticated_username,
+        },
+    )
+
+@router.get(
+    '/notes/{note_id}',
+    response_model=schemas.Note,
+    responses={200: {'content': {'text/html': {}}}},
+)
+def read(
+    request: Request,
+    note_id: int,
+    db: Session = Depends(get_db),
+    mediatype=Depends(guess_type),
+    authenticated_username: str | None = Depends(authenticate_optional),
+):
+    db_note = crud.note.read_by_id(db, note_id)
+    if db_note is None:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Note not found')
+    if mediatype == 'json':
+        return db_note
+    return templates.TemplateResponse(
+        'note.html', {
+            'request': request,
+            'note': db_note.to_dict(),
             'authenticated_username': authenticated_username,
         },
     )

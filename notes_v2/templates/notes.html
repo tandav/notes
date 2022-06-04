@@ -10,6 +10,7 @@
         <th>url</th>
         <th>tags</th>
         <th>last edit</th>
+        <th>username</th>
     </tr>
 </thead>
 <tbody>
@@ -19,7 +20,8 @@
         <td>{{note.text}}</td>
         <td><a href="{{note.url}}">{{note.url}}</a></td>
         <td>{{note.tags}}</td>
-        <td title='{{user.updated_time|format_time(absolute=True)}}'>{{user.updated_time|format_time}}</td>
+        <td title='{{note.updated_time|format_time(absolute=True)}}'>{{note.updated_time|format_time}}</td>
+        <td><a href="/users/{{note.username}}">{{note.username}}</a></td>
     </tr>
 {% endfor %}
 </tbody>
