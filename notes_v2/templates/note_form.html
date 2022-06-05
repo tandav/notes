@@ -9,14 +9,34 @@
     </p>
 
     <p>
-    <label for="url_field">url (optional)</label><br>
+    <label for="url_field">url</label><br>
     <input id="url_field" type="url" name="url" value="{{url}}"/>
     </p>
 
     <p>
     <label>tags</label><br>
     {{tags_checkboxes}}
-    <button>{{button_text}}</button>
     </p>
+
+    <p>
+        <label id="note_is_tag_label">
+        <input type="checkbox" id="note_is_tag" name="note_is_tag" value="note_is_tag" onclick="tag_switch()">note is tag
+        </label>
+        <br/>
+        <label>tag name</label>
+        <input type="text" name="name" disabled class="tag_fields">
+        <label>tag color</label>
+        <input type="color" name="color" value="none" disabled class="tag_fields">
+    </p>
+    <button>{{button_text}}</button>
 </form>
+{% endblock %}
+{% block js %}
+<script>
+const tag_switch = () => {
+    for (let field of document.getElementsByClassName("tag_fields")) {
+        field.disabled = !document.getElementById("note_is_tag").checked
+    }
+}
+</script>
 {% endblock %}
