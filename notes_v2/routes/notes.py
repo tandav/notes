@@ -144,8 +144,13 @@ async def new_note_handle_form(
         text=form.get('text') or None,
         url=form.get('url') or None,
         tags=form.getlist('tags'),
+        tag=form.get('tag_name') or None,
+        color=form.get('tag_color') or None,
+        is_private=form.get('is_private', True),
+        is_archived=form.get('is_archived', False),
     )
     note_db = create(note, db, authenticated_username)
+    breakpoint()
     return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)
 
 
@@ -163,6 +168,7 @@ def read_many(
     authenticated_username: str | None = Depends(authenticate_optional),
 ):
     notes = [schemas.Note(**n.to_dict()) for n in crud.note.read_many(db, skip=skip, limit=limit)]
+    tags = [schemas.Note(**n.to_dict()) for n in crud.note.read_tags(db)]
 
     if mediatype == 'json':
         return notes
@@ -172,6 +178,7 @@ def read_many(
             # 'notes': [schemas.Note(**n.to_dict()) for n in notes],
             'title': 'Notes',
             'notes': notes,
+            'tags': tags,
             'authenticated_username': authenticated_username,
         },
     )
@@ -189,7 +196,6 @@ def read_tags(
     authenticated_username: str | None = Depends(authenticate_optional),
 ):
 
-    notes = [schemas.Note(**n.to_dict()) for n in crud.note.read_many(db)]
     notes = [schemas.Note(**n.to_dict()) for n in crud.note.read_tags(db)]
 
     if mediatype == 'json':
@@ -200,6 +206,7 @@ def read_tags(
             'request': request,
             # 'notes': [schemas.Note(**n.to_dict()) for n in notes],
             'notes': notes,
+            'tags': notes,
             'title': 'Tags',
             'authenticated_username': authenticated_username,
         },
@@ -254,11 +261,23 @@ def create_form(
     text: str | None = None,
     url: str | None = None,
     tags: str | None = None,
+    tag_name: str | None = None,
+    tag_color: str | None = None,
+    is_private: bool | None = None,
+    is_archived: bool | None = None,
 ):
     if text or url or tags:  # parse query params for edit_note
         tags = [] if tags is None else tags.split(',')
         try:
-            note = schemas.NoteCreate(text=text, url=url, tags=tags)
+            note = schemas.NoteCreate(
+                text=text,
+                url=url,
+                tags=tags,
+                tag=tag_name,
+                color=tag_color,
+                is_private=is_private,
+                is_archived=is_archived,
+            )
         except ValueError as e:
             return str(e)
     else:

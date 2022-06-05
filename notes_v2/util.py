@@ -1,4 +1,5 @@
 import datetime
+import string
 from collections.abc import Iterable
 from functools import partial
 
@@ -143,6 +144,9 @@ from notes_v2.config import CSS_FRAMEWORK
 #         </body>
 #         </html>
 #         ''')
+
+def is_hex_color(v: str) -> bool:
+    return (v.startswith('#') and set(v[1:]) <= set(string.hexdigits))
 
 
 def is_valid_xml(xml: str) -> bool:

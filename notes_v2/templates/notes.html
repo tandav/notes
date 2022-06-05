@@ -8,6 +8,7 @@
         <th>id</th>
         <th>text</th>
         <th>url</th>
+        <th>tag</th>
         <th>tags</th>
         <th>last edit</th>
         <th>username</th>
@@ -19,6 +20,7 @@
         <td><a href="/notes/{{note.id}}">{{note.id}}</a></td>
         <td>{{note.text}}</td>
         <td><a href="{{note.url}}">{{note.url}}</a></td>
+        <td>{% if note.tag %}<a href="/tags/{{note.tag}}" id="{{note.tag}}">{{note.tag}}</a>{% endif %}</td>
         <td>{{note.tags}}</td>
         <td title='{{note.updated_time|format_time(absolute=True)}}'>{{note.updated_time|format_time}}</td>
         <td><a href="/users/{{note.username}}">{{note.username}}</a></td>
@@ -26,4 +28,13 @@
 {% endfor %}
 </tbody>
 </table>
+{% endblock %}
+{% block css %}
+<style>
+{% for tag in tags %}
+a[id={{tag.tag}}] {
+    background-color: {{tag.color}};
+}
+{% endfor %}
+</style>
 {% endblock %}
