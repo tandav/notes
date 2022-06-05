@@ -149,38 +149,6 @@ async def new_note_handle_form(
     return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)
 
 
-@router.get('/notes/create', response_class=HTMLResponse)
-def create_form(
-    request: Request,
-    text: str | None = None,
-    url: str | None = None,
-    tags: str | None = None,
-    db: Session = Depends(get_db),
-    authenticated_username: str | None = Depends(authenticate_optional),
-):
-    # breakpoint()
-    if text or url or tags:
-        tags = [] if tags is None else tags.split(',')
-        try:
-            note = schemas.NoteCreate(text=text, url=url, tags=tags)
-        except ValueError as e:
-            return str(e)
-    else:
-        note = None
-    # return note_form(db, action='new_note', note=note)
-    # return '<h1>create note form</h1>'
-    return templates.TemplateResponse(
-        'create_note_form.html', {
-            'request': request,
-            'form_action': 'new_note',
-            'button_text': 'create',
-            'text': '',
-            'url': '',
-            # 'notes': [schemas.Note.from_orm(u) for u in notes],
-            'authenticated_username': authenticated_username,
-        },
-    )
-
 @router.get(
     '/notes/',
     response_model=list[schemas.Note],
@@ -194,17 +162,120 @@ def read_many(
     mediatype=Depends(guess_type),
     authenticated_username: str | None = Depends(authenticate_optional),
 ):
-    notes = crud.note.read_many(db, skip=skip, limit=limit)
+    notes = [schemas.Note(**n.to_dict()) for n in crud.note.read_many(db, skip=skip, limit=limit)]
 
     if mediatype == 'json':
         return notes
     return templates.TemplateResponse(
         'notes.html', {
             'request': request,
-            'notes': [schemas.Note(**n.to_dict()) for n in notes],
+            # 'notes': [schemas.Note(**n.to_dict()) for n in notes],
+            'title': 'Notes',
+            'notes': notes,
             'authenticated_username': authenticated_username,
         },
     )
+
+
+@router.get(
+    '/tags/',
+    response_model=list[schemas.Note],
+    responses={200: {'content': {'text/html': {}}}},
+)
+def read_tags(
+    request: Request,
+    db: Session = Depends(get_db),
+    mediatype=Depends(guess_type),
+    authenticated_username: str | None = Depends(authenticate_optional),
+):
+
+    notes = [schemas.Note(**n.to_dict()) for n in crud.note.read_many(db)]
+    notes = [schemas.Note(**n.to_dict()) for n in crud.note.read_tags(db)]
+
+    if mediatype == 'json':
+        return notes
+
+    return templates.TemplateResponse(
+        'notes.html', {
+            'request': request,
+            # 'notes': [schemas.Note(**n.to_dict()) for n in notes],
+            'notes': notes,
+            'title': 'Tags',
+            'authenticated_username': authenticated_username,
+        },
+    )
+
+
+def note_form(
+    request: Request,
+    db: Session,
+    authenticated_username: str | None,
+    action: str,
+    note: schemas.NoteCreate | models.Note | None = None,
+):
+    if action == 'create':
+        assert isinstance(note, schemas.NoteCreate) or note is None
+        payload = {
+            'request': request,
+            'form_action': 'new_note',
+            'button_text': 'create',
+            'text': '',
+            'url': '',
+            'heading': 'New note',
+            'authenticated_username': authenticated_username,
+        }
+    elif action == 'edit':
+        assert isinstance(note, models.Note)
+        raise NotImplementedError
+    else:
+        raise ValueError
+    tags_checkboxes = []
+    for tag in crud.note.read_tags(db):
+        if (
+            (isinstance(note, models.Note) and tag in note.tags) or
+            (isinstance(note, schemas.NoteCreate) and tag.name in note.tags) or
+            (action == 'new_note' and tag.name == 'private')
+        ):
+            checked = ' checked'
+        else:
+            checked = ''
+        s = f'<label class="tag" id="{tag.name}"><input type="checkbox" name="tags" value="{tag.name}"{checked}>{tag.name}</label>'
+        tags_checkboxes.append(s)
+    tags_checkboxes = '\n'.join(tags_checkboxes)
+    payload['tags_checkboxes'] = tags_checkboxes
+    return templates.TemplateResponse('note_form.html', payload)
+
+
+@router.get('/notes/create', response_class=HTMLResponse)
+def create_form(
+    request: Request,
+    db: Session = Depends(get_db),
+    authenticated_username: str | None = Depends(authenticate_optional),
+    text: str | None = None,
+    url: str | None = None,
+    tags: str | None = None,
+):
+    if text or url or tags:  # parse query params for edit_note
+        tags = [] if tags is None else tags.split(',')
+        try:
+            note = schemas.NoteCreate(text=text, url=url, tags=tags)
+        except ValueError as e:
+            return str(e)
+    else:
+        note = None
+
+    return note_form(
+        request,
+        db,
+        authenticated_username,
+        action='create',
+        note=note,
+    )
+
+
+@router.get('/notes/edit', response_class=HTMLResponse)
+def edit_form(): ...
+
 
 @router.get(
     '/notes/{note_id}',

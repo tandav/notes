@@ -53,7 +53,7 @@ def create_users(client):
 
 
 @pytest.fixture
-def create_tag_notes(client, create_users):
+def create_tags(client, create_users):
     client.post('/notes/', json={'tag': 'books'})
     client.post('/notes/', json={'tag': 'groceries'})
 

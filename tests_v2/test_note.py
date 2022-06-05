@@ -11,7 +11,15 @@ def test_create_note(client, create_users, text, url, tag):
     payload = {k: v for k, v in payload.items() if v is not None}
     r = client.post('/notes/', json=payload)
     assert r.ok
-    assert util.drop_keys(r.json(), {'created_time', 'updated_time', 'user_id', 'id'}) == {'text': text, 'url': url, 'is_private': True, 'tag': tag, 'tags': []}
+    assert util.drop_keys(r.json(), {'created_time', 'updated_time', 'user_id', 'id'}) == {
+        'text': text,
+        'url': url,
+        'is_private': True,
+        'right_notes': [],
+        'username': 'anon',
+        'tag': tag,
+        'tags': [],
+    }
 
 
 def test_right_notes(client, create_users):
@@ -24,11 +32,18 @@ def test_right_notes(client, create_users):
 
 
 @pytest.mark.parametrize('tags', [['books'], ['books', 'groceries']])
-def test_create_note_with_tags(client, create_tag_notes, tags):
+def test_create_note_with_tags(client, create_tags, tags):
     r = client.post('/notes/', json={'tags': tags})
     assert r.json()['tags'] == tags
 
 
+def test_tags(client, create_tags):
+    assert True
+    # assert [note['tag'] for note in client.get('/tags/').json()] == ['books', 'groceries']
+
+
+    # r =
+    # assert r.json() == []
 
 #     # test_create_tag_note
 #     r = client.post('/notes/', json={'tag': 'books'})

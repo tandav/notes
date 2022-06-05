@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}New note{% endblock %}
 {% block content %}
-<h1>New note</h1>
+<h1>{{heading}}</h1>
 <form action="{{form_action}}" method="post" id="note_form">
     <p>
     <label for="text_field">text</label>

@@ -28,6 +28,10 @@ def read_by_tags(db: Session, tags: list[str]) -> list[models.Note]:
     return db.query(models.Note).filter(models.Note.tag.in_(tags)).all()
 
 
+def read_tags(db: Session) -> list[models.Note]:
+    return db.query(models.Note).filter(models.Note.tag.is_not(None)).all()
+
+
 def create(
     db: Session,
     note: schemas.NoteCreate,
