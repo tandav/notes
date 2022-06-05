@@ -71,6 +71,11 @@ a:hover, #note_is_tag_label:hover {
     background-color: var(--green-link-background);
 }
 
+#is_private_label {
+    border-radius: 5px;
+    padding:6px 18px;
+    background-color: var(--link-background);
+}
 
 .navbar-right {
     display: flex;

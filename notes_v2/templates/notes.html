@@ -11,6 +11,7 @@
         <th>tag</th>
         <th>tags</th>
         <th>last edit</th>
+        <th>is_private</th>
         <th>username</th>
     </tr>
 </thead>
@@ -23,6 +24,7 @@
         <td>{% if note.tag %}<a href="/tags/{{note.tag}}" id="{{note.tag}}">{{note.tag}}</a>{% endif %}</td>
         <td>{{note.tags}}</td>
         <td title='{{note.updated_time|format_time(absolute=True)}}'>{{note.updated_time|format_time}}</td>
+        <td>{{note.is_private}}</td>
         <td><a href="/users/{{note.username}}">{{note.username}}</a></td>
     </tr>
 {% endfor %}

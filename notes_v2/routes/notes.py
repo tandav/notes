@@ -146,11 +146,9 @@ async def new_note_handle_form(
         tags=form.getlist('tags'),
         tag=form.get('tag_name') or None,
         color=form.get('tag_color') or None,
-        is_private=form.get('is_private', True),
-        is_archived=form.get('is_archived', False),
+        is_private=form.get('is_private') or False,
     )
     note_db = create(note, db, authenticated_username)
-    breakpoint()
     return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)
 
 
@@ -237,17 +235,19 @@ def note_form(
     else:
         raise ValueError
     tags_checkboxes = []
+    tags = []
     for tag in crud.note.read_tags(db):
+        tag_ = tag.to_dict()
         if (
             (isinstance(note, models.Note) and tag in note.tags) or
             (isinstance(note, schemas.NoteCreate) and tag.name in note.tags) or
             (action == 'new_note' and tag.name == 'private')
         ):
-            checked = ' checked'
+            tag_['checked'] = True
         else:
-            checked = ''
-        s = f'<label class="tag" id="{tag.name}"><input type="checkbox" name="tags" value="{tag.name}"{checked}>{tag.name}</label>'
-        tags_checkboxes.append(s)
+            tag_['checked'] = False
+        # s = f'<label class="tag" id="{tag.tag}"><input type="checkbox" name="tags" value="{tag.tag}"{checked}>{tag.tag}</label>'
+        # tags_checkboxes.append(s)
     tags_checkboxes = '\n'.join(tags_checkboxes)
     payload['tags_checkboxes'] = tags_checkboxes
     return templates.TemplateResponse('note_form.html', payload)
@@ -263,8 +263,7 @@ def create_form(
     tags: str | None = None,
     tag_name: str | None = None,
     tag_color: str | None = None,
-    is_private: bool | None = None,
-    is_archived: bool | None = None,
+    is_private: bool = True,
 ):
     if text or url or tags:  # parse query params for edit_note
         tags = [] if tags is None else tags.split(',')
@@ -276,7 +275,6 @@ def create_form(
                 tag=tag_name,
                 color=tag_color,
                 is_private=is_private,
-                is_archived=is_archived,
             )
         except ValueError as e:
             return str(e)
