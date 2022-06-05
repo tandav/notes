@@ -12,11 +12,18 @@
     <label for="url_field">url</label><br>
     <input id="url_field" type="url" name="url" value="{{url}}"/>
     </p>
-
+    <hr/>
     <p>
     <label>tags</label><br>
-    {{tags_checkboxes}}
+
+    {% for tag in tags %}
+       <label class="tag" id="{{tag.tag}}">{{tag.tag}}
+       <input type="checkbox" name="tags" value="{{tag.tag}}"{% if tag.checked %}checked{% endif %}>
+       </label>
+    {% endfor %}
+
     </p>
+    <hr/>
 
     <p>
         <label id="note_is_tag_label">
@@ -28,6 +35,8 @@
         <label>tag color</label>
         <input type="color" name="tag_color" value="none" disabled class="tag_fields">
     </p>
+    <hr/>
+
     <button>{{button_text}}</button>
     <label id="is_private_label">
         <input type="checkbox" id="is_private" name="is_private" checked />private
@@ -42,4 +51,17 @@ const tag_switch = () => {
     }
 }
 </script>
+{% endblock %}
+{% block css %}
+<style>
+{% for tag in tags %}
+.tag[id={{tag.tag}}] {
+    background-color: {{tag.color}};
+    border-radius: 5px;
+    /*padding: 8px 20px;*/
+    padding: 0.25em;
+    margin: 3px;
+}
+{% endfor %}
+</style>
 {% endblock %}

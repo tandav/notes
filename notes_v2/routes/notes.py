@@ -248,8 +248,9 @@ def note_form(
             tag_['checked'] = False
         # s = f'<label class="tag" id="{tag.tag}"><input type="checkbox" name="tags" value="{tag.tag}"{checked}>{tag.tag}</label>'
         # tags_checkboxes.append(s)
-    tags_checkboxes = '\n'.join(tags_checkboxes)
-    payload['tags_checkboxes'] = tags_checkboxes
+        tags.append(tag_)
+    # tags_checkboxes = '\n'.join(tags_checkboxes)
+    payload['tags'] = tags
     return templates.TemplateResponse('note_form.html', payload)
 
 
