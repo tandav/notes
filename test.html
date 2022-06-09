@@ -1,47 +1,30 @@
-<h1>Tag Hover Test</h1>
-<label class="tag" for="books">books
-<input type="checkbox" id="books" name="tags" value="books">
-</label>
-<hr/>
+<h1>Tags Test</h1>
 
-<input type="checkbox" name="my-checkbox" id="opt-in" class="tag_checkbox">
-<label for="opt-in">Check me!
+<label for="tag1">
+    <input type="checkbox" name="my-checkbox" id="tag1" class="tag_checkbox">
+    <span>tag1</span>
 </label>
+
+<label for="tag2">
+    <input type="checkbox" name="my-checkbox" id="tag2" class="tag_checkbox">
+    <span>tag2</span>
+</label>
+
 <style>
-/*
-label[for="books"] {
-    background-color: #b9eab9;
-    border-radius: 5px;
-    padding: 0.25em;
-    margin: 3px;
-}
-label[for="books"]:hover {
-    background-color: #3e4c3e;
-    border-radius: 5px;
-    padding: 0.25em;
-    margin: 3px;
-}
-#books:checked + label {
-    background-color: #3e4c3e;
-    border-radius: 5px;
-    padding: 0.25em;
-    margin: 3px;
-}
-*/
 
-/* Labels for checked inputs */
 
-/*input:checked + label {
-  color: red;
-}*/
+.tag_checkbox {
+    display: none;
+}
 
-.tag_checkbox + label {
+.tag_checkbox + span {
     padding: 8px 20px;
     border-radius: 5px;
     background-color: #b9eab9;
 }
 
-.tag_checkbox:checked + label, .tag_checkbox:hover + label {
+.tag_checkbox:checked + span,
+.tag_checkbox:hover + span {
     background-color: #3e4c3e;
 }
 

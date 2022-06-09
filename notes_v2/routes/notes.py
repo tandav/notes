@@ -1,5 +1,6 @@
 from http import HTTPStatus
 
+import colortool
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import Header
@@ -238,6 +239,8 @@ def note_form(
     tags = []
     for tag in crud.note.read_tags(db):
         tag_ = tag.to_dict()
+        # font_color, border_color = colortool.font_border_colors(tag.color)
+        tag_['color_pale'] = colortool.lighter(tag_['color'], ratio=0.8)
         if (
             (isinstance(note, models.Note) and tag in note.tags) or
             (isinstance(note, schemas.NoteCreate) and tag.name in note.tags) or
