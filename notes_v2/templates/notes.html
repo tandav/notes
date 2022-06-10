@@ -22,7 +22,7 @@
         <td>{{note.text}}</td>
         <td>{% if note.url %}<a href="{{note.url}}">{{note.url}}</a>{% endif %}</td>
         <td>{% if note.tag %}<a href="/tags/{{note.tag}}" id="{{note.tag}}">{{note.tag}}</a>{% endif %}</td>
-        <td>{{note.tags}}</td>
+        <td>{% for tag in note.tags %}<a href="/tags/{{tag}}" id="{{tag}}">{{tag}}</a>{% endfor %}</td>
         <td title='{{note.updated_time|format_time(absolute=True)}}'>{{note.updated_time|format_time}}</td>
         <td>{{note.is_private}}</td>
         <td><a href="/users/{{note.username}}">{{note.username}}</a></td>
@@ -36,6 +36,7 @@
 {% for tag in tags %}
 a[id={{tag.tag}}] {
     background-color: {{tag.color}};
+    color: {{ tag.font_color }};
 }
 {% endfor %}
 </style>

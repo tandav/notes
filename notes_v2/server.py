@@ -79,14 +79,6 @@ def create_anon_user_if_not_exists():
 #     return response
 
 
-# @app.post('/notes/', response_model=schemas.Note)
-# def create_note(username: str, note: schemas.NoteCreate, db: Session = Depends(get_db)):
-#     # try:
-#     #     res = crud.create_note(db, note, username)
-#     # except crud.TagNotExistsError as e:
-#     #     raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"tags dont exists": e.args[0]})
-#     # return res
-
 @app.get('/', response_class=HTMLResponse)
 def root(request: Request, authenticated_username: str | None = Depends(authenticate_optional)):
     return templates.TemplateResponse('root.html', {'request': request, 'authenticated_username': authenticated_username})

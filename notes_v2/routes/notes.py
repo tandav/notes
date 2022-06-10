@@ -167,7 +167,15 @@ def read_many(
     authenticated_username: str | None = Depends(authenticate_optional),
 ):
     notes = [schemas.Note(**n.to_dict()) for n in crud.note.read_many(db, skip=skip, limit=limit)]
-    tags = [schemas.Note(**n.to_dict()) for n in crud.note.read_tags(db)]
+    # tags = [schemas.Note(**n.to_dict()) for n in crud.note.read_tags(db)]
+
+    tags = []
+    for tag in crud.note.read_tags(db):
+        tag_ = tag.to_dict()
+        font_color, border_color = colortool.font_border_colors(tag_['color'])
+        tag_['color_pale'] = colortool.lighter(tag_['color'], ratio=0.8)
+        tag_['font_color'] = font_color
+        tags.append(tag_)
 
     if mediatype == 'json':
         return notes
@@ -267,8 +275,9 @@ def note_form(
     tags = []
     for tag in crud.note.read_tags(db):
         tag_ = tag.to_dict()
-        # font_color, border_color = colortool.font_border_colors(tag.color)
+        font_color, border_color = colortool.font_border_colors(tag_['color'])
         tag_['color_pale'] = colortool.lighter(tag_['color'], ratio=0.8)
+        tag_['font_color'] = font_color
         if (
             (isinstance(note, models.Note) and tag in note.tags) or
             (isinstance(note, schemas.NoteCreate) and tag.name in note.tags) or
