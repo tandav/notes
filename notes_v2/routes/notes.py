@@ -211,6 +211,34 @@ def read_tags(
         },
     )
 
+@router.get(
+    '/tags/{tag_name}',
+    response_model=schemas.Note,
+    responses={200: {'content': {'text/html': {}}}},
+)
+def read_tag(
+    tag_name: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    mediatype=Depends(guess_type),
+    authenticated_username: str | None = Depends(authenticate_optional),
+):
+    tag_note = crud.note.read_by_tag(db, tag_name)
+    # tag_note = schemas.Note(**crud.note.read_by_tag(db, tag_name))
+    # tag_note = schemas.Note(**crud.note.read_by_tag(db, tag_name))
+    # tag_note = schemas.Note(**crud.note.read_by_tag(db, tag_name))
+
+    if mediatype == 'json':
+        return tag_note
+
+    return templates.TemplateResponse(
+        'note.html', {
+            'request': request,
+            'note': tag_note.to_dict(),
+            'authenticated_username': authenticated_username,
+        },
+    )
+
 
 def note_form(
     request: Request,

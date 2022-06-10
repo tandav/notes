@@ -20,8 +20,8 @@ def read_by_ids(db: Session, ids: list[int]) -> list[models.Note]:
     return db.query(models.Note).filter(models.Note.id.in_(ids)).all()
 
 
-def read_by_tag(db: Session, tag: str) -> list[models.Note]:
-    return db.query(models.Note).filter(models.Note.tag == tag).all()
+def read_by_tag(db: Session, tag: str) -> models.Note:
+    return db.query(models.Note).filter(models.Note.tag == tag).first()
 
 
 def read_by_tags(db: Session, tags: list[str]) -> list[models.Note]:

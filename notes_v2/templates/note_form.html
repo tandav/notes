@@ -17,9 +17,9 @@
     <label>tags</label><br>
 
     {% for tag in tags %}
-       <label class="tag" for="{{tag.tag}}">
+       <label class="tag_label" for="{{tag.tag}}">
        <input type="checkbox" class="tag_checkbox" id="{{tag.tag}}" name="tags" value="{{tag.tag}}"{% if tag.checked %}checked{% endif %}>
-       <span>{{tag.tag}}</span>
+       {{tag.tag}}
        </label>
     {% endfor %}
 
@@ -56,38 +56,20 @@ const tag_switch = () => {
 {% block css %}
 <style>
 
-.tag_checkbox {
-    {#display: none;#}
-}
 
 
-.tag_checkbox + span {
-    color: black;
-    padding: 8px 20px;
-    border-radius: 5px;
-    background-color: #b9eab9;
-}
-
-.tag_checkbox:checked + span,
-.tag_checkbox:hover + span {
-    background-color: #3e4c3e;
-}
 
 
 
 {% for tag in tags %}
-/*.tag[id="{{tag.tag}}"]*/
-.tag[id="{{tag.tag}}"] + label {
-    background-color: {{tag.color_pale}};
+
+.tag_label[for="{{ tag.tag }}"] {
+    background-color: {{tag.color}};
     border-radius: 5px;
-    /*padding: 8px 20px;*/
     padding: 0.25em;
     margin: 3px;
 }
-/*.tag[id="{{tag.tag}}"]:checked { background-color: {{tag.color}}; }*/
-/*.tag[id="{{tag.tag}}"]:hover { background-color: {{tag.color}}; }*/
-/*.tag[id="{{tag.tag}}"]:checked { background-color: {{tag.color}}; }*/
-/*.tag[id="{{tag.tag}}"]:hover { background-color: {{tag.color}}; }*/
+
 {% endfor %}
 </style>
 {% endblock %}
