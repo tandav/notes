@@ -53,7 +53,7 @@ async def new_note_handle_form(
         tags=form.getlist('tags'),
         tag=form.get('tag_name') or None,
         color=form.get('tag_color') or None,
-        json_payload=form.get('json_payload') or None,
+        payload=form.get('payload') or None,
         is_private=form.get('is_private') or False,
     )
     note_db = create(note, db, authenticated_username)
@@ -208,7 +208,7 @@ def create_form(
     tags: str | None = None,
     tag_name: str | None = None,
     tag_color: str | None = None,
-    # json_payload: str | None = None,
+    # payload: str | None = None,
     is_private: bool = True,
 ):
     if text or url or tags:  # parse query params for edit_note
@@ -221,7 +221,7 @@ def create_form(
                 tag=tag_name,
                 color=tag_color,
                 is_private=is_private,
-                # json_payload=json_payload,
+                # payload=payload,
             )
         except ValueError as e:
             return str(e)
@@ -268,8 +268,8 @@ def read(
     )
 
 
-@router.get('/notes/{note_id}/json')
-def read(
+@router.get('/notes/{note_id}/payload')
+def read_payload(
     note_id: int,
     db: Session = Depends(get_db),
     authenticated_username: str | None = Depends(authenticate_optional),
@@ -277,4 +277,4 @@ def read(
     db_note = crud.note.read_by_id(db, note_id)
     if db_note is None:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Note not found')
-    return db_note.json_payload
+    return db_note.payload

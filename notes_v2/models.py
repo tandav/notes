@@ -34,7 +34,7 @@ class Note(Base):
     url = Column(String, nullable=True)
     tag = Column(String, unique=True, index=True, nullable=True)  # defines is tag/readme page if not null (kinda is_tag: considered tag if not null)
     color = Column(String, nullable=True)
-    json_payload = Column(JSON, nullable=True)
+    payload = Column(JSON, nullable=True)
     created_time = Column(DateTime, nullable=False)
     updated_time = Column(DateTime, nullable=False, index=True)
     user_id = Column(Integer, ForeignKey('user.id'))
@@ -56,7 +56,7 @@ class Note(Base):
             'url': self.url,
             'tag': self.tag,
             'color': self.color,
-            'json_payload': self.json_payload,
+            'payload': self.payload,
             'created_time': self.created_time,
             'updated_time': self.updated_time,
             'user_id': self.user_id,

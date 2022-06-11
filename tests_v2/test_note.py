@@ -8,14 +8,14 @@ from notes_v2 import util
 @pytest.mark.parametrize('url', [None, 'https://test.com'])
 @pytest.mark.parametrize('tag', [None, 'books', 'groceries'])
 @pytest.mark.parametrize('tags', [None, ['books', 'groceries']])
-@pytest.mark.parametrize('json_payload', [None, {"k0": [1,2], "k1": None, "k3": {"k3.0": 1}}])
-def test_create_note(client, create_users, text, url, tag, tags, json_payload):
+@pytest.mark.parametrize('payload', [None, {"k0": [1,2], "k1": None, "k3": {"k3.0": 1}}])
+def test_create_note(client, create_users, text, url, tag, tags, payload):
     payload = {
         'text': text,
         'url': url,
         'tag': tag,
         'tags': tags,
-        'json_payload': json_payload,
+        'payload': payload,
     }
     payload = {k: v for k, v in payload.items() if v is not None}
     r = client.post('/notes/', json=payload)
@@ -30,7 +30,7 @@ def test_create_note(client, create_users, text, url, tag, tags, json_payload):
         'username': 'anon',
         'tag': tag,
         'tags': tags if tags is not None else [],
-        'json_payload': json_payload,
+        'payload': payload,
     }
     assert colortool.is_hex_color(j['color'])
 
@@ -94,3 +94,4 @@ def test_tags(client, create_tags):
 # test public/private
 # test anon notes are always public (error when private:true w/o auth) and user are private by default
 # test delete note
+# test error when try to edit/update non-existing note
