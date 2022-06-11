@@ -10,7 +10,7 @@ from notes_v2.dependencies import get_db
 from notes_v2.server import app
 
 
-@pytest.fixture
+@pytest.fixture(scope='class')
 def db():
     engine = create_engine(
         'sqlite:///:memory:',
@@ -27,7 +27,7 @@ def db():
     db.close()
 
 
-@pytest.fixture
+@pytest.fixture(scope='class')
 def client(db):
     def override_get_db():
         yield db
@@ -35,24 +35,24 @@ def client(db):
     yield TestClient(app)
 
 
-@pytest.fixture
+@pytest.fixture(scope='class')
 def fake():
     yield Faker()
 
 
-@pytest.fixture
+@pytest.fixture(scope='class')
 def create_user(client):
     client.post('/users/', auth=('test_user', 'test_password'))
 
 
-@pytest.fixture
+@pytest.fixture(scope='class')
 def create_users(client):
     client.post('/users/', auth=('test_user1', 'test_password1'))
     client.post('/users/', auth=('test_user2', 'test_password2'))
     client.post('/users/', auth=('anon', 'test_password3'))
 
 
-@pytest.fixture
+@pytest.fixture(scope='class')
 def create_tags(client, create_users):
     client.post('/notes/', json={'tag': 'books'})
     client.post('/notes/', json={'tag': 'groceries'})

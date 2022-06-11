@@ -41,99 +41,6 @@ def create(
     return crud.note.create(db, note, authenticated_username)
 
 
-# def note_form(
-#     db: Session,
-#     action: str,
-#     note: schemas.NoteCreate | models.Note | None = None,
-# ):
-#     if action == 'new_note':
-#         button_text = 'create'
-#         heading = 'create note'
-#         if note is not None and isinstance(note, schemas.NoteCreate):
-#             text = note.text
-#             url = note.url
-#         else:
-#             text = ''
-#             url = ''
-#         form_action = '/new_note'
-#     elif action == 'edit_note':
-#         heading = 'edit note'
-#         # assert note_id is not None
-#         # note = crud.get_note(db, note_id)
-#         # text = note.text
-#         # url = note.url
-#         # button_text = 'save'
-#         # form_action = f'/notes/{note_id}/edit'
-#         assert note is not None and isinstance(note, models.Note)
-#         text = note.text
-#         url = note.url or ''
-#         button_text = 'save'
-#         form_action = f'/notes/{note.id}/edit'
-#     else:
-#         raise ValueError
-#
-#     tags = crud.get_tags(db)
-#     tags_checkboxes = []
-#     for tag in crud.get_tags(db):
-#
-#         if (
-#             (isinstance(note, models.Note) and tag in note.tags) or
-#             (isinstance(note, schemas.NoteCreate) and tag.name in note.tags) or
-#             (action == 'new_note' and tag.name == 'private')
-#         ):
-#             checked = ' checked'
-#         else:
-#             checked = ''
-#
-#         # {"" if action == "edit_note" and tag.name in note_tags}
-#         s = f'<label class="tag" id="{tag.name}"><input type="checkbox" name="tags" value="{tag.name}"{checked}>{tag.name}</label>'
-#         tags_checkboxes.append(s)
-#     tags_checkboxes = '\n'.join(tags_checkboxes)
-#
-#     html = f"""
-#     {CSS_FRAMEWORK}
-#     {util.header(new_note=False)}
-#     <h1>{heading}</h1>
-#     <form action="{form_action}" method="post" id="note_form">
-#       <p>
-#         <label for="textarea">text</label>
-#         <textarea type="input" placeholder="Enter your note here" form="note_form" name="text">{text}</textarea>
-#       </p>
-#       <p>
-#         <label>url (optional)</label><br>
-#         <input type="url" name="url" value="{url}"/>
-#       </p>
-#       <p>
-#         <label>tags</label><br>
-#           <p>
-#             {tags_checkboxes}
-#           </p>
-#       </p>
-#       <p>
-#         <button>{button_text}</button>
-#       </p>
-#     </form>
-#     """
-#
-#     tags_colors = util.tags_css(tags)
-#
-#     css = f'''
-#     <style>
-#     input[name=url] {{
-#         width: 100%;
-#     }}
-#
-#     textarea {{
-#         font-family: monospace;
-#         font-size: 9pt;
-#     }}
-#
-#     {tags_colors}
-#     </style>
-#     '''
-#     return html + css
-
-
 @router.post('/notes/new_note')
 async def new_note_handle_form(
     request: Request,
@@ -147,6 +54,7 @@ async def new_note_handle_form(
         tags=form.getlist('tags'),
         tag=form.get('tag_name') or None,
         color=form.get('tag_color') or None,
+        json_payload=form.get('json_payload') or None,
         is_private=form.get('is_private') or False,
     )
     note_db = create(note, db, authenticated_username)
@@ -232,9 +140,6 @@ def read_tag(
     authenticated_username: str | None = Depends(authenticate_optional),
 ):
     tag_note = crud.note.read_by_tag(db, tag_name)
-    # tag_note = schemas.Note(**crud.note.read_by_tag(db, tag_name))
-    # tag_note = schemas.Note(**crud.note.read_by_tag(db, tag_name))
-    # tag_note = schemas.Note(**crud.note.read_by_tag(db, tag_name))
 
     if mediatype == 'json':
         return tag_note

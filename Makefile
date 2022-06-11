@@ -52,7 +52,7 @@ check-mypy:
 
 .PHONY: fix-isort
 fix-isort:
-	$(python) -m isort --settings-path pyproject.toml $(LINTING_DIRS)
+	$(python) -m isort --force-single-line-imports $(LINTING_DIRS)
 
 .PHONY: fix-autoflake
 fix-autoflake:

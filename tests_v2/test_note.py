@@ -1,3 +1,4 @@
+import colortool
 import pytest
 
 from notes_v2 import util
@@ -6,20 +7,25 @@ from notes_v2 import util
 @pytest.mark.parametrize('text', [None, 'test'])
 @pytest.mark.parametrize('url', [None, 'https://test.com'])
 @pytest.mark.parametrize('tag', [None, 'books', 'groceries'])
-def test_create_note(client, create_users, text, url, tag):
-    payload = {'text': text, 'url': url, 'tag': tag}
+@pytest.mark.parametrize('json_payload', [None, {"k0": [1,2], "k1": None, "k3": {"k3.0": 1}}])
+def test_create_note(client, create_users, text, url, tag, json_payload):
+    payload = {'text': text, 'url': url, 'tag': tag, 'json_payload': json_payload}
     payload = {k: v for k, v in payload.items() if v is not None}
     r = client.post('/notes/', json=payload)
     assert r.ok
-    assert util.drop_keys(r.json(), {'created_time', 'updated_time', 'user_id', 'id'}) == {
+    j = r.json()
+    assert util.drop_keys(j, {'created_time', 'updated_time', 'user_id', 'id', 'color'}) == {
         'text': text,
         'url': url,
         'is_private': True,
+        'is_archived': False,
         'right_notes': [],
         'username': 'anon',
         'tag': tag,
         'tags': [],
+        'json_payload': json_payload,
     }
+    assert colortool.is_hex_color(j['color'])
 
 
 def test_right_notes(client, create_users):
@@ -70,3 +76,4 @@ def test_tags(client, create_tags):
 # test right_notes and tags
 # test backlinks / left_notes
 # assert raises when creating note with none existing tags
+# test json payload

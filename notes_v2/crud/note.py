@@ -1,5 +1,6 @@
 import datetime
 
+import colortool
 from sqlalchemy.orm import Session
 
 import notes_v2.crud.user
@@ -45,6 +46,8 @@ def create(
 
     note_dict = note.dict()
 
+    if note.color is None or note.color == '#000000':
+        note_dict['color'] = colortool.random_hex()
 
     note_dict['right_notes'] = []
 
@@ -55,7 +58,6 @@ def create(
     if note.right_notes:
         note_dict['right_notes'] += read_by_ids(db, note.right_notes)
     del note_dict['tags']
-
     db_note = models.Note(
         **note_dict,
         user=user,
@@ -66,6 +68,4 @@ def create(
     db.commit()
     db.refresh(db_note)
 
-    # if db_note.right_notes:
-    #     breakpoint()
     return db_note.to_dict()

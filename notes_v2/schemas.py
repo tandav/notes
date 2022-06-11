@@ -1,14 +1,13 @@
 import datetime
 import string
 
+import colortool
 from fastapi.security import HTTPBasicCredentials
 from pydantic import AnyUrl
 from pydantic import BaseModel
 from pydantic import Json
 from pydantic import root_validator
 from pydantic import validator
-
-from notes_v2.util import is_hex_color
 
 # class UserBase(BaseModel):
 #     username: str
@@ -47,6 +46,7 @@ class NoteBase(BaseModel):
     is_archived: bool = False
     tag: str | None = None
     color: str | None = None
+    json_payload: dict | None
     # tags: list[Tag] = []
     right_notes: list[int] = []
     tags: list[str] = []
@@ -72,7 +72,7 @@ class NoteBase(BaseModel):
         if v is None:
             return v
         v = v.lower()
-        if not is_hex_color(v):
+        if not colortool.is_hex_color(v):
             raise ValueError('invalid color. Provide color in #f048ed format')
         return v
 

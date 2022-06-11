@@ -145,9 +145,6 @@ from notes_v2.config import CSS_FRAMEWORK
 #         </html>
 #         ''')
 
-def is_hex_color(v: str) -> bool:
-    return (v.startswith('#') and set(v[1:]) <= set(string.hexdigits))
-
 
 def is_valid_xml(xml: str) -> bool:
     try:
