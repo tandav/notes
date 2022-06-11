@@ -11,7 +11,7 @@
             {% if notes_archive %}<a href="archive">[archive]</a>{% endif %}
             <a href="/tags/">[tags]</a>
             <a href="/notes/create" class="green-link">[new note]</a>
-            {% if note_edit %}<a href="/notes/edit">[edit]</a>{% endif %}
+            {% if note_edit %}<a href="/notes/{{ note.id }}/update">[edit]</a>{% endif %}
         </div>
         <div class="navbar-right">
             {% if authenticated_username %}

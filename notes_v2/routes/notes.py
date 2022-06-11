@@ -3,6 +3,7 @@ from http import HTTPStatus
 import colortool
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import Form
 from fastapi import Header
 from fastapi import HTTPException
 from fastapi import Request
@@ -40,14 +41,52 @@ def create(
     return crud.note.create(db, note, authenticated_username)
 
 
-@router.post('/notes/new_note')
-async def new_note_handle_form(
+@router.post("/notes/{note_id}/update", response_model=schemas.Note)
+def update(
+    note_id: int,
+    note: schemas.NoteCreate,
+    db: Session = Depends(get_db),
+    authenticated_username: str | None = Depends(authenticate_optional),
+):
+    return crud.note.update(note_id, note, db, authenticated_username)
+
+@router.post('/notes/create')
+def create_note_handle_form(
+    text: str | None = Form(None),
+    url: str | None = Form(None),
+    tags: list[str] = Form([]),
+    tag: str | None = Form(None),
+    color: str | None = Form(None),
+    payload: str | None = Form(None),
+    is_private: bool = Form(False),
+    db: Session = Depends(get_db),
+    authenticated_username: str | None = Depends(authenticate_optional),
+):
+    note = schemas.NoteCreateForm(
+        text=text,
+        url=url,
+        tags=tags,
+        tag=tag,
+        color=color,
+        payload=payload,
+        is_private=is_private,
+    )
+
+    note = schemas.NoteCreate.parse_obj(note)
+    note_db = create(note, db, authenticated_username)
+    return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)
+
+
+@router.post('/notes/{note_id}/update')
+async def update_note_handle_form(
     request: Request,
+    note_id: int,
     db: Session = Depends(get_db),
     authenticated_username: str | None = Depends(authenticate_optional),
 ):
     form = await request.form()
-    note = schemas.NoteCreate(
+    form['']
+    note = schemas.NoteCreateForm(
         text=form.get('text') or None,
         url=form.get('url') or None,
         tags=form.getlist('tags'),
@@ -56,7 +95,8 @@ async def new_note_handle_form(
         payload=form.get('payload') or None,
         is_private=form.get('is_private') or False,
     )
-    note_db = create(note, db, authenticated_username)
+    note = schemas.NoteCreate(**note)
+    note_db = update(note_id, note, db, authenticated_username)
     return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)
 
 
@@ -156,26 +196,20 @@ def note_form(
     request: Request,
     db: Session,
     authenticated_username: str | None,
-    action: str,
     note: schemas.NoteCreate | models.Note | None = None,
+    action: str = 'create',
 ):
     if action == 'create':
         assert isinstance(note, schemas.NoteCreate) or note is None
-        payload = {
-            'request': request,
-            'form_action': 'new_note',
-            'button_text': 'create',
-            'text': '',
-            'url': '',
-            'heading': 'New note',
-            'authenticated_username': authenticated_username,
-        }
-    elif action == 'edit':
+        payload = {'text': '', 'url': '', 'heading': 'New note'}
+    elif action == 'update':
         assert isinstance(note, models.Note)
-        raise NotImplementedError
+        payload = {'text': note.text or '', 'url': note.url or '', 'heading': 'Edit note'}
     else:
-        raise ValueError
-    tags_checkboxes = []
+        raise ValueError('action must be "create" or "action"')
+
+    payload.update(request=request, action=action, authenticated_username=authenticated_username)
+
     tags = []
     for tag in crud.note.read_tags(db):
         tag_ = tag.to_dict()
@@ -183,9 +217,9 @@ def note_form(
         tag_['color_pale'] = colortool.lighter(tag_['color'], ratio=0.8)
         tag_['font_color'] = font_color
         if (
-            (isinstance(note, models.Note) and tag in note.tags) or
-            (isinstance(note, schemas.NoteCreate) and tag.name in note.tags) or
-            (action == 'new_note' and tag.name == 'private')
+            (isinstance(note, models.Note) and tag in note.right_notes) or
+            (isinstance(note, schemas.NoteCreate) and tag.name in note.tags)
+            # (action == 'create' and tag.name == 'private')
         ):
             tag_['checked'] = True
         else:
@@ -211,7 +245,7 @@ def create_form(
     # payload: str | None = None,
     is_private: bool = True,
 ):
-    if text or url or tags:  # parse query params for edit_note
+    if text or url or tags:  # parse query params for update
         tags = [] if tags is None else tags.split(',')
         try:
             note = schemas.NoteCreate(
@@ -232,13 +266,20 @@ def create_form(
         request,
         db,
         authenticated_username,
+        note,
         action='create',
-        note=note,
     )
 
 
-@router.get('/notes/edit', response_class=HTMLResponse)
-def edit_form(): ...
+@router.get('/notes/{note_id}/update', response_class=HTMLResponse)
+def update_form(
+    request: Request,
+    note_id: int,
+    db: Session = Depends(get_db),
+    authenticated_username: str | None = Depends(authenticate_optional),
+):
+    note = crud.note.read_by_id(db, note_id)
+    return note_form(request, db, authenticated_username, note, action='update')
 
 
 @router.get(

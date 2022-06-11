@@ -82,7 +82,7 @@ a:hover, #note_is_tag_label:hover {
     flex-direction: column;
 }
 
-#text_field, #url_field {
+#text_field, #url_field, #payload_field {
     font-family: monospace;
     font-size: 9pt;
 }

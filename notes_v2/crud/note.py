@@ -69,3 +69,12 @@ def create(
     db.refresh(db_note)
 
     return db_note.to_dict()
+
+
+def update(
+    note_id: int,
+    note: schemas.NoteCreate,
+    db: Session,
+    authenticated_username: str | None = None,
+):
+    pass

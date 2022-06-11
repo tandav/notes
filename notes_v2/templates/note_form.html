@@ -2,15 +2,20 @@
 {% block title %}New note{% endblock %}
 {% block content %}
 <h1>{{heading}}</h1>
-<form action="{{form_action}}" method="post" id="note_form">
+<form action="{{action}}" method="post" id="note_form">
     <p>
-    <label for="text_field">text</label>
-    <textarea id="text_field" type="input" placeholder="Enter your note here" form="note_form" name="text">{{text}}</textarea>
+        <label for="text_field">text</label>
+        <textarea id="text_field" type="input" placeholder="Enter your note here" form="note_form" name="text">{{text}}</textarea>
     </p>
 
     <p>
-    <label for="url_field">url</label><br>
-    <input id="url_field" type="url" name="url" value="{{url}}"/>
+        <label for="url_field">url</label><br>
+        <input id="url_field" type="url" name="url" value="{{url}}"/>
+    </p>
+
+    <p>
+        <label for="payload_field">payload</label><br>
+        <textarea id="payload_field" type="input" placeholder="JSON Payload" name="payload"></textarea>
     </p>
     <hr/>
     <p>
@@ -38,7 +43,7 @@
     </p>
     <hr/>
 
-    <button>{{button_text}}</button>
+    <button>{{action}}</button>
     <label id="is_private_label">
         <input type="checkbox" id="is_private" name="is_private" checked />private
     </label>
