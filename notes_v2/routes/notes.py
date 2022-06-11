@@ -18,7 +18,6 @@ from notes_v2 import crud
 from notes_v2 import models
 from notes_v2 import schemas
 from notes_v2 import util
-
 # from notes_v2.util import header
 from notes_v2.dependencies import authenticate_optional
 from notes_v2.dependencies import get_db
@@ -209,6 +208,7 @@ def create_form(
     tags: str | None = None,
     tag_name: str | None = None,
     tag_color: str | None = None,
+    # json_payload: str | None = None,
     is_private: bool = True,
 ):
     if text or url or tags:  # parse query params for edit_note
@@ -221,6 +221,7 @@ def create_form(
                 tag=tag_name,
                 color=tag_color,
                 is_private=is_private,
+                # json_payload=json_payload,
             )
         except ValueError as e:
             return str(e)
@@ -261,6 +262,19 @@ def read(
         'note.html', {
             'request': request,
             'note': db_note.to_dict(),
+            'note_edit': True,
             'authenticated_username': authenticated_username,
         },
     )
+
+
+@router.get('/notes/{note_id}/json')
+def read(
+    note_id: int,
+    db: Session = Depends(get_db),
+    authenticated_username: str | None = Depends(authenticate_optional),
+):
+    db_note = crud.note.read_by_id(db, note_id)
+    if db_note is None:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Note not found')
+    return db_note.json_payload

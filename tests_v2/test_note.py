@@ -7,9 +7,16 @@ from notes_v2 import util
 @pytest.mark.parametrize('text', [None, 'test'])
 @pytest.mark.parametrize('url', [None, 'https://test.com'])
 @pytest.mark.parametrize('tag', [None, 'books', 'groceries'])
+@pytest.mark.parametrize('tags', [None, ['books', 'groceries']])
 @pytest.mark.parametrize('json_payload', [None, {"k0": [1,2], "k1": None, "k3": {"k3.0": 1}}])
-def test_create_note(client, create_users, text, url, tag, json_payload):
-    payload = {'text': text, 'url': url, 'tag': tag, 'json_payload': json_payload}
+def test_create_note(client, create_users, text, url, tag, tags, json_payload):
+    payload = {
+        'text': text,
+        'url': url,
+        'tag': tag,
+        'tags': tags,
+        'json_payload': json_payload,
+    }
     payload = {k: v for k, v in payload.items() if v is not None}
     r = client.post('/notes/', json=payload)
     assert r.ok
@@ -22,19 +29,25 @@ def test_create_note(client, create_users, text, url, tag, json_payload):
         'right_notes': [],
         'username': 'anon',
         'tag': tag,
-        'tags': [],
+        'tags': tags if tags is not None else [],
         'json_payload': json_payload,
     }
     assert colortool.is_hex_color(j['color'])
 
 
-def test_right_notes(client, create_users):
-    n0_id = client.post('/notes/', json={}).json()['id']
-    n1_id = client.post('/notes/', json={}).json()
-    n2_id = client.post('/notes/', json={}).json()
-    n3 = client.post('/notes/', json={'right_notes': [n0_id]})
-
-    assert n3.ok
+# def test_right_notes(client, create_users):
+#     n0_id = client.post('/notes/', json={}).json()['id']
+#     n1_id = client.post('/notes/', json={}).json()['id']
+#     n2_id = client.post('/notes/', json={}).json()['id']
+#     n3 = client.post('/notes/', json={'right_notes': [n0_id]})
+#
+#     assert n3.ok
+#     assert n3.json()['right_notes'] == [n0_id]
+#
+#     # test left_notes
+#     n0 = client.get(f'/notes/{n0_id}')
+#     assert n0.ok
+#     assert n0.json()['left_notes'] == [n3['id']]
 
 
 @pytest.mark.parametrize('tags', [['books'], ['books', 'groceries']])
@@ -73,7 +86,11 @@ def test_tags(client, create_tags):
 # assert error creating private by unauthenticated anon user
 # test right_notes
 # test tags
-# test right_notes and tags
+# test right_notes/left_notes and tags / links
 # test backlinks / left_notes
 # assert raises when creating note with none existing tags
-# test json payload
+# test edit/update note
+# test archive
+# test public/private
+# test anon notes are always public (error when private:true w/o auth) and user are private by default
+# test delete note

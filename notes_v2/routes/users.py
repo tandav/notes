@@ -16,7 +16,6 @@ import notes_v2.crud.user
 from notes_v2 import crud
 from notes_v2 import schemas
 from notes_v2 import util
-
 # from notes_v2.util import header
 from notes_v2.dependencies import WrongUsernameOrPassword
 from notes_v2.dependencies import authenticate

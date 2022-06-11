@@ -8,11 +8,10 @@
     <nav>
         <div class="navbar-left">
             <a href="/notes/">[notes]</a>
-            {% if notes_archive %}
-            <a href="archive">[archive]</a>
-            {% endif %}
+            {% if notes_archive %}<a href="archive">[archive]</a>{% endif %}
             <a href="/tags/">[tags]</a>
             <a href="/notes/create" class="green-link">[new note]</a>
+            {% if note_edit %}<a href="/notes/edit">[edit]</a>{% endif %}
         </div>
         <div class="navbar-right">
             {% if authenticated_username %}
