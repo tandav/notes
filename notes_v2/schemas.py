@@ -46,7 +46,6 @@ class NoteBase(BaseModel):
     is_archived: bool = False
     tag: str | None = None
     color: str | None = None
-    payload: dict | None = None
     # tags: list[Tag] = []
     right_notes: list[int] = []
     tags: list[str] = []
@@ -79,11 +78,6 @@ class NoteBase(BaseModel):
 
 class NoteCreate(NoteBase):
     pass
-
-
-class NoteCreateForm(NoteBase):
-    payload: Json | None = None
-
 
 
 class Note(NoteBase):

@@ -8,14 +8,12 @@ from notes_v2 import util
 @pytest.mark.parametrize('url', [None, 'https://test.com'])
 @pytest.mark.parametrize('tag', [None, 'books', 'groceries'])
 @pytest.mark.parametrize('tags', [None, ['books', 'groceries']])
-@pytest.mark.parametrize('payload', [None, {"k0": [1,2], "k1": None, "k3": {"k3.0": 1}}])
-def test_create_note(client, create_users, text, url, tag, tags, payload):
+def test_create_note(client, create_users, text, url, tag, tags):
     payload = {
         'text': text,
         'url': url,
         'tag': tag,
         'tags': tags,
-        'payload': payload,
     }
     payload = {k: v for k, v in payload.items() if v is not None}
     r = client.post('/notes/', json=payload)
@@ -30,7 +28,6 @@ def test_create_note(client, create_users, text, url, tag, tags, payload):
         'username': 'anon',
         'tag': tag,
         'tags': tags if tags is not None else [],
-        'payload': payload,
     }
     assert colortool.is_hex_color(j['color'])
 

@@ -50,6 +50,7 @@ def update(
 ):
     return crud.note.update(note_id, note, db, authenticated_username)
 
+
 @router.post('/notes/create')
 def create_note_handle_form(
     text: str | None = Form(None),
@@ -57,7 +58,6 @@ def create_note_handle_form(
     tags: list[str] = Form([]),
     tag: str | None = Form(None),
     color: str | None = Form(None),
-    payload: str | None = Form(None),
     is_private: bool = Form(False),
     db: Session = Depends(get_db),
     authenticated_username: str | None = Depends(authenticate_optional),
@@ -68,7 +68,6 @@ def create_note_handle_form(
         tags=tags,
         tag=tag,
         color=color,
-        payload=payload,
         is_private=is_private,
     )
 
@@ -78,24 +77,23 @@ def create_note_handle_form(
 
 
 @router.post('/notes/{note_id}/update')
-async def update_note_handle_form(
-    request: Request,
+def update_note_handle_form(
     note_id: int,
+
+    # request: Request,
     db: Session = Depends(get_db),
     authenticated_username: str | None = Depends(authenticate_optional),
 ):
-    form = await request.form()
-    form['']
-    note = schemas.NoteCreateForm(
-        text=form.get('text') or None,
-        url=form.get('url') or None,
-        tags=form.getlist('tags'),
-        tag=form.get('tag_name') or None,
-        color=form.get('tag_color') or None,
-        payload=form.get('payload') or None,
-        is_private=form.get('is_private') or False,
-    )
-    note = schemas.NoteCreate(**note)
+    # form = await request.form()
+    # note = schemas.NoteCreateForm(
+    #     text=form.get('text') or None,
+    #     url=form.get('url') or None,
+    #     tags=form.getlist('tags'),
+    #     tag=form.get('tag_name') or None,
+    #     color=form.get('tag_color') or None,
+    #     is_private=form.get('is_private') or False,
+    # )
+    # note = schemas.NoteCreate(**note)
     note_db = update(note_id, note, db, authenticated_username)
     return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)
 
@@ -204,7 +202,11 @@ def note_form(
         payload = {'text': '', 'url': '', 'heading': 'New note'}
     elif action == 'update':
         assert isinstance(note, models.Note)
-        payload = {'text': note.text or '', 'url': note.url or '', 'heading': 'Edit note'}
+        payload = {
+            'text': note.text,
+            'url': note.url,
+            'heading': 'Edit note',
+        }
     else:
         raise ValueError('action must be "create" or "action"')
 
@@ -242,7 +244,6 @@ def create_form(
     tags: str | None = None,
     tag_name: str | None = None,
     tag_color: str | None = None,
-    # payload: str | None = None,
     is_private: bool = True,
 ):
     if text or url or tags:  # parse query params for update
@@ -255,20 +256,13 @@ def create_form(
                 tag=tag_name,
                 color=tag_color,
                 is_private=is_private,
-                # payload=payload,
             )
         except ValueError as e:
             return str(e)
     else:
         note = None
 
-    return note_form(
-        request,
-        db,
-        authenticated_username,
-        note,
-        action='create',
-    )
+    return note_form(request, db, authenticated_username, note, action='create')
 
 
 @router.get('/notes/{note_id}/update', response_class=HTMLResponse)
@@ -307,15 +301,3 @@ def read(
             'authenticated_username': authenticated_username,
         },
     )
-
-
-@router.get('/notes/{note_id}/payload')
-def read_payload(
-    note_id: int,
-    db: Session = Depends(get_db),
-    authenticated_username: str | None = Depends(authenticate_optional),
-):
-    db_note = crud.note.read_by_id(db, note_id)
-    if db_note is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Note not found')
-    return db_note.payload

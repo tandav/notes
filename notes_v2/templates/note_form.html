@@ -5,12 +5,12 @@
 <form action="{{action}}" method="post" id="note_form">
     <p>
         <label for="text_field">text</label>
-        <textarea id="text_field" type="input" placeholder="Enter your note here" form="note_form" name="text">{{text}}</textarea>
+        <textarea id="text_field" type="input" placeholder="Enter your note here" form="note_form" name="text">{% if text %}{{text}}{% endif %}</textarea>
     </p>
 
     <p>
         <label for="url_field">url</label><br>
-        <input id="url_field" type="url" name="url" value="{{url}}"/>
+        <input id="url_field" type="url" name="url"{% if url %} value="{{url}}"{% endif %}/>
     </p>
 
     <p>
@@ -60,12 +60,6 @@ const tag_switch = () => {
 {% endblock %}
 {% block css %}
 <style>
-
-
-
-
-
-
 {% for tag in tags %}
 
 .tag_label[for="{{ tag.tag }}"] {
