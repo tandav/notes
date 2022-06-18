@@ -98,38 +98,23 @@ def test_tags(client, create_3_tags):
     assert r.json()['right_notes'] == []
 
     _tags = [tag0['tag'], tag1['tag']]
-    r = client.post('/notes/', json={'tags': _tags})
-    assert r.ok, _tags
-    assert r.json()['tags'] == _tags
-    assert r.json()['right_notes'] == [tag0['id'], tag1['id']]
+    n3 = client.post('/notes/', json={'tags': _tags}).json()
+    assert n3['tags'] == _tags
+    assert n3['right_notes'] == [tag0['id'], tag1['id']]
+    # test left_notes updated as well
+    assert client.get(f'/notes/{tag0["id"]}').json()['left_notes'] == [n3['id']]
+    assert client.get(f'/notes/{tag1["id"]}').json()['left_notes'] == [n3['id']]
+
+    # test many links
+    n4 = client.post('/notes/', json={'tags': [tag0["tag"]]}).json()
+    assert n4['tags'] == [tag0['tag']]
+    assert n4['right_notes'] == [tag0['id']]
+    # test left_notes updated as well
+    assert client.get(f'/notes/{tag0["id"]}').json()['left_notes'] == [n3['id'], n4['id']]
 
     _tags = [tag0['tag'], 'unknown_tag']
     r = client.post('/notes/', json={'tags': _tags})
     assert r.status_code == HTTPStatus.NOT_FOUND
-
-
-# def test_tags_links(client, create_3_tags):
-#     n0_tag, n1_tag, n2_tag = create_3_tags
-#
-#     n3 = client.post('/notes/', json={'tags': [n0_id]})
-    # n3_id = n3.json()['id']
-    # assert n3.json()['right_notes'] == [n0_id]
-    #
-    # # test left_notes
-    # n0 = client.get(f'/notes/{n0_id}')
-    # assert n0.json()['left_notes'] == [n3_id]
-    #
-    # # test many links
-    # n4 = client.post('/notes/', json={'right_notes': [n0_id, n3_id]})
-    # n4_id = n4.json()['id']
-    # assert n4.json()['right_notes'] == [n0_id, n3_id]
-    #
-    # # test left_notes
-    # n0 = client.get(f'/notes/{n0_id}')
-    # assert n0.json()['left_notes'] == [n3_id, n4_id]
-    #
-    # n3 = client.get(f'/notes/{n3_id}')
-    # assert n3.json()['left_notes'] == [n4_id]
 
 
 # @pytest.mark.parametrize('tags', [['books'], ['books', 'groceries']])
