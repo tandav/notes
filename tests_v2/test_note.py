@@ -86,8 +86,28 @@ def test_cant_link_to_non_existing_notes(client, create_3_notes):
 
 
 def test_tag_already_exists(client, create_users):
-    assert client.post('/notes/', json={'tag': 'books'}).ok
-    assert client.post('/notes/', json={'tag': 'books'}).status_code == HTTPStatus.BAD_REQUEST
+    auth, _, _ = create_users
+
+    # on create
+    r = client.post('/notes/', json={'tag': 'books'}, auth=auth)
+    assert r.ok and r.json()['tag'] == 'books'
+
+    note_id = r.json()['id']
+    assert client.post('/notes/', json={'tag': 'books'}, auth=auth).status_code == HTTPStatus.BAD_REQUEST
+
+    # on update
+    note_id2 = client.post('/notes/', json={}, auth=auth).json()['id']
+    # cant use already assigned tag
+    r = client.post(f'/notes/{note_id2}', json={'tag': 'books'}, auth=auth)
+    assert r.status_code == HTTPStatus.BAD_REQUEST, r.json()
+    # assert client.post(f'/notes/{note_id2}', json={'tag': 'books'}).status_code == HTTPStatus.BAD_REQUEST
+
+    # change tag on the original note
+    r = client.post(f'/notes/{note_id}', json={'tag': 'groceries'}, auth=auth)
+    assert r.ok and r.json()['tag'] == 'groceries'
+
+    # assert that now tag can be used
+    assert client.post(f'/notes/{note_id2}', json={'tag': 'books'}, auth=auth).ok
 
 
 def test_color_for_null_tag(client):

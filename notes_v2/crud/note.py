@@ -53,8 +53,6 @@ def handle_tag_for_create_or_update(db: Session, note: schemas.NoteCreate, actio
         raise NotImplementedError('unsupported action')
 
     if note.tag is None:
-        if note.color is not None:
-            raise crud.exceptions.ColorForNullTag
         return note
 
     already_existing_tag = read_by_tag(db, note.tag)
@@ -126,9 +124,12 @@ def update(
 
     now = datetime.datetime.now()
 
+    handle_tag_for_create_or_update(db, note, action='update', note_id=note_id)
+    db_note.tag = note.tag
+    db_note.color = note.color
     # update only not None fields keep old values
 
-    special_handle = {'tag', 'tags'}
+    special_handle = {'tag', 'color', 'tags'}
     for k, v in note.dict().items():
         if v is None:
             continue
