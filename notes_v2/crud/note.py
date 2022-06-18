@@ -1,6 +1,7 @@
 import datetime
 
 import colortool
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 import notes_v2.crud.exceptions
@@ -54,6 +55,9 @@ def create(
         note_dict['color'] = colortool.random_hex()
 
     note_dict['right_notes'] = []
+
+    if note.tag and read_by_tag(db, note.tag) is not None:
+        raise crud.exceptions.TagAlreadyExists
 
     if note.tags:
         tags = read_by_tags(db, note.tags)

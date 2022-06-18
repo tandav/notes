@@ -16,9 +16,18 @@ class HttpNotFound(CrudError):
     STATUS = HTTPStatus.NOT_FOUND
 
 
+class HttpBadRequest(CrudError):
+    STATUS = HTTPStatus.BAD_REQUEST
+
+
+class HttpUnauthorized(CrudError):
+    STATUS = HTTPStatus.UNAUTHORIZED
+
+
 class TagNotExistsError(HttpNotFound): pass
 class NoteNotExistsError(HttpNotFound): pass
-class NoteAlreadyArchived(CrudError): pass
-class NoteAlreadyUnarchived(CrudError): pass
-class AnonNotesCantBeUpdated(CrudError): pass
-class UserIsNotAllowedToEditOtherUserNotes(CrudError): pass
+class NoteAlreadyArchived(HttpBadRequest): pass
+class NoteAlreadyUnarchived(HttpBadRequest): pass
+class TagAlreadyExists(HttpBadRequest): pass
+class AnonNotesCantBeUpdated(HttpUnauthorized): pass
+class UserIsNotAllowedToEditOtherUserNotes(HttpUnauthorized): pass

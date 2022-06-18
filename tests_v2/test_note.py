@@ -6,32 +6,36 @@ import pytest
 from notes_v2 import util
 from notes_v2.crud import exceptions
 
-# @pytest.mark.parametrize('text', [None, 'test'])
-# @pytest.mark.parametrize('url', [None, 'https://test.com'])
-# @pytest.mark.parametrize('tag', [None, 'books', 'groceries'])
+
+@pytest.mark.parametrize('text', [None, 'test'])
+@pytest.mark.parametrize('url', [None, 'https://test.com'])
+@pytest.mark.parametrize('tag', [None, 'books', 'groceries'])
 # @pytest.mark.parametrize('tags', [None, ['books', 'groceries']])
 # def test_create_note(client, create_users, text, url, tag, tags):
-#     payload = {
-#         'text': text,
-#         'url': url,
-#         'tag': tag,
-#         'tags': tags,
-#     }
-#     payload = {k: v for k, v in payload.items() if v is not None}
-#     r = client.post('/notes/', json=payload)
-#     assert r.ok
-#     j = r.json()
-#     assert util.drop_keys(j, {'created_time', 'updated_time', 'user_id', 'id', 'color'}) == {
-#         'text': text,
-#         'url': url,
-#         'is_private': True,
-#         'is_archived': False,
-#         'right_notes': [],
-#         'username': 'anon',
-#         'tag': tag,
-#         'tags': tags if tags is not None else [],
-#     }
-#     assert colortool.is_hex_color(j['color'])
+def test_create_note(client, create_users, text, url, tag):
+    payload = {
+        'text': text,
+        'url': url,
+        'tag': tag,
+        # 'tags': tags,
+    }
+    payload = {k: v for k, v in payload.items() if v is not None}
+    r = client.post('/notes/', json=payload)
+    assert r.ok
+    j = r.json()
+    assert util.drop_keys(j, {'created_time', 'updated_time', 'user_id', 'id', 'color'}) == {
+        'text': text,
+        'url': url,
+        'is_private': True,
+        'is_archived': False,
+        'right_notes': [],
+        'left_notes': [],
+        'username': 'anon',
+        'tag': tag,
+        # 'tags': tags if tags is not None else [],
+        'tags': [],
+    }
+    assert colortool.is_hex_color(j['color'])
 
 
 @pytest.fixture
@@ -76,12 +80,18 @@ def test_cant_link_to_non_existing_notes(client, create_3_notes):
     assert n3.status_code == HTTPStatus.NOT_FOUND
 
 
+def test_tag_already_exists(client, create_users):
+    assert client.post('/notes/', json={'tag': 'books'}).ok
+    r = client.post('/notes/', json={'tag': 'books'})
+    assert r.status_code == HTTPStatus.BAD_REQUEST
+
+
 # @pytest.mark.parametrize('tags', [['books'], ['books', 'groceries']])
 # def test_create_note_with_tags(client, create_tags, tags):
 #     r = client.post('/notes/', json={'tags': tags})
 #     assert r.json()['tags'] == tags
-#
-#
+
+
 # def test_tags(client, create_tags):
 #     assert True
 #     # assert [note['tag'] for note in client.get('/tags/').json()] == ['books', 'groceries']
@@ -90,11 +100,7 @@ def test_cant_link_to_non_existing_notes(client, create_3_notes):
     # r =
     # assert r.json() == []
 
-#     # test_create_tag_note
-#     r = client.post('/notes/', json={'tag': 'books'})
-#     assert r.ok
-#     assert r.json()['tag'] == 'books'
-#
+
 #     # create note with tags
 #     r = client.post('/notes/', json={'tags': ['books']})
 #     breakpoint()
@@ -108,6 +114,7 @@ def test_cant_link_to_non_existing_notes(client, create_3_notes):
 # #     test anon
 #
 
+# add theese tests for update too, (not only for create)
 
 # assert error creating private by unauthenticated anon user
 # test right_notes
