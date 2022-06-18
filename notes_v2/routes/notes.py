@@ -44,6 +44,16 @@ def create(
     except crud.exceptions.CrudError as e:
         raise e.http
 
+# @app.post("/notes/{note_id}/edit/", response_model=schemas.Note)
+# def update(note_id: int, note: schemas.NoteCreate, db: Session = Depends(get_db)):
+#     try:
+#         res = crud.edit_note(db, note, note_id)
+#     except crud.NoteNotExistsError as e:
+#         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"note dont exists": e.args[0]})
+#     except crud.TagNotExistsError as e:
+#         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"tags dont exists": e.args[0]})
+#     return res
+
 
 @router.get('/notes/create', response_class=HTMLResponse)
 def create_form(
@@ -217,7 +227,7 @@ def note_form(
             'heading': 'Edit note',
         }
     else:
-        raise ValueError('action must be "create" or "action"')
+        raise ValueError('action must be "create" or "update"')
 
     payload.update(request=request, action=action, authenticated_username=authenticated_username)
 
@@ -300,5 +310,8 @@ async def update_form_handle(
         color=color,
         is_private=is_private,
     )
-    note_db = crud.note.update(note_id, note, db, authenticated_username)
+    try:
+        note_db = crud.note.update(note_id, note, db, authenticated_username)
+    except crud.exceptions.CrudError as e:
+        raise e.http
     return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)

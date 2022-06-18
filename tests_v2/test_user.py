@@ -45,3 +45,7 @@ def test_read(client, create_users):
     assert util.drop_keys(client.get('/users/?skip=1&limit=1').json(), drop_keys) == [
         {'id': 2, 'username': 'test_user2'},
     ]
+
+
+# def test_note_user():
+#     test anon

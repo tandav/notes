@@ -117,33 +117,15 @@ def test_tags(client, create_3_tags):
     assert r.status_code == HTTPStatus.NOT_FOUND
 
 
-# @pytest.mark.parametrize('tags', [['books'], ['books', 'groceries']])
-# def test_create_note_with_tags(client, create_tags, tags):
-#     r = client.post('/notes/', json={'tags': tags})
-#     assert r.json()['tags'] == tags
-
-
-# def test_tags(client, create_tags):
-#     assert True
-#     # assert [note['tag'] for note in client.get('/tags/').json()] == ['books', 'groceries']
-#
-
-    # r =
-    # assert r.json() == []
-
-
-#     # create note with tags
-#     r = client.post('/notes/', json={'tags': ['books']})
-#     breakpoint()
-#
-#     R = r.json()
-#     assert r.ok
-#     assert r.json()['tags'] == ['books'], r.json()
-#
-#
-# # def test_note_user():
-# #     test anon
-#
+def test_update_note(client, create_users):
+    r = client.post(
+        '/notes/', json={
+            'text': 'test',
+            'url': 'https://test.com',
+            'tag': 'test_tag',
+        },
+    )
+    assert r.ok
 
 # add theese tests for update too, (not only for create)
 
