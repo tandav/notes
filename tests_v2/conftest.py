@@ -47,9 +47,13 @@ def create_user(client):
 
 @pytest.fixture(scope='class')
 def create_users(client):
-    client.post('/users/', auth=('test_user1', 'test_password1'))
-    client.post('/users/', auth=('test_user2', 'test_password2'))
-    client.post('/users/', auth=('anon', 'test_password3'))
+    auth0 = 'test_user1', 'test_password1'
+    auth1 = 'test_user2', 'test_password2'
+    auth2 = 'anon', 'test_password3'
+    client.post('/users/', auth=auth0)
+    client.post('/users/', auth=auth1)
+    client.post('/users/', auth=auth2)
+    return auth0, auth1, auth2
 
 
 @pytest.fixture(scope='class')

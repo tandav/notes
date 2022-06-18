@@ -44,6 +44,9 @@ def read_tags(db: Session) -> list[models.Note]:
     return db.query(models.Note).filter(models.Note.tag.is_not(None)).all()
 
 
+def handle_tags_for_create_or_update():
+    pass
+
 def create(
     db: Session,
     note: schemas.NoteCreate,

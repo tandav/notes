@@ -117,7 +117,7 @@ def test_tags(client, create_3_tags):
 
 
 def test_update_note(client, create_users):
-    auth = 'test_user1', 'test_password1'
+    auth, _, _ = create_users
 
     r = client.post(
         '/notes/', json={
@@ -141,9 +141,13 @@ def test_update_note(client, create_users):
     assert r.json()['is_private'] == False
 
 
+# def test_tag_already_exists_on_update(client, create_users):
+#     n0_id = client.post('/notes/', json={'tag': 'books'}).json()['id']
+#     n1_id = client.post('/notes/', json={}).json()['id']
+#     assert client.post(f'/notes/{n1_id}', json={'tag': 'books'}).status_code == HTTPStatus.BAD_REQUEST
+
 
 # add theese tests for update too, (not only for create)
-
 # assert error creating private by unauthenticated anon user
 # test right_notes
 # test tags
