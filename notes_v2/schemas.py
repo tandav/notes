@@ -51,9 +51,14 @@ class NoteBase(BaseModel):
     left_notes: list[int] = []
     tags: list[str] = []
 
-
     # tag
     # right_notes: list[str] = []
+
+    @root_validator(pre=True)
+    def validate_tag_color(cls, values):
+        if values.get('tag') is None and values.get('color') is not None:
+            raise ValueError('color is not None but tag is None. Cant assign color for tag == None')
+        return values
 
     @validator('tag')
     def validate_tag(cls, v):
@@ -74,6 +79,12 @@ class NoteBase(BaseModel):
         v = v.lower()
         if not colortool.is_hex_color(v):
             raise ValueError('invalid color. Provide color in #f048ed format')
+        return v
+
+    @validator('color')
+    def handle_default_color(cls, v):
+        if v is None or v == '#000000':
+            v = colortool.random_hex()
         return v
 
 

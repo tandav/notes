@@ -31,7 +31,8 @@ def test_create_note(client, create_users, text, url, tag):
         'tag': tag,
         'tags': [],
     }
-    assert colortool.is_hex_color(j['color'])
+    if tag is not None:
+        assert colortool.is_hex_color(j['color'])
 
 
 @pytest.fixture
@@ -87,6 +88,10 @@ def test_cant_link_to_non_existing_notes(client, create_3_notes):
 def test_tag_already_exists(client, create_users):
     assert client.post('/notes/', json={'tag': 'books'}).ok
     assert client.post('/notes/', json={'tag': 'books'}).status_code == HTTPStatus.BAD_REQUEST
+
+
+def test_color_for_null_tag(client):
+    assert client.post('/notes/', json={'color': '#fb7324'}).status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 def test_tags(client, create_3_tags):
@@ -147,6 +152,8 @@ def test_update_note(client, create_users):
 #     assert client.post(f'/notes/{n1_id}', json={'tag': 'books'}).status_code == HTTPStatus.BAD_REQUEST
 
 
+# test note_color is none when set update/create note w/o tag
+
 # add theese tests for update too, (not only for create)
 # assert error creating private by unauthenticated anon user
 # test right_notes
@@ -155,8 +162,8 @@ def test_update_note(client, create_users):
 # test backlinks / left_notes
 # assert raises when creating note with none existing tags
 # test edit/update note
-# test archive
-# test public/private
+# test archive/unarhive (updated_time should be updated)
+# test public/private (updated_time should be updated)
 # test anon notes are always public (error when private:true w/o auth) and user are private by default
 # test delete note
 # test error when try to edit/update non-existing note
