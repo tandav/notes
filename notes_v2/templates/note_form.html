@@ -12,11 +12,6 @@
         <label for="url_field">url</label><br>
         <input id="url_field" type="url" name="url"{% if url %} value="{{url}}"{% endif %}/>
     </p>
-
-    <p>
-        <label for="payload_field">payload</label><br>
-        <textarea id="payload_field" type="input" placeholder="JSON Payload" name="payload"></textarea>
-    </p>
     <hr/>
     <p>
     <label>tags</label><br>
@@ -45,7 +40,7 @@
 
     <button>{{action}}</button>
     <label id="is_private_label">
-        <input type="checkbox" id="is_private" name="is_private" checked />private
+        <input type="checkbox" id="is_private" name="is_private"{% if is_private %} checked{% endif %} />private
     </label>
 </form>
 {% endblock %}

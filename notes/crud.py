@@ -80,7 +80,7 @@ def get_notes(
     skip: int = 0, limit: int = 100,
     user: models.User | None = None,
     drop_archived: bool = True,
-    drop_private: bool = True,
+    drop_private: bool = False,
 ):
     query = db.query(models.Note)
 

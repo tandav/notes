@@ -41,61 +41,65 @@ def create(
     return crud.note.create(db, note, authenticated_username)
 
 
-@router.post("/notes/{note_id}/update", response_model=schemas.Note)
-def update(
+@router.get('/notes/create', response_class=HTMLResponse)
+def create_form(
+    request: Request,
+    db: Session = Depends(get_db),
+    authenticated_username: str | None = Depends(authenticate_optional),
+    text: str | None = None,
+    url: str | None = None,
+    tags: str | None = None,
+    tag_name: str | None = None,
+    tag_color: str | None = None,
+    is_private: bool = True,
+):
+    if text or url or tags:  # parse query params for update
+        tags = [] if tags is None else tags.split(',')
+        try:
+            note = schemas.NoteCreate(
+                text=text,
+                url=url,
+                tags=tags,
+                tag=tag_name,
+                color=tag_color,
+                is_private=is_private,
+            )
+        except ValueError as e:
+            return str(e)
+    else:
+        note = None
+
+    return note_form(request, db, authenticated_username, note, action='create')
+
+
+@router.get(
+    '/notes/{note_id}',
+    response_model=schemas.Note,
+    responses={200: {'content': {'text/html': {}}}},
+)
+def read(
+    request: Request,
     note_id: int,
-    note: schemas.NoteCreate,
     db: Session = Depends(get_db),
+    mediatype=Depends(guess_type),
     authenticated_username: str | None = Depends(authenticate_optional),
 ):
-    return crud.note.update(note_id, note, db, authenticated_username)
+    db_note = crud.note.read_by_id(db, note_id)
+    if db_note is None:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Note not found')
 
+    db_note = db_note.to_dict()
 
-@router.post('/notes/create')
-def create_note_handle_form(
-    text: str | None = Form(None),
-    url: str | None = Form(None),
-    tags: list[str] = Form([]),
-    tag: str | None = Form(None),
-    color: str | None = Form(None),
-    is_private: bool = Form(False),
-    db: Session = Depends(get_db),
-    authenticated_username: str | None = Depends(authenticate_optional),
-):
-    note = schemas.NoteCreateForm(
-        text=text,
-        url=url,
-        tags=tags,
-        tag=tag,
-        color=color,
-        is_private=is_private,
+    if mediatype == 'json':
+        return db_note
+    return templates.TemplateResponse(
+        'note.html', {
+            'request': request,
+            'note': db_note,
+            'note_edit': True,
+            'authenticated_username': authenticated_username,
+        },
     )
-
-    note = schemas.NoteCreate.parse_obj(note)
-    note_db = create(note, db, authenticated_username)
-    return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)
-
-
-@router.post('/notes/{note_id}/update')
-def update_note_handle_form(
-    note_id: int,
-
-    # request: Request,
-    db: Session = Depends(get_db),
-    authenticated_username: str | None = Depends(authenticate_optional),
-):
-    # form = await request.form()
-    # note = schemas.NoteCreateForm(
-    #     text=form.get('text') or None,
-    #     url=form.get('url') or None,
-    #     tags=form.getlist('tags'),
-    #     tag=form.get('tag_name') or None,
-    #     color=form.get('tag_color') or None,
-    #     is_private=form.get('is_private') or False,
-    # )
-    # note = schemas.NoteCreate(**note)
-    note_db = update(note_id, note, db, authenticated_username)
-    return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)
 
 
 @router.get(
@@ -205,6 +209,7 @@ def note_form(
         payload = {
             'text': note.text,
             'url': note.url,
+            'is_private': note.is_private,
             'heading': 'Edit note',
         }
     else:
@@ -234,37 +239,6 @@ def note_form(
     return templates.TemplateResponse('note_form.html', payload)
 
 
-@router.get('/notes/create', response_class=HTMLResponse)
-def create_form(
-    request: Request,
-    db: Session = Depends(get_db),
-    authenticated_username: str | None = Depends(authenticate_optional),
-    text: str | None = None,
-    url: str | None = None,
-    tags: str | None = None,
-    tag_name: str | None = None,
-    tag_color: str | None = None,
-    is_private: bool = True,
-):
-    if text or url or tags:  # parse query params for update
-        tags = [] if tags is None else tags.split(',')
-        try:
-            note = schemas.NoteCreate(
-                text=text,
-                url=url,
-                tags=tags,
-                tag=tag_name,
-                color=tag_color,
-                is_private=is_private,
-            )
-        except ValueError as e:
-            return str(e)
-    else:
-        note = None
-
-    return note_form(request, db, authenticated_username, note, action='create')
-
-
 @router.get('/notes/{note_id}/update', response_class=HTMLResponse)
 def update_form(
     request: Request,
@@ -276,28 +250,51 @@ def update_form(
     return note_form(request, db, authenticated_username, note, action='update')
 
 
-@router.get(
-    '/notes/{note_id}',
-    response_model=schemas.Note,
-    responses={200: {'content': {'text/html': {}}}},
-)
-def read(
-    request: Request,
-    note_id: int,
+@router.post('/notes/create')
+def create_form_handle(
+    text: str | None = Form(None),
+    url: str | None = Form(None),
+    tags: list[str] = Form([]),
+    tag: str | None = Form(None),
+    color: str | None = Form(None),
+    is_private: bool = Form(False),
     db: Session = Depends(get_db),
-    mediatype=Depends(guess_type),
     authenticated_username: str | None = Depends(authenticate_optional),
 ):
-    db_note = crud.note.read_by_id(db, note_id)
-    if db_note is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Note not found')
-    if mediatype == 'json':
-        return db_note
-    return templates.TemplateResponse(
-        'note.html', {
-            'request': request,
-            'note': db_note.to_dict(),
-            'note_edit': True,
-            'authenticated_username': authenticated_username,
-        },
+    note = schemas.NoteCreate(
+        text=text,
+        url=url,
+        tags=tags,
+        tag=tag,
+        color=color,
+        is_private=is_private,
     )
+    note_db = create(note, db, authenticated_username)
+    return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)
+
+
+@router.post('/notes/{note_id}/update')
+async def update_form_handle(
+    request: Request,
+    note_id: int,
+    text: str | None = Form(None),
+    url: str | None = Form(None),
+    tags: list[str] = Form([]),
+    tag: str | None = Form(None),
+    color: str | None = Form(None),
+    is_private: bool = Form(False),
+    db: Session = Depends(get_db),
+    authenticated_username: str | None = Depends(authenticate_optional),
+):
+    # form = await request.form()
+    # breakpoint()
+    note = schemas.NoteCreate(
+        text=text,
+        url=url,
+        tags=tags,
+        tag=tag,
+        color=color,
+        is_private=is_private,
+    )
+    note_db = crud.note.update(note_id, note, db, authenticated_username)
+    return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)

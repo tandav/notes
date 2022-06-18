@@ -48,6 +48,7 @@ class NoteBase(BaseModel):
     color: str | None = None
     # tags: list[Tag] = []
     right_notes: list[int] = []
+    left_notes: list[int] = []
     tags: list[str] = []
 
 
@@ -87,8 +88,8 @@ class Note(NoteBase):
     created_time: datetime.datetime
     updated_time: datetime.datetime
 
-    # class Config:
-    #     orm_mode = True
+    class Config:
+        orm_mode = True
 
 
 # ================================================================

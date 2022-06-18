@@ -436,7 +436,8 @@ def notes_table(notes: list) -> tuple[str, str]:
 def read_notes(
     request: Request,
     skip: int = 0,
-    limit: int = 100,
+    # limit: int = 100,
+    limit: int = 300,
     db: Session = Depends(get_db),
     accept: str | None = Header(default='application/json'),
     username: str | None = Depends(authenticate_optional),

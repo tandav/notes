@@ -3,6 +3,7 @@ import datetime
 import colortool
 from sqlalchemy.orm import Session
 
+import notes_v2.crud.exceptions
 import notes_v2.crud.user
 from notes_v2 import crud
 from notes_v2 import models
@@ -71,10 +72,46 @@ def create(
     return db_note.to_dict()
 
 
-def update(
-    note_id: int,
-    note: schemas.NoteCreate,
-    db: Session,
-    authenticated_username: str | None = None,
-):
-    pass
+# def update(
+#     note_id: int,
+#     note: schemas.NoteCreate,
+#     db: Session,
+#     authenticated_username: str | None = None,
+# ):
+#     db_note = read_by_id(db, note_id)
+#     if db_note is None:
+#         raise crud.exceptions.NoteNotExistsError
+#     if db_note.user.username == 'anon':
+#         raise crud.exceptions.AnonNotesCantBeUpdated
+#     elif db_note.user.username != authenticated_username:
+#         raise crud.exceptions.UserIsNotAllowedToEditOtherUserNotes
+#
+#     now = datetime.datetime.now()
+#     db_note.text = note.text
+#     db_note.url = note.url
+#     db_note.is_private = note.is_private
+#     db_note.is_archived = note.is_archived
+#     db_note.tag = note.tag
+#     db_note.color = note.color
+#     db_note.updated_time = now
+#
+#     all_tags = read_tags(db)
+#
+#     # if note.tag: no checks are necessary, because you can create any tag name you want (new tag)
+#     # if note.tag on update/create - you should check that there's only 1 note with that tag
+#     # rely on database constraints ?
+#
+#     if note.tags:
+#         ...
+#
+#
+#     if note.right_notes:
+#         ...
+#
+#     if unknown_tags := set(note.tags) - {tag.name for tag in tags}:
+#         raise crud.exceptions.TagNotExistsError(list(unknown_tags))
+#
+#     for tag in tags:
+#         tag.updated_time = now
+#
+#     db_note.right_notes = tags

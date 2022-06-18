@@ -60,6 +60,7 @@ class Note(Base):
             'user_id': self.user_id,
             'username': self.user.username,
             'right_notes': [note.id for note in self.right_notes],
+            'left_notes': [note.id for note in self.left_notes],
             'tags': [note.tag for note in self.right_notes if note.tag is not None],
         }
 
