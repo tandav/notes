@@ -151,28 +151,51 @@ def test_update_note(client, create_users):
         auth=auth,
     )
     assert r.ok
+    update_times = []
+    update_times.append(r.json()['updated_time'])
     n_id = r.json()['id']
 
     r = client.post(f'/notes/{n_id}', json={'text': 'test2'}, auth=auth)
     assert r.ok
-    assert r.json()['text'] == 'test2'
+    updated = r.json()
+    assert updated['text'] == 'test2'
+    update_times.append(updated['updated_time'])
 
     r = client.post(f'/notes/{n_id}', json={'url': 'https://test2.com', 'is_private': False}, auth=auth)
     assert r.ok
-    assert r.json()['text'] == 'test2'
-    assert r.json()['url'] == 'https://test2.com'
-    assert r.json()['is_private'] == False
+    updated = r.json()
+    assert updated['text'] == 'test2'
+    assert updated['url'] == 'https://test2.com'
+    assert updated['is_private'] == False
+    update_times.append(updated['updated_time'])
 
     r = client.post(f'/notes/{n_id}', json={'tag': 'books'}, auth=auth)
     assert r.ok
-    color = r.json()['color']
+    updated = r.json()
+    color = updated['color']
+    update_times.append(updated['updated_time'])
 
     r = client.post(f'/notes/{n_id}', json={'tag': 'groceries'}, auth=auth)
-    assert r.json()['color'] == color
+    updated = r.json()
+    assert updated['color'] == color
+    update_times.append(updated['updated_time'])
 
     color2 = '#913241'
     r = client.post(f'/notes/{n_id}', json={'color': color2}, auth=auth)
-    assert r.json()['color'] == color2
+    updated = r.json()
+    assert updated['color'] == color2
+    update_times.append(updated['updated_time'])
+
+    updated = client.post(f'/notes/{n_id}', json={'is_private': False}, auth=auth).json()
+    assert updated['is_private'] == False
+    update_times.append(updated['updated_time'])
+
+    updated = client.post(f'/notes/{n_id}', json={'is_archived': True}, auth=auth).json()
+    assert updated['is_archived'] == True
+    update_times.append(updated['updated_time'])
+
+    assert update_times == sorted(update_times)
+
 
 # def test_tag_already_exists_on_update(client, create_users):
 #     n0_id = client.post('/notes/', json={'tag': 'books'}).json()['id']
