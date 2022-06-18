@@ -26,12 +26,18 @@ def read_by_ids(db: Session, ids: list[int], error_if_not_all_exists: bool = Fal
     return notes
 
 
-def read_by_tag(db: Session, tag: str) -> models.Note:
-    return db.query(models.Note).filter(models.Note.tag == tag).first()
+def read_by_tag(db: Session, tag: str, not_found_error: bool = False) -> models.Note:
+    db_tag = db.query(models.Note).filter(models.Note.tag == tag).first()
+    if db_tag is None and not_found_error:
+        raise crud.exceptions.TagNotExistsError
+    return db_tag
 
 
-def read_by_tags(db: Session, tags: list[str]) -> list[models.Note]:
-    return db.query(models.Note).filter(models.Note.tag.in_(tags)).all()
+def read_by_tags(db: Session, tags: list[str], not_found_error: bool = False) -> list[models.Note]:
+    db_tags = db.query(models.Note).filter(models.Note.tag.in_(tags)).all()
+    if set(tags) != {tag.tag for tag in db_tags}:
+        raise crud.exceptions.TagNotExistsError
+    return db_tags
 
 
 def read_tags(db: Session) -> list[models.Note]:
@@ -60,7 +66,7 @@ def create(
         raise crud.exceptions.TagAlreadyExists
 
     if note.tags:
-        tags = read_by_tags(db, note.tags)
+        tags = read_by_tags(db, note.tags, not_found_error=True)
         note_dict['right_notes'] += tags
 
     if note.right_notes:
