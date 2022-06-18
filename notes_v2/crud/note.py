@@ -44,7 +44,12 @@ def read_tags(db: Session) -> list[models.Note]:
     return db.query(models.Note).filter(models.Note.tag.is_not(None)).all()
 
 
-def handle_tag_for_create_or_update(db: Session, note: schemas.NoteCreate, action: str, note_id: int | None = None):
+def handle_tag_for_create_or_update(
+    db: Session,
+    note: schemas.NoteCreate | schemas.NoteUpdate,
+    action: str,
+    note_id: int | None = None,
+):
     if action == 'create':
         assert note_id is None
     elif action == 'update':
@@ -109,7 +114,7 @@ def create(
 
 def update(
     note_id: int,
-    note: schemas.NoteCreate,
+    note: schemas.NoteUpdate,
     db: Session,
     authenticated_username: str | None = None,
 ) -> models.Note:

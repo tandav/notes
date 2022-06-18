@@ -32,7 +32,7 @@ def test_create_note(client, create_users, text, url, tag):
         'tags': [],
     }
     if tag is not None:
-        assert colortool.is_hex_color(j['color'])
+        assert colortool.is_hex_color(j['color']), str(j)
 
 
 @pytest.fixture
@@ -98,9 +98,7 @@ def test_tag_already_exists(client, create_users):
     # on update
     note_id2 = client.post('/notes/', json={}, auth=auth).json()['id']
     # cant use already assigned tag
-    r = client.post(f'/notes/{note_id2}', json={'tag': 'books'}, auth=auth)
-    assert r.status_code == HTTPStatus.BAD_REQUEST, r.json()
-    # assert client.post(f'/notes/{note_id2}', json={'tag': 'books'}).status_code == HTTPStatus.BAD_REQUEST
+    assert client.post(f'/notes/{note_id2}', json={'tag': 'books'}, auth=auth).status_code == HTTPStatus.BAD_REQUEST
 
     # change tag on the original note
     r = client.post(f'/notes/{note_id}', json={'tag': 'groceries'}, auth=auth)
@@ -165,6 +163,16 @@ def test_update_note(client, create_users):
     assert r.json()['url'] == 'https://test2.com'
     assert r.json()['is_private'] == False
 
+    r = client.post(f'/notes/{n_id}', json={'tag': 'books'}, auth=auth)
+    assert r.ok
+    color = r.json()['color']
+
+    r = client.post(f'/notes/{n_id}', json={'tag': 'groceries'}, auth=auth)
+    assert r.json()['color'] == color
+
+    color2 = '#913241'
+    r = client.post(f'/notes/{n_id}', json={'color': color2}, auth=auth)
+    assert r.json()['color'] == color2
 
 # def test_tag_already_exists_on_update(client, create_users):
 #     n0_id = client.post('/notes/', json={'tag': 'books'}).json()['id']

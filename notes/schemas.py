@@ -106,7 +106,6 @@ class TagBase(BaseModel):
             raise ValueError('tag name should must start with a letter')
         return v
 
-
     @validator('color')
     def color_string_check(cls, v):
         if v is None:

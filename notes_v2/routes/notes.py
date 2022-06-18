@@ -69,10 +69,10 @@ async def update(
 ):
     if mediatype == 'json':
         payload = await request.json()
-        note = schemas.NoteCreate(**payload)
+        note = schemas.NoteUpdate(**payload)
     elif mediatype == 'form':
         form = await request.form()
-        note = schemas.NoteCreate(
+        note = schemas.NoteUpdate(
             text=form.get('text'),
             url=form.get('url'),
             tags=form.get('tags', []),
