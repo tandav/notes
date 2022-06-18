@@ -48,7 +48,7 @@ def create(
     db: Session,
     note: schemas.NoteCreate,
     authenticated_username: str | None = None,
-):
+) -> models.Note:
     now = datetime.datetime.now()
 
     if authenticated_username is None:
@@ -90,7 +90,8 @@ def update(
     note: schemas.NoteCreate,
     db: Session,
     authenticated_username: str | None = None,
-):
+) -> models.Note:
+
     db_note = read_by_id(db, note_id)
     if db_note is None:
         raise crud.exceptions.NoteNotExistsError
@@ -100,31 +101,48 @@ def update(
         raise crud.exceptions.UserIsNotAllowedToEditOtherUserNotes
 
     now = datetime.datetime.now()
-    db_note.text = note.text
-    db_note.url = note.url
-    db_note.is_private = note.is_private
-    db_note.is_archived = note.is_archived
-    db_note.tag = note.tag
-    db_note.color = note.color
+
+    # update only not None fields keep old values
+
+    special_handle = {'tag', 'tags'}
+    for k, v in note.dict().items():
+        if v is None:
+            continue
+        if k in special_handle:
+            continue
+        setattr(db_note, k, v)
+
+
+    # if note.text:
+    #     db_note.text = note.text
+    # db_note.url = note.url
+    # db_note.is_private = note.is_private
+    # db_note.is_archived = note.is_archived
+    # db_note.tag = note.tag
+    # db_note.color = note.color
     db_note.updated_time = now
 
-    all_tags = read_tags(db)
+    # all_tags = read_tags(db)
 
     # if note.tag: no checks are necessary, because you can create any tag name you want (new tag)
     # if note.tag on update/create - you should check that there's only 1 note with that tag
     # rely on database constraints ?
 
-    if note.tags:
-        ...
+    # if note.tags:
+    #     ...
+    #
+    #
+    # if note.right_notes:
+    #     ...
+    #
+    # if unknown_tags := set(note.tags) - {tag.name for tag in tags}:
+    #     raise crud.exceptions.TagNotExistsError(list(unknown_tags))
+    #
+    # for tag in tags:
+    #     tag.updated_time = now
+    #
+    # db_note.right_notes = tags
 
-
-    if note.right_notes:
-        ...
-
-    if unknown_tags := set(note.tags) - {tag.name for tag in tags}:
-        raise crud.exceptions.TagNotExistsError(list(unknown_tags))
-
-    for tag in tags:
-        tag.updated_time = now
-
-    db_note.right_notes = tags
+    db.commit()
+    db.refresh(db_note)
+    return db_note

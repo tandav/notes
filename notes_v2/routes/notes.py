@@ -54,6 +54,52 @@ def create(
 #         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"tags dont exists": e.args[0]})
 #     return res
 
+@router.post(
+    # '/notes/{note_id}/update',
+    '/notes/{note_id}',
+    response_model=schemas.Note,
+    responses={200: {'content': {'text/html': {}}}},
+)
+async def update(
+    request: Request,
+    note_id: int,
+    db: Session = Depends(get_db),
+    mediatype=Depends(guess_type),
+    authenticated_username: str | None = Depends(authenticate_optional),
+):
+    if mediatype == 'json':
+        payload = await request.json()
+        note = schemas.NoteCreate(**payload)
+    elif mediatype == 'form':
+        form = await request.form()
+        note = schemas.NoteCreate(
+            text=form.get('text'),
+            url=form.get('url'),
+            tags=form.get('tags', []),
+            tag=form.get('tag'),
+            color=form.get('color'),
+            is_private=form.get('is_private', False),
+            # text: str | None = Form(None),
+            # url: str | None = Form(None),
+            # tags: list[str] = Form([]),
+            # tag: str | None = Form(None),
+            # color: str | None = Form(None),
+            # is_private: bool = Form(False),
+        )
+    else:
+        raise HTTPException(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
+    try:
+        db_note = crud.note.update(note_id, note, db, authenticated_username)
+    except crud.exceptions.CrudError as e:
+        raise e.http
+
+    if mediatype == 'json':
+        return db_note.to_dict()
+    elif mediatype == 'form':
+        return RedirectResponse(f"/notes/{db_note['id']}", status_code=HTTPStatus.FOUND)
+    else:
+        raise HTTPException(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
+
 
 @router.get('/notes/create', response_class=HTMLResponse)
 def create_form(
@@ -287,32 +333,34 @@ def create_form_handle(
     return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)
 
 
-@router.post('/notes/{note_id}/update')
-async def update_form_handle(
-    request: Request,
-    note_id: int,
-    text: str | None = Form(None),
-    url: str | None = Form(None),
-    tags: list[str] = Form([]),
-    tag: str | None = Form(None),
-    color: str | None = Form(None),
-    is_private: bool = Form(False),
-    db: Session = Depends(get_db),
-    mediatype=Depends(guess_type),
-    authenticated_username: str | None = Depends(authenticate_optional),
-):
-    # form = await request.form()
-    # breakpoint()
-    note = schemas.NoteCreate(
-        text=text,
-        url=url,
-        tags=tags,
-        tag=tag,
-        color=color,
-        is_private=is_private,
-    )
-    try:
-        note_db = crud.note.update(note_id, note, db, authenticated_username)
-    except crud.exceptions.CrudError as e:
-        raise e.http
-    return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)
+
+
+
+# @router.post('/notes/{note_id}/update')
+# async def update_form_handle(
+#     request: Request,
+#     note_id: int,
+#     text: str | None = Form(None),
+#     url: str | None = Form(None),
+#     tags: list[str] = Form([]),
+#     tag: str | None = Form(None),
+#     color: str | None = Form(None),
+#     is_private: bool = Form(False),
+#     db: Session = Depends(get_db),
+#     mediatype=Depends(guess_type),
+#     authenticated_username: str | None = Depends(authenticate_optional),
+# ):
+
+    # note = schemas.NoteCreate(
+    #     text=text,
+    #     url=url,
+    #     tags=tags,
+    #     tag=tag,
+    #     color=color,
+    #     is_private=is_private,
+    # )
+    # try:
+    #     note_db = crud.note.update(note_id, note, db, authenticated_username)
+    # except crud.exceptions.CrudError as e:
+    #     raise e.http
+    # return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)

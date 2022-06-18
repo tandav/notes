@@ -86,8 +86,7 @@ def test_cant_link_to_non_existing_notes(client, create_3_notes):
 
 def test_tag_already_exists(client, create_users):
     assert client.post('/notes/', json={'tag': 'books'}).ok
-    r = client.post('/notes/', json={'tag': 'books'})
-    assert r.status_code == HTTPStatus.BAD_REQUEST
+    assert client.post('/notes/', json={'tag': 'books'}).status_code == HTTPStatus.BAD_REQUEST
 
 
 def test_tags(client, create_3_tags):
@@ -118,14 +117,30 @@ def test_tags(client, create_3_tags):
 
 
 def test_update_note(client, create_users):
+    auth = 'test_user1', 'test_password1'
+
     r = client.post(
         '/notes/', json={
             'text': 'test',
             'url': 'https://test.com',
             'tag': 'test_tag',
         },
+        auth=auth,
     )
     assert r.ok
+    n_id = r.json()['id']
+
+    r = client.post(f'/notes/{n_id}', json={'text': 'test2'}, auth=auth)
+    assert r.ok
+    assert r.json()['text'] == 'test2'
+
+    r = client.post(f'/notes/{n_id}', json={'url': 'https://test2.com', 'is_private': False}, auth=auth)
+    assert r.ok
+    assert r.json()['text'] == 'test2'
+    assert r.json()['url'] == 'https://test2.com'
+    assert r.json()['is_private'] == False
+
+
 
 # add theese tests for update too, (not only for create)
 
