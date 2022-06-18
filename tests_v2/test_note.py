@@ -2,6 +2,7 @@ import colortool
 import pytest
 
 from notes_v2 import util
+from notes_v2.crud import exceptions
 
 # @pytest.mark.parametrize('text', [None, 'test'])
 # @pytest.mark.parametrize('url', [None, 'https://test.com'])
@@ -31,20 +32,36 @@ from notes_v2 import util
 #     assert colortool.is_hex_color(j['color'])
 
 
-def test_links(client, create_users):
+@pytest.fixture()
+def create_3_notes(client, create_users):
     n0_id = client.post('/notes/', json={}).json()['id']
     n1_id = client.post('/notes/', json={}).json()['id']
     n2_id = client.post('/notes/', json={}).json()['id']
-    n3 = client.post('/notes/', json={'right_notes': [n0_id]})
+    return n0_id, n1_id, n2_id
 
-    assert n3.ok
+
+def test_links(client, create_users, create_3_notes):
+    n0_id, n1_id, n2_id = create_3_notes
+
+    n3 = client.post('/notes/', json={'right_notes': [n0_id]})
+    n3_id = n3.json()['id']
     assert n3.json()['right_notes'] == [n0_id]
 
     # test left_notes
     n0 = client.get(f'/notes/{n0_id}')
-    assert n0.ok
-    assert n0.json()['left_notes'] == [n3.json()['id']]
+    assert n0.json()['left_notes'] == [n3_id]
 
+    # test many links
+    n4 = client.post('/notes/', json={'right_notes': [n0_id, n3_id]})
+    n4_id = n4.json()['id']
+    assert n4.json()['right_notes'] == [n0_id, n3_id]
+
+    # test left_notes
+    n0 = client.get(f'/notes/{n0_id}')
+    assert n0.json()['left_notes'] == [n3_id, n4_id]
+
+    n3 = client.get(f'/notes/{n3_id}')
+    assert n3.json()['left_notes'] == [n4_id]
 
 # @pytest.mark.parametrize('tags', [['books'], ['books', 'groceries']])
 # def test_create_note_with_tags(client, create_tags, tags):
