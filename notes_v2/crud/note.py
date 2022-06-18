@@ -18,8 +18,11 @@ def read_many(db: Session, skip: int = 0, limit: int = 100) -> list[models.Note]
     return db.query(models.Note).offset(skip).limit(limit).all()
 
 
-def read_by_ids(db: Session, ids: list[int]) -> list[models.Note]:
-    return db.query(models.Note).filter(models.Note.id.in_(ids)).all()
+def read_by_ids(db: Session, ids: list[int], error_if_not_all_exists: bool = False) -> list[models.Note]:
+    notes = db.query(models.Note).filter(models.Note.id.in_(ids)).all()
+    if set(ids) != {note.id for note in notes}:
+        raise crud.exceptions.NoteNotExistsError
+    return notes
 
 
 def read_by_tag(db: Session, tag: str) -> models.Note:

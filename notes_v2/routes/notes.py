@@ -14,6 +14,7 @@ from fastapi.security import HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
+import notes_v2.crud.exceptions
 import notes_v2.crud.note
 from notes_v2 import crud
 from notes_v2 import models
@@ -38,7 +39,10 @@ def create(
     db: Session = Depends(get_db),
     authenticated_username: str | None = Depends(authenticate_optional),
 ):
-    return crud.note.create(db, note, authenticated_username)
+    try:
+        return crud.note.create(db, note, authenticated_username)
+    except crud.exceptions.CrudError as e:
+        raise e.http
 
 
 @router.get('/notes/create', response_class=HTMLResponse)

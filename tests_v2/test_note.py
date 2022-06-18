@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import colortool
 import pytest
 
@@ -32,7 +34,7 @@ from notes_v2.crud import exceptions
 #     assert colortool.is_hex_color(j['color'])
 
 
-@pytest.fixture()
+@pytest.fixture
 def create_3_notes(client, create_users):
     n0_id = client.post('/notes/', json={}).json()['id']
     n1_id = client.post('/notes/', json={}).json()['id']
@@ -40,7 +42,7 @@ def create_3_notes(client, create_users):
     return n0_id, n1_id, n2_id
 
 
-def test_links(client, create_users, create_3_notes):
+def test_links(client, create_3_notes):
     n0_id, n1_id, n2_id = create_3_notes
 
     n3 = client.post('/notes/', json={'right_notes': [n0_id]})
@@ -62,6 +64,17 @@ def test_links(client, create_users, create_3_notes):
 
     n3 = client.get(f'/notes/{n3_id}')
     assert n3.json()['left_notes'] == [n4_id]
+
+
+def test_cant_link_to_non_existing_notes(client, create_3_notes):
+    n0_id, n1_id, n2_id = create_3_notes
+
+    n3 = client.post('/notes/', json={'right_notes': [42]})
+    assert n3.status_code == HTTPStatus.NOT_FOUND
+
+    n3 = client.post('/notes/', json={'right_notes': [n0_id, 42]})
+    assert n3.status_code == HTTPStatus.NOT_FOUND
+
 
 # @pytest.mark.parametrize('tags', [['books'], ['books', 'groceries']])
 # def test_create_note_with_tags(client, create_tags, tags):
