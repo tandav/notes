@@ -298,6 +298,7 @@ async def update_form_handle(
     color: str | None = Form(None),
     is_private: bool = Form(False),
     db: Session = Depends(get_db),
+    mediatype=Depends(guess_type),
     authenticated_username: str | None = Depends(authenticate_optional),
 ):
     # form = await request.form()

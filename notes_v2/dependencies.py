@@ -60,7 +60,9 @@ def authenticate(
     return _authenticate(db, credentials, optional=False)
 
 
-def guess_type(accept=Header(default='application/json')):
+def guess_type(accept=Header(default='application/json'), content_type=Header(default=None)):
+    if content_type is not None and content_type.split(',')[0] in {'application/x-www-form-urlencoded', 'multipart/form-data'}:
+        return 'form'
     accept = accept.split(',')
     if accept[0] == 'text/html':
         return 'html'

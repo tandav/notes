@@ -25,6 +25,7 @@ from notes_v2 import util
 from notes_v2.dependencies import authenticate_optional
 from notes_v2.dependencies import get_db
 from notes_v2.dependencies import get_db_cm
+from notes_v2.dependencies import guess_type
 from notes_v2.routes import notes
 from notes_v2.routes import users
 from notes_v2.templates import templates
@@ -86,3 +87,8 @@ def root(request: Request, authenticated_username: str | None = Depends(authenti
 
 @app.get("/favicon.ico", response_class=FileResponse)
 async def favicon(): return static_folder / 'favicon.ico'
+
+
+@app.get('/guess_type')
+def guess_type_endpoint(mediatype=Depends(guess_type)):
+    return {"recognized_media_type": mediatype}

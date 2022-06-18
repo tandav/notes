@@ -1,16 +1,24 @@
 import pytest
 
-from notes_v2.dependencies import guess_type
-
 
 @pytest.mark.parametrize(
-    'accept, expected', [
-        ('text/html', 'html'),
-        ('application/json', 'json'),
-        ('text/html,application/json', 'html'),
-        ('application/json,text/html', 'json'),
-        ('*/*', 'json'),
+    'accept, content_type, expected', [
+        ('text/html', None, 'html'),
+        ('application/json', None, 'json'),
+        ('text/html,application/json', None, 'html'),
+        ('application/json,text/html', None, 'json'),
+        ('*/*', None, 'json'),
+        ('text/html', 'application/x-www-form-urlencoded', 'form'),
+        ('application/json,text/html', 'application/x-www-form-urlencoded', 'form'),
+        ('*/*', 'application/x-www-form-urlencoded', 'form'),
+        ('*/*', 'multipart/form-data', 'form'),
     ],
 )
-def test_guess_type(accept, expected):
-    assert guess_type(accept) == expected
+def test_guess_type(client, accept, content_type, expected):
+    headers = {}
+    if accept is not None:
+        headers['Accept'] = accept
+    if content_type is not None:
+        headers['Content-Type'] = content_type
+
+    assert client.get('/guess_type', headers=headers).json()['recognized_media_type'] == expected
