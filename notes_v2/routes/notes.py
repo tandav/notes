@@ -76,7 +76,7 @@ async def create(
     if mediatype == 'json':
         return db_note.to_dict()
     elif mediatype == 'form':
-        return RedirectResponse(f"/notes/{db_note['id']}", status_code=HTTPStatus.FOUND)
+        return RedirectResponse(f"/notes/{db_note.id}", status_code=HTTPStatus.FOUND)
     else:
         raise HTTPException(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
 
