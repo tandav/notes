@@ -22,7 +22,7 @@ jobs:
 
       - name: test
 #        run: python3 -m pytest tests
-        run: python3 -m pytest tests_v2
+        run: python3 -m pytest -vv tests_v2
 
   build:
     runs-on: ubuntu-latest

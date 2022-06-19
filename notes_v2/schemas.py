@@ -117,8 +117,9 @@ class NoteCreateForm(NoteCreate):
         return v
 
 
-class NoteUpdate(NoteBase):
-    pass
+class NoteUpdate(NoteBase): pass
+class NoteUpdateJson(NoteBase): pass
+class NoteUpdateForm(NoteBase): pass
 
 
 class Note(NoteBase):
