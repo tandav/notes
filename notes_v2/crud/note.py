@@ -80,11 +80,14 @@ def create(
             raise crud.exceptions.TagAlreadyExists
 
     note_dict = note.dict()
-    note_dict['right_notes'] = []
+    right_notes = []
     if note.tags:
-        note_dict['right_notes'] += read_by_tags(db, note.tags, not_found_error=True)
+        right_notes += read_by_tags(db, note.tags, not_found_error=True)
     if note.right_notes:
-        note_dict['right_notes'] += read_by_ids(db, note.right_notes, not_found_error=True)
+        right_notes += read_by_ids(db, note.right_notes, not_found_error=True)
+    for ref_note in right_notes:
+        ref_note.updated_time = now
+    note_dict['right_notes'] = right_notes
     del note_dict['tags']
 
     db_note = models.Note(
@@ -123,7 +126,7 @@ def update(
             raise crud.exceptions.TagAlreadyExists
 
     # update only not None fields keep old values
-    special_handle = {'tags'}
+    special_handle = {'tags', 'right_notes'}
     for k, v in note.dict().items():
         if v is None:
             continue
@@ -139,11 +142,13 @@ def update(
     if note.right_notes:
         right_notes += read_by_ids(db, note.right_notes, not_found_error=True)
 
+    for ref_note in right_notes:
+        if ref_note in db_note.right_notes:
+            continue
+        ref_note.updated_time = now
+
     db_note.right_notes = right_notes
     db_note.updated_time = now
-
-    # for tag in tags:
-    #     tag.updated_time = now
 
     db.commit()
     db.refresh(db_note)

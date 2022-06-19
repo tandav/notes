@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 import pytest
 
+# unify tag and right_notes tests parametrize
 
 @pytest.fixture
 def create_3_tags(client, create_users):
@@ -107,3 +108,34 @@ def test_tag_already_exists(client, create_users):
 def test_cant_update_left_notes(client, create_note):
     auth, note = create_note
     assert client.post(f'/notes/{note["id"]}', json={"left_notes": [4, 2]}, auth=auth).json()['left_notes'] == []
+
+
+def test_test_updated_time_on_create(client, create_3_tags):
+    """Note.updated_time should updates when reference to Note is updated"""
+    auth, (tag0, tag1, tag2) = create_3_tags
+
+    # add reference to tag0, tag1
+    client.post('/notes/', json={'tags': [tag0['tag']]}, auth=auth).json()
+    tag0_t0 = client.get(f'/notes/{tag0["id"]}', auth=auth).json()['updated_time']
+    assert tag0['updated_time'] < tag0_t0
+
+
+def test_test_updated_time_on_update(client, create_3_tags):
+    """Note.updated_time should updates when reference to Note is updated"""
+    auth, (tag0, tag1, tag2) = create_3_tags
+
+    note_id = client.post('/notes/', json={}, auth=auth).json()['id']
+
+    # add reference to tag0, tag1
+    client.post(f'/notes/{note_id}', json={'tags': [tag0['tag'], tag1['tag']]}, auth=auth).json()
+    tag0_t0 = client.get(f'/notes/{tag0["id"]}', auth=auth).json()['updated_time']
+    tag1_t0 = client.get(f'/notes/{tag1["id"]}', auth=auth).json()['updated_time']
+    assert tag0['updated_time'] < tag0_t0
+    assert tag1['updated_time'] < tag1_t0
+
+    # update reference to tag0, tag2
+    client.post(f'/notes/{note_id}', json={'tags': [tag1['tag'], tag2['tag']]}, auth=auth).json()
+    tag1_t1 = client.get(f'/notes/{tag1["id"]}', auth=auth).json()['updated_time']
+    tag2_t1 = client.get(f'/notes/{tag2["id"]}', auth=auth).json()['updated_time']
+    assert tag1_t0 == tag1_t1  # should be unchanged
+    assert tag2['updated_time'] < tag2_t1
