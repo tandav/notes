@@ -16,6 +16,8 @@ from notes.util import add_notes_and_tags_links
         ('# tag', '# tag'),
         ('#24', '[#24](/notes/24)'),
         ('#tag', '[#tag](/tags/tag)'),
+        ('#T', '[#T](/tags/T)'),
+        ('gfg #T qq', 'gfg [#T](/tags/T) qq'),
         ('#tag2-re', '[#tag2-re](/tags/tag2-re)'),
         ('#t_2', '[#t_2](/tags/t_2)'),
         ('fdsfsd fsdf #24 fdsf sd', 'fdsfsd fsdf [#24](/notes/24) fdsf sd'),
@@ -30,6 +32,7 @@ from notes.util import add_notes_and_tags_links
         # fdsfd
         # 1
         #
+        gfg #T qq
         #-
         flkjkj https://docs.python.org/3/library/heapq.html#priority-queue-implementation-notes fd
         #_23
@@ -43,6 +46,7 @@ from notes.util import add_notes_and_tags_links
         # fdsfd
         # 1
         #
+        gfg [#T](/tags/T) qq
         #-
         flkjkj https://docs.python.org/3/library/heapq.html#priority-queue-implementation-notes fd
         #_23
