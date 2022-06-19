@@ -115,6 +115,6 @@ def add_notes_and_tags_links(s: str) -> str:
         g = match.group()
         return f"[{g}](/tags/{g[1:]})"
 
-    s = re.sub(r'#\d+', repl_note, s)
-    s = re.sub(r'#[A-Za-z](\w|-)+', repl_tag, s)
+    s = re.sub(r'\B#\d+', repl_note, s)
+    s = re.sub(r'\B#[A-Za-z](\w|-)+', repl_tag, s)
     return s

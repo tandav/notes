@@ -18,6 +18,8 @@ from notes.util import add_notes_and_tags_links
         ('#tag', '[#tag](/tags/tag)'),
         ('#tag2-re', '[#tag2-re](/tags/tag2-re)'),
         ('#t_2', '[#t_2](/tags/t_2)'),
+        ('fdsfsd fsdf #24 fdsf sd', 'fdsfsd fsdf [#24](/notes/24) fdsf sd'),
+        ('fdsfsd fsdf #tag_42 fdsf sd', 'fdsfsd fsdf [#tag_42](/tags/tag_42) fdsf sd'),
         (
             '''
         fdsf
