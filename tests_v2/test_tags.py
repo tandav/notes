@@ -7,9 +7,9 @@ import pytest
 @pytest.fixture
 def create_3_tags(client, create_users):
     auth, _, _ = create_users
-    tag0 = client.post('/notes/', json={'tag': 'books'}, auth=auth).json()
-    tag1 = client.post('/notes/', json={'tag': 'groceries'}, auth=auth).json()
-    tag2 = client.post('/notes/', json={'tag': 'todo'}, auth=auth).json()
+    tag0 = client.post('/notes/', json={'tag': 'tag0'}, auth=auth).json()
+    tag1 = client.post('/notes/', json={'tag': 'tag1'}, auth=auth).json()
+    tag2 = client.post('/notes/', json={'tag': 'tag2'}, auth=auth).json()
     return auth, (tag0, tag1, tag2)
 
 
@@ -42,6 +42,27 @@ def test_create(client, create_3_tags):
     assert n4['right_notes'] == [tag0['id']]
     # test left_notes updated as well
     assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == [n3['id'], n4['id']]
+
+
+# @pytest.mark.parametrize('payload', [
+#     {},
+# ])
+# def test_create_unified(client, create_3_tags, payload):
+#     auth, (tag0, tag1, tag2) = create_3_tags
+#     _tags = [tag0['tag'], tag1['tag']]
+#     n3 = client.post('/notes/', json={'tags': _tags}, auth=auth).json()
+#     assert n3['tags'] == _tags
+#     assert n3['right_notes'] == [tag0['id'], tag1['id']]
+#     # test left_notes updated as well
+#     assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == [n3['id']]
+#     assert client.get(f'/notes/{tag1["id"]}', auth=auth).json()['left_notes'] == [n3['id']]
+#
+#     # test many links
+#     n4 = client.post('/notes/', json={'tags': [tag0["tag"]]}, auth=auth).json()
+#     assert n4['tags'] == [tag0['tag']]
+#     assert n4['right_notes'] == [tag0['id']]
+#     # test left_notes updated as well
+#     assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == [n3['id'], n4['id']]
 
 
 def test_update(client, create_3_tags):
@@ -86,23 +107,23 @@ def test_tag_already_exists(client, create_users):
     auth, _, _ = create_users
 
     # on create
-    r = client.post('/notes/', json={'tag': 'books'}, auth=auth)
-    assert r.ok and r.json()['tag'] == 'books'
+    r = client.post('/notes/', json={'tag': 'tag0'}, auth=auth)
+    assert r.ok and r.json()['tag'] == 'tag0'
 
     note_id = r.json()['id']
-    assert client.post('/notes/', json={'tag': 'books'}, auth=auth).status_code == HTTPStatus.BAD_REQUEST
+    assert client.post('/notes/', json={'tag': 'tag0'}, auth=auth).status_code == HTTPStatus.BAD_REQUEST
 
     # on update
     note_id2 = client.post('/notes/', json={}, auth=auth).json()['id']
     # cant use already assigned tag
-    assert client.post(f'/notes/{note_id2}', json={'tag': 'books'}, auth=auth).status_code == HTTPStatus.BAD_REQUEST
+    assert client.post(f'/notes/{note_id2}', json={'tag': 'tag0'}, auth=auth).status_code == HTTPStatus.BAD_REQUEST
 
     # change tag on the original note
-    r = client.post(f'/notes/{note_id}', json={'tag': 'groceries'}, auth=auth)
-    assert r.ok and r.json()['tag'] == 'groceries'
+    r = client.post(f'/notes/{note_id}', json={'tag': 'tag1'}, auth=auth)
+    assert r.ok and r.json()['tag'] == 'tag1'
 
     # assert that now tag can be used
-    assert client.post(f'/notes/{note_id2}', json={'tag': 'books'}, auth=auth).ok
+    assert client.post(f'/notes/{note_id2}', json={'tag': 'tag0'}, auth=auth).ok
 
 
 def test_cant_update_left_notes(client, create_note):

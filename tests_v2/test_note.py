@@ -106,3 +106,4 @@ def test_update_note(client, create_note, kv):
 # test notes created by anon user cant be updated/edited
 # test cant create note with non existing tags/right notes
 # test tags /right_notes / left_notes timestamps are updating when linked note updates
+# xml etree tests
