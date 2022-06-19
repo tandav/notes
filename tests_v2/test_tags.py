@@ -35,6 +35,13 @@ def test_create(client, create_3_tags):
     assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == [n3['id']]
     assert client.get(f'/notes/{tag1["id"]}', auth=auth).json()['left_notes'] == [n3['id']]
 
+    # test many links
+    n4 = client.post('/notes/', json={'tags': [tag0["tag"]]}, auth=auth).json()
+    assert n4['tags'] == [tag0['tag']]
+    assert n4['right_notes'] == [tag0['id']]
+    # test left_notes updated as well
+    assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == [n3['id'], n4['id']]
+
 
 def test_update(client, create_3_tags):
     auth, (tag0, tag1, tag2) = create_3_tags
@@ -47,6 +54,14 @@ def test_update(client, create_3_tags):
     assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == [n3['id']]
     assert client.get(f'/notes/{tag1["id"]}', auth=auth).json()['left_notes'] == [n3['id']]
 
+    # test many links
+    n4 = client.post('/notes/', json={}, auth=auth).json()
+    n4 = client.post(f'/notes/{n4["id"]}', json={'tags': [tag0["tag"]]}, auth=auth).json()
+    assert n4['tags'] == [tag0['tag']]
+    assert n4['right_notes'] == [tag0['id']]
+    # test left_notes updated as well
+    assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == [n3['id'], n4['id']]
+
     # test update back to empty
     _tags = []
     n3 = client.post(f'/notes/{n3["id"]}', json={'tags': _tags}, auth=auth).json()
@@ -54,31 +69,12 @@ def test_update(client, create_3_tags):
     assert n3['right_notes'] == _tags
 
     # test left_notes updated as well
-    assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == []
+    assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == [n4["id"]]
     assert client.get(f'/notes/{tag1["id"]}', auth=auth).json()['left_notes'] == []
 
 
-def test_tags(client, create_3_tags):
+def test_tag_not_found(client, create_3_tags):
     auth, (tag0, tag1, tag2) = create_3_tags
-
-    # test tags and right notes returned when tags are provided
-    # on create
-    _tags = [tag0['tag'], tag1['tag']]
-    n3 = client.post('/notes/', json={'tags': _tags}, auth=auth).json()
-    assert n3['tags'] == _tags
-    assert n3['right_notes'] == [tag0['id'], tag1['id']]
-    # test left_notes updated as well
-    assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == [n3['id']]
-    assert client.get(f'/notes/{tag1["id"]}', auth=auth).json()['left_notes'] == [n3['id']]
-    # on update
-
-    # test many links
-    n4 = client.post('/notes/', json={'tags': [tag0["tag"]]}, auth=auth).json()
-    assert n4['tags'] == [tag0['tag']]
-    assert n4['right_notes'] == [tag0['id']]
-    # test left_notes updated as well
-    assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == [n3['id'], n4['id']]
-
     _tags = [tag0['tag'], 'unknown_tag']
     r = client.post('/notes/', json={'tags': _tags}, auth=auth)
     assert r.status_code == HTTPStatus.NOT_FOUND
