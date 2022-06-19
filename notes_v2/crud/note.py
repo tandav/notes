@@ -100,7 +100,7 @@ def create(
     db.commit()
     db.refresh(db_note)
 
-    return db_note.to_dict()
+    return db_note
 
 
 def update(

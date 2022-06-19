@@ -8,7 +8,7 @@ from notes_v2 import util
 
 @pytest.fixture
 def create_3_tags(client, create_users):
-    auth, _, _ = create_users
+    auth, _ = create_users
     tag0 = client.post('/notes/', json={'tag': 'tag0'}, auth=auth).json()
     tag1 = client.post('/notes/', json={'tag': 'tag1'}, auth=auth).json()
     tag2 = client.post('/notes/', json={'tag': 'tag2'}, auth=auth).json()
@@ -85,7 +85,7 @@ def test_tag_not_found(client, create_3_tags):
 
 def test_tag_already_exists(client, create_users):
     # todo: on update
-    auth, _, _ = create_users
+    auth, _ = create_users
 
     # on create
     r = client.post('/notes/', json={'tag': 'tag0'}, auth=auth)

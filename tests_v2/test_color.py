@@ -1,8 +1,13 @@
 from http import HTTPStatus
 
 
-def test_color_for_null_tag(client):
+def test_color_for_when_tag_is_null(client, create_user):
+    auth = create_user
     assert client.post('/notes/', json={'color': '#fb7324'}).status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    # on create
+    # on update
+    # note_id = client.post('/notes/', json={}, auth=auth).json()['id']
+    # assert client.post(f'/notes/{note_id}', json={'color': '#fb7324'}, auth=auth).status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 def test_color_on_update(client, create_note):
@@ -25,7 +30,7 @@ def test_color_on_update(client, create_note):
 
 
 def test_color_is_none_if_tag_is_none(client, create_users):
-    auth, _, _ = create_users
+    auth, _ = create_users
 
     # on create
     note = client.post('/notes/', json={}, auth=auth).json()

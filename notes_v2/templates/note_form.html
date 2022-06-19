@@ -2,7 +2,7 @@
 {% block title %}New note{% endblock %}
 {% block content %}
 <h1>{{heading}}</h1>
-<form action="{{action}}" method="post" id="note_form">
+<form action="{{action_url}}" method="post" id="note_form">
     <p>
         <label for="text_field">text</label>
         <textarea id="text_field" type="input" placeholder="Enter your note here" form="note_form" name="text">{% if text %}{{text}}{% endif %}</textarea>
@@ -32,9 +32,9 @@
         </label>
         <br/>
         <label>tag name</label>
-        <input type="text" name="tag_name" disabled class="tag_fields">
+        <input type="text" name="tag" disabled class="tag_fields">
         <label>tag color</label>
-        <input type="color" name="tag_color" value="none" disabled class="tag_fields">
+        <input type="color" name="color" value="none" disabled class="tag_fields">
     </p>
     <hr/>
 

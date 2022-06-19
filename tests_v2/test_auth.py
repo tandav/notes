@@ -4,7 +4,7 @@ import pytest
 
 
 def test_cant_edit_anon_note(client, create_users):
-    auth, _, _ = create_users
+    auth, _ = create_users
     n_id = client.post('/notes/', json={}).json()['id']
 
     # test anon cant edit
@@ -15,7 +15,7 @@ def test_cant_edit_anon_note(client, create_users):
 
 
 def test_user_can_edit_only_own_notes(client, create_users):
-    auth0, auth1, _ = create_users
+    auth0, auth1 = create_users
     n_id = client.post('/notes/', json={}, auth=auth0).json()['id']
 
     # user0 can edit note
