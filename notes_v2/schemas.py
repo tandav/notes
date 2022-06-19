@@ -48,7 +48,6 @@ class NoteBase(BaseModel):
     color: str | None = None
     # tags: list[Tag] = []
     right_notes: list[int] = []
-    left_notes: list[int] = []
     tags: list[str] = []
 
     # tag
@@ -92,6 +91,7 @@ class NoteUpdate(NoteBase):
 
 class Note(NoteBase):
     id: int
+    left_notes: list[int] = []
     user_id: int
     username: str
     created_time: datetime.datetime

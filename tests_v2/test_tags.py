@@ -108,6 +108,6 @@ def test_tag_already_exists(client, create_users):
     assert client.post(f'/notes/{note_id2}', json={'tag': 'books'}, auth=auth).ok
 
 
-@pytest.mark.xfail
-def test_cant_update_left_notes():
-    raise NotImplementedError('TODO')
+def test_cant_update_left_notes(client, create_note):
+    auth, note = create_note
+    assert client.post(f'/notes/{note["id"]}', json={"left_notes": [4, 2]}, auth=auth).json()['left_notes'] == []
