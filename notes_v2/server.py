@@ -51,10 +51,10 @@ app.include_router(users.router)
 app.include_router(notes.router)
 
 static_folder = Path('static')
-app.mount("/static", StaticFiles(directory=static_folder), name="static")
+app.mount('/static', StaticFiles(directory=static_folder), name='static')
 
 
-@app.on_event("startup")
+@app.on_event('startup')
 def create_anon_user_if_not_exists():
     with get_db_cm() as db:
         user = schemas.UserCreate(username=config.ANON_SERVICE_ACCOUNT_USERNAME, password=config.ANON_SERVICE_ACCOUNT_PASSWORD)
@@ -85,10 +85,10 @@ def root(request: Request, authenticated_username: str | None = Depends(authenti
     return templates.TemplateResponse('root.html', {'request': request, 'authenticated_username': authenticated_username})
 
 
-@app.get("/favicon.ico", response_class=FileResponse)
+@app.get('/favicon.ico', response_class=FileResponse)
 async def favicon(): return static_folder / 'favicon.ico'
 
 
 @app.get('/guess_type')
 def guess_type_endpoint(mediatype=Depends(guess_type)):
-    return {"recognized_media_type": mediatype}
+    return {'recognized_media_type': mediatype}

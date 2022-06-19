@@ -105,7 +105,7 @@ def signup(
 ):
     db_user = crud.user.read_by_username(db, username=credentials.username)
     if db_user:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="username already registered")
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail='username already registered')
     crud.user.create(db, credentials)
     return RedirectResponse('/')
 

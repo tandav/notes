@@ -36,7 +36,7 @@ http_basic_optional = HTTPBasic(auto_error=False)
 
 # class AuthError(BaseException): pass
 # class WrongUsernameOrPassword(BaseException): pass
-WrongUsernameOrPassword = HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="username not exists or incorrect password")
+WrongUsernameOrPassword = HTTPException(status_code=HTTPStatus.FORBIDDEN, detail='username not exists or incorrect password')
 
 
 def _authenticate(db: Session, credentials: HTTPBasicCredentials, optional: bool) -> str | None:
@@ -171,7 +171,7 @@ def signin(username: str = Depends(authenticate)):
 #     credentials: HTTPBasicCredentials = Depends(security),
 # ):
 
-@app.get("/signout", response_class=HTMLResponse)
+@app.get('/signout', response_class=HTMLResponse)
 def signout():
     return f'''
     {CSS_FRAMEWORK}
@@ -268,45 +268,45 @@ def signup():
 #     return HTMLResponse('signout', status_code=HTTPStatus.UNAUTHORIZED, headers={"WWW-Authenticate": "Basic"})
 #
 
-@app.post("/users/", response_model=schemas.User)
+@app.post('/users/', response_model=schemas.User)
 def create_user(credentials: HTTPBasicCredentials = Depends(http_basic), db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=credentials.username)
     if db_user:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="username already registered")
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail='username already registered')
     return crud.create_user(db=db, user=credentials)
 
 
-@app.get("/users/", response_model=list[schemas.User])
+@app.get('/users/', response_model=list[schemas.User])
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), username=Depends(authenticate)):
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
 
 
-@app.get("/users/{username}", response_model=schemas.User)
+@app.get('/users/{username}', response_model=schemas.User)
 def read_user_by_name(username: str, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=username)
     if db_user is None:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="User not found")
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='User not found')
     return db_user
 
 
-@app.post("/users/{username}/notes/", response_model=schemas.Note)
+@app.post('/users/{username}/notes/', response_model=schemas.Note)
 def create_note(username: str, note: schemas.NoteCreate, db: Session = Depends(get_db)):
     try:
         res = crud.create_note(db, note, username)
     except crud.TagNotExistsError as e:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"tags dont exists": e.args[0]})
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={'tags dont exists': e.args[0]})
     return res
 
 
-@app.post("/notes/{note_id}/edit/", response_model=schemas.Note)
+@app.post('/notes/{note_id}/edit/', response_model=schemas.Note)
 def edit_note(note_id: int, note: schemas.NoteCreate, db: Session = Depends(get_db)):
     try:
         res = crud.edit_note(db, note, note_id)
     except crud.NoteNotExistsError as e:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"note dont exists": e.args[0]})
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={'note dont exists': e.args[0]})
     except crud.TagNotExistsError as e:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"tags dont exists": e.args[0]})
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={'tags dont exists': e.args[0]})
     return res
 
 
@@ -314,19 +314,19 @@ def edit_note(note_id: int, note: schemas.NoteCreate, db: Session = Depends(get_
 def create_tag(tag: schemas.TagCreate, db: Session = Depends(get_db)):
     db_tag = crud.get_tag(db, name=tag.name)
     if db_tag:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=f"tag with name {tag.name} username already exists")
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=f'tag with name {tag.name} username already exists')
     return crud.create_tag(db, tag)
 
 
 @app.get(
-    "/tags/",
+    '/tags/',
     response_model=list[schemas.Tag],
     responses={
         200: {
-            "content": {"text/html": {}},
-            "description": "Return the html page with list of notes",
+            'content': {'text/html': {}},
+            'description': 'Return the html page with list of notes',
         },
-        415: {"model": schemas.Message},
+        415: {'model': schemas.Message},
     },
 )
 def read_tags(db: Session = Depends(get_db), accept=Header('application/json')):
@@ -423,14 +423,14 @@ def notes_table(notes: list) -> tuple[str, str]:
     return html, css
 
 @app.get(
-    "/notes/",
+    '/notes/',
     response_model=list[schemas.Note],
     responses={
         200: {
-            "content": {"text/html": {}},
-            "description": "Return the html page with list of notes",
+            'content': {'text/html': {}},
+            'description': 'Return the html page with list of notes',
         },
-        415: {"model": schemas.Message},
+        415: {'model': schemas.Message},
     },
 )
 def read_notes(
@@ -483,15 +483,15 @@ def read_notes(
 
 
 @app.get(
-    "/notes/{note_id}",
+    '/notes/{note_id}',
     response_model=schemas.Note,
     responses={
         200: {
-            "content": {"text/html": {}},
-            "description": "Return the html page with note",
+            'content': {'text/html': {}},
+            'description': 'Return the html page with note',
         },
-        415: {"model": schemas.Message},
-        404: {"model": schemas.Message},
+        415: {'model': schemas.Message},
+        404: {'model': schemas.Message},
     },
 )
 def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('application/json')):
@@ -502,7 +502,7 @@ def get_note(note_id: int, db: Session = Depends(get_db), accept=Header('applica
         try:
             note = crud.get_note(db, note_id)
         except crud.NoteNotExistsError:
-            return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={"note dont exists": note_id})
+            return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={'note dont exists': note_id})
         else:
             if crud.get_tag(db, 'archive') in note.tags:
                 archive_button = f'''<button class="archive_button" onclick='archive_note({note_id}, "POST")'>unarchive</button>'''
@@ -604,7 +604,7 @@ def _get_tag(name: str, db: Session = Depends(get_db), accept=Header('applicatio
         tag = crud.get_tag(db, name)
 
         if tag is None:
-            return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={"tag dont exists": name})
+            return JSONResponse(status_code=HTTPStatus.NOT_FOUND, content={'tag dont exists': name})
         if is_json:
             return tag
         if is_html:
@@ -684,70 +684,70 @@ def _get_tag(name: str, db: Session = Depends(get_db), accept=Header('applicatio
 
 
 @app.get(
-    "/tags/{name}",
+    '/tags/{name}',
     response_model=schemas.Tag,
     responses={
         200: {
-            "content": {"text/html": {}},
-            "description": "Return the html page with note",
+            'content': {'text/html': {}},
+            'description': 'Return the html page with note',
         },
-        415: {"model": schemas.Message},
-        404: {"model": schemas.Message},
+        415: {'model': schemas.Message},
+        404: {'model': schemas.Message},
     },
 )
 def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application/json')):
     return _get_tag(name, db, accept, archive=False)
 
 @app.get(
-    "/tags/{name}/archive",
+    '/tags/{name}/archive',
     response_model=schemas.Tag,
     responses={
         200: {
-            "content": {"text/html": {}},
-            "description": "Return the html page with note",
+            'content': {'text/html': {}},
+            'description': 'Return the html page with note',
         },
-        415: {"model": schemas.Message},
-        404: {"model": schemas.Message},
+        415: {'model': schemas.Message},
+        404: {'model': schemas.Message},
     },
 )
 def get_tag_archive(name: str, db: Session = Depends(get_db), accept=Header('application/json')):
     return _get_tag(name, db, accept, archive=True)
 
 
-@app.delete("/notes/{note_id}/archive", response_model=list[schemas.Note])
+@app.delete('/notes/{note_id}/archive', response_model=list[schemas.Note])
 def archive_note(note_id: int, db: Session = Depends(get_db)):
     try:
         crud.archive_note(db, note_id)
     except crud.NoteNotExistsError:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"note dont exists": note_id})
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={'note dont exists': note_id})
     except crud.NoteAlreadyArchived:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail={"note already archived": note_id})
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail={'note already archived': note_id})
 
 
-@app.post("/notes/{note_id}/archive", response_model=list[schemas.Note])
+@app.post('/notes/{note_id}/archive', response_model=list[schemas.Note])
 def unarchive_note(note_id: int, db: Session = Depends(get_db)):
     try:
         crud.unarchive_note(db, note_id)
     except crud.NoteNotExistsError:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"note dont exists": note_id})
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={'note dont exists': note_id})
     except crud.NoteAlreadyUnarchived:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail={"note already unarchived": note_id})
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail={'note already unarchived': note_id})
 
 
-@app.delete("/notes/{note_id}", response_model=list[schemas.Note])
+@app.delete('/notes/{note_id}', response_model=list[schemas.Note])
 def delete_note(note_id: int, db: Session = Depends(get_db)):
     try:
         crud.delete_note(db, note_id)
     except crud.NoteNotExistsError:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"note dont exists": note_id})
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={'note dont exists': note_id})
 
 
-@app.delete("/tags/{name}", response_model=list[schemas.Tag])
+@app.delete('/tags/{name}', response_model=list[schemas.Tag])
 def delete_tag(name: str, db: Session = Depends(get_db)):
     try:
         crud.delete_tag(db, name)
     except crud.NoteNotExistsError:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"note dont exists": name})
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={'note dont exists': name})
 
 
 @app.post('/new_note')

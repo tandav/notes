@@ -109,11 +109,11 @@ def tags_css(tags) -> str:
 def add_notes_and_tags_links(s: str) -> str:
     def repl_note(match):
         g = match.group()
-        return f"[{g}](/notes/{g[1:]})"
+        return f'[{g}](/notes/{g[1:]})'
 
     def repl_tag(match):
         g = match.group()
-        return f"[{g}](/tags/{g[1:]})"
+        return f'[{g}](/tags/{g[1:]})'
 
     s = re.sub(r'\B#\d+', repl_note, s)
     s = re.sub(r'\B#[A-Za-z](\w|-)*', repl_tag, s)

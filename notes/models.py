@@ -17,7 +17,7 @@ class User(Base):
     # password_hash_algo = Column(String)
     salt = Column(String)
     # avatar = Column(String, nullable=True)
-    notes = relationship("Note", back_populates="user")
+    notes = relationship('Note', back_populates='user')
     created_time = Column(DateTime, nullable=False)
     updated_time = Column(DateTime, nullable=False, index=True)
 
@@ -47,7 +47,7 @@ class Note(Base):
     created_time = Column(DateTime, nullable=False)
     updated_time = Column(DateTime, nullable=False, index=True)
 
-    user = relationship('User', back_populates="notes")
+    user = relationship('User', back_populates='notes')
     # tags = relationship('Tag', secondary=notes_tags, back_populates='notes')
     tags = relationship('Tag', secondary=notes_tags)
     # attachments = relationship('Attachment', secondary=notes_attachments, back_populates='notes')

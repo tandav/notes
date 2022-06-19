@@ -7,19 +7,19 @@ def test_create_note(client, fake, create_user):
     for _ in range(3):
         r = client.post(
             '/users/test_user/notes/', json={
-                "text": fake.text(max_nb_chars=200),
-                "url": fake.uri(),
-                "tags": [],
+                'text': fake.text(max_nb_chars=200),
+                'url': fake.uri(),
+                'tags': [],
             },
         )
         assert r.ok, r.json()
 
     # test url validation
-    r = client.post('/users/test_user/notes/', json={"url": "ff", "tags": []})
+    r = client.post('/users/test_user/notes/', json={'url': 'ff', 'tags': []})
     assert r.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert r.json() == {'detail': [{'loc': ['body', 'url'], 'msg': 'url must starts with http', 'type': 'value_error'}]}
 
-    r = client.post('/users/test_user/notes/', json={"url": "https://example.com?q=hello world", "tags": []})
+    r = client.post('/users/test_user/notes/', json={'url': 'https://example.com?q=hello world', 'tags': []})
     assert r.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert r.json() == {'detail': [{'loc': ['body', 'url'], 'msg': 'url cant contain spaces', 'type': 'value_error'}]}
 
@@ -28,18 +28,18 @@ def test_create_note_with_tags(client, fake, create_user, create_tags):
     # 1 tag
     r = client.post(
         '/users/test_user/notes/', json={
-            "text": fake.text(max_nb_chars=200),
-            "url": fake.uri(),
-            "tags": ['books'],
+            'text': fake.text(max_nb_chars=200),
+            'url': fake.uri(),
+            'tags': ['books'],
         },
     )
     assert r.ok
 
     r = client.post(
         '/users/test_user/notes/', json={
-            "text": fake.text(max_nb_chars=200),
-            "url": fake.uri(),
-            "tags": ['archive'],
+            'text': fake.text(max_nb_chars=200),
+            'url': fake.uri(),
+            'tags': ['archive'],
         },
     )
     assert r.ok
@@ -48,8 +48,8 @@ def test_create_note_with_tags(client, fake, create_user, create_tags):
     r = client.post(
         '/users/test_user/notes/', json={
             # "title": fake.text(max_nb_chars=30),
-            "text": fake.text(max_nb_chars=200),
-            "tags": ['books', 'groceries'],
+            'text': fake.text(max_nb_chars=200),
+            'tags': ['books', 'groceries'],
         },
     )
     assert r.ok
@@ -57,21 +57,21 @@ def test_create_note_with_tags(client, fake, create_user, create_tags):
     # test error when tags does not exists
     r = client.post(
         '/users/test_user/notes/', json={
-            "text": fake.text(max_nb_chars=200),
-            "url": fake.uri(),
-            "tags": ['books', 'groceries', 'tag_does_not_exist'],
+            'text': fake.text(max_nb_chars=200),
+            'url': fake.uri(),
+            'tags': ['books', 'groceries', 'tag_does_not_exist'],
         },
     )
     assert r.status_code == HTTPStatus.NOT_FOUND
-    assert r.json() == {"detail": {"tags dont exists": ['tag_does_not_exist']}}
+    assert r.json() == {'detail': {'tags dont exists': ['tag_does_not_exist']}}
 
 
 def test_get_note(client, fake, create_user, create_tags):
     r = client.post(
         '/users/test_user/notes/', json={
-            "text": fake.text(max_nb_chars=200),
-            "url": fake.uri(),
-            "tags": [],
+            'text': fake.text(max_nb_chars=200),
+            'url': fake.uri(),
+            'tags': [],
         },
     )
 
@@ -99,8 +99,8 @@ def test_get_note(client, fake, create_user, create_tags):
     # ==== note with tags ====
     r = client.post(
         '/users/test_user/notes/', json={
-            "text": fake.text(max_nb_chars=200),
-            "tags": ['books', 'groceries'],
+            'text': fake.text(max_nb_chars=200),
+            'tags': ['books', 'groceries'],
         },
     )
     note_id = r.json()['id']
@@ -125,12 +125,12 @@ def test_get_note(client, fake, create_user, create_tags):
     # ==== test note dont exists ====
     r = client.get('/notes/42')
     assert r.status_code == HTTPStatus.NOT_FOUND
-    assert r.json() == {"note dont exists": 42}, r.json()
+    assert r.json() == {'note dont exists': 42}, r.json()
 
 
 def test_get_notes(client, fake, create_user, create_tags):
     for _ in range(6):
-        client.post('/users/test_user/notes/', json={"text": fake.text(max_nb_chars=200), "tags": []})
+        client.post('/users/test_user/notes/', json={'text': fake.text(max_nb_chars=200), 'tags': []})
 
     # test default json works
     r = client.get('/notes')
@@ -164,7 +164,7 @@ def test_get_notes(client, fake, create_user, create_tags):
 
 
 def test_delete_note(client, fake, create_user):
-    client.post('/users/test_user/notes/', json={"text": fake.text(max_nb_chars=200), "tags": []})
+    client.post('/users/test_user/notes/', json={'text': fake.text(max_nb_chars=200), 'tags': []})
 
     r = client.delete('/notes/1')
     assert r.ok
@@ -177,9 +177,9 @@ def test_delete_note(client, fake, create_user):
 def test_archive_note(client, fake, create_user, create_tags):
     r = client.post(
         '/users/test_user/notes/', json={
-            "text": fake.text(max_nb_chars=200),
-            "url": fake.uri(),
-            "tags": [],
+            'text': fake.text(max_nb_chars=200),
+            'url': fake.uri(),
+            'tags': [],
         },
     )
     assert r.ok
@@ -207,9 +207,9 @@ def test_archive_note(client, fake, create_user, create_tags):
 
 
 def test_get_tag_notes(client, fake, create_user, create_tags):
-    client.post('/users/test_user/notes/', json={"text": fake.text(max_nb_chars=200), "tags": ['books']})
-    client.post('/users/test_user/notes/', json={"text": fake.text(max_nb_chars=200), "tags": ['books', 'groceries']})
-    client.post('/users/test_user/notes/', json={"text": fake.text(max_nb_chars=200), "tags": ['groceries']})
+    client.post('/users/test_user/notes/', json={'text': fake.text(max_nb_chars=200), 'tags': ['books']})
+    client.post('/users/test_user/notes/', json={'text': fake.text(max_nb_chars=200), 'tags': ['books', 'groceries']})
+    client.post('/users/test_user/notes/', json={'text': fake.text(max_nb_chars=200), 'tags': ['groceries']})
 
     r = client.get('/tags/books/notes')
     assert r.ok
@@ -230,11 +230,11 @@ def test_edit_note(
     client, create_user, create_tags,
     text, url, tags, edit_text, edit_url, edit_tags,
 ):
-    r = client.post('/users/test_user/notes/', json={"text": text, "url": url, "tags": tags})
+    r = client.post('/users/test_user/notes/', json={'text': text, 'url': url, 'tags': tags})
     assert r.ok
     initial = r.json()
 
-    r = client.post(f'/notes/{initial["id"]}/edit/', json={"text": edit_text, "url": edit_url, "tags": edit_tags})
+    r = client.post(f'/notes/{initial["id"]}/edit/', json={'text': edit_text, 'url': edit_url, 'tags': edit_tags})
     assert r.ok
     edited = r.json()
 

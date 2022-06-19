@@ -30,8 +30,8 @@ http_basic_optional = HTTPBasic(auto_error=False)
 
 WrongUsernameOrPassword = HTTPException(
     status_code=HTTPStatus.UNAUTHORIZED,
-    detail="username not exists or incorrect password",
-    headers={"WWW-Authenticate": "Basic"},
+    detail='username not exists or incorrect password',
+    headers={'WWW-Authenticate': 'Basic'},
 )
 
 

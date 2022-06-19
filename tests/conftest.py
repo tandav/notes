@@ -45,7 +45,7 @@ def fake():
 
 @pytest.fixture
 def create_user(client):
-    yield client.post("/users/", auth=("test_user", "test_password"))
+    yield client.post('/users/', auth=('test_user', 'test_password'))
 
 
 @pytest.fixture

@@ -71,7 +71,7 @@ def test_create_update(client, create_3_tags, check_tag, check_update):
     assert n3['right_notes'] == right_notes
 
     # test left_notes updated as well
-    assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == [n4["id"]]
+    assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == [n4['id']]
     assert client.get(f'/notes/{tag1["id"]}', auth=auth).json()['left_notes'] == []
 
 
@@ -109,7 +109,7 @@ def test_tag_already_exists(client, create_users):
 
 def test_cant_update_left_notes(client, create_note):
     auth, note = create_note
-    assert client.post(f'/notes/{note["id"]}', json={"left_notes": [4, 2]}, auth=auth).json()['left_notes'] == []
+    assert client.post(f'/notes/{note["id"]}', json={'left_notes': [4, 2]}, auth=auth).json()['left_notes'] == []
 
 
 def test_test_updated_time_on_create(client, create_3_tags):

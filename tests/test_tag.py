@@ -89,13 +89,13 @@ def test_get_tag(client, create_tags):
     # test tag dont exists
     r = client.get('/tags/notexists')
     assert r.status_code == HTTPStatus.NOT_FOUND
-    assert r.json() == {"tag dont exists": 'notexists'}, r.json()
+    assert r.json() == {'tag dont exists': 'notexists'}, r.json()
 
 
 def test_delete_tag(client, create_user):
     r = client.post('/tags/', json={'name': 'tag_to_be_removed', 'color': '#ffaace'})
     assert r.ok
-    r = client.post('/users/test_user/notes/', json={"text": 'fake_text', "tags": ['tag_to_be_removed']})
+    r = client.post('/users/test_user/notes/', json={'text': 'fake_text', 'tags': ['tag_to_be_removed']})
     assert r.ok
     note_id = r.json()['id']
     assert client.delete(f'/tags/tag_to_be_removed').ok
@@ -106,7 +106,7 @@ def test_updated_time(client, create_user, create_tags):
     """Tag.updated_time should updates when you create or modify a note with this tag"""
     t0 = client.get('/tags/books').json()['updated_time']
 
-    note_id = client.post('/users/test_user/notes/', json={"text": None, "url": None, "tags": ['books']}).json()['id']
+    note_id = client.post('/users/test_user/notes/', json={'text': None, 'url': None, 'tags': ['books']}).json()['id']
     t1 = client.get('/tags/books').json()['updated_time']
 
     assert t1 > t0
