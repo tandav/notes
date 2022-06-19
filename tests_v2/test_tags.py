@@ -47,15 +47,15 @@ def test_update(client, create_3_tags):
     assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == [n3['id']]
     assert client.get(f'/notes/{tag1["id"]}', auth=auth).json()['left_notes'] == [n3['id']]
 
+    # test update back to empty
+    _tags = []
+    n3 = client.post(f'/notes/{n3["id"]}', json={'tags': _tags}, auth=auth).json()
+    assert n3['tags'] == _tags
+    assert n3['right_notes'] == _tags
 
-
-def test_update_empty():
-    pass
-
-    # test set back to empty
-
-
-
+    # test left_notes updated as well
+    assert client.get(f'/notes/{tag0["id"]}', auth=auth).json()['left_notes'] == []
+    assert client.get(f'/notes/{tag1["id"]}', auth=auth).json()['left_notes'] == []
 
 
 def test_tags(client, create_3_tags):

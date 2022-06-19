@@ -131,15 +131,6 @@ def update(
             continue
         setattr(db_note, k, v)
 
-
-    db_note.updated_time = now
-
-    # all_tags = read_tags(db)
-
-    # if note.tag: no checks are necessary, because you can create any tag name you want (new tag)
-    # if note.tag on update/create - you should check that there's only 1 note with that tag
-    # rely on database constraints ?
-
     right_notes = []
 
     if note.tags:
@@ -149,6 +140,7 @@ def update(
         right_notes += read_by_ids(db, note.right_notes, not_found_error=True)
 
     db_note.right_notes = right_notes
+    db_note.updated_time = now
 
     # for tag in tags:
     #     tag.updated_time = now
