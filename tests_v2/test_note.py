@@ -37,10 +37,10 @@ def test_create_note(client, create_users, text, url, tag):
 
 @pytest.fixture
 def create_3_notes(client, create_users):
-    n0_id = client.post('/notes/', json={}).json()['id']
-    n1_id = client.post('/notes/', json={}).json()['id']
-    n2_id = client.post('/notes/', json={}).json()['id']
-    return n0_id, n1_id, n2_id
+    note0 = client.post('/notes/', json={}).json()
+    note1 = client.post('/notes/', json={}).json()
+    note2 = client.post('/notes/', json={}).json()
+    return note0, note1, note2
 
 
 @pytest.fixture
@@ -66,37 +66,39 @@ def create_3_tags(client, create_users):
 
 
 def test_links(client, create_3_notes):
-    n0_id, n1_id, n2_id = create_3_notes
+    note0, note1, note2 = create_3_notes
+    note0_id, note1_id, note2_id = note0['id'], note1['id'], note2['id']
 
-    n3 = client.post('/notes/', json={'right_notes': [n0_id]})
-    n3_id = n3.json()['id']
-    assert n3.json()['right_notes'] == [n0_id]
+    note3 = client.post('/notes/', json={'right_notes': [note0_id]})
+    note3_id = note3.json()['id']
+    assert note3.json()['right_notes'] == [note0_id]
 
     # test left_notes
-    n0 = client.get(f'/notes/{n0_id}')
-    assert n0.json()['left_notes'] == [n3_id]
+    note0 = client.get(f'/notes/{note0_id}')
+    assert note0.json()['left_notes'] == [note3_id]
 
     # test many links
-    n4 = client.post('/notes/', json={'right_notes': [n0_id, n3_id]})
-    n4_id = n4.json()['id']
-    assert n4.json()['right_notes'] == [n0_id, n3_id]
+    note4 = client.post('/notes/', json={'right_notes': [note0_id, note3_id]})
+    note4_id = note4.json()['id']
+    assert note4.json()['right_notes'] == [note0_id, note3_id]
 
     # test left_notes
-    n0 = client.get(f'/notes/{n0_id}')
-    assert n0.json()['left_notes'] == [n3_id, n4_id]
+    note0 = client.get(f'/notes/{note0_id}')
+    assert note0.json()['left_notes'] == [note3_id, note4_id]
 
-    n3 = client.get(f'/notes/{n3_id}')
-    assert n3.json()['left_notes'] == [n4_id]
+    note3 = client.get(f'/notes/{note3_id}')
+    assert note3.json()['left_notes'] == [note4_id]
 
 
 def test_cant_link_to_non_existing_notes(client, create_3_notes):
-    n0_id, n1_id, n2_id = create_3_notes
+    note0, note1, note2 = create_3_notes
+    note0_id, note1_id, note2_id = note0['id'], note1['id'], note2['id']
 
-    n3 = client.post('/notes/', json={'right_notes': [42]})
-    assert n3.status_code == HTTPStatus.NOT_FOUND
+    note3 = client.post('/notes/', json={'right_notes': [42]})
+    assert note3.status_code == HTTPStatus.NOT_FOUND
 
-    n3 = client.post('/notes/', json={'right_notes': [n0_id, 42]})
-    assert n3.status_code == HTTPStatus.NOT_FOUND
+    note3 = client.post('/notes/', json={'right_notes': [note0_id, 42]})
+    assert note3.status_code == HTTPStatus.NOT_FOUND
 
 
 def test_tag_already_exists(client, create_users):
@@ -192,15 +194,9 @@ def test_color_on_update(client, create_note):
     assert r.json()['color'] == color3
 
 
-
-#     assert update_times == sorted(update_times)
-
-
-# def test_tag_already_exists_on_update(client, create_users):
-#     n0_id = client.post('/notes/', json={'tag': 'books'}).json()['id']
-#     n1_id = client.post('/notes/', json={}).json()['id']
-#     assert client.post(f'/notes/{n1_id}', json={'tag': 'books'}).status_code == HTTPStatus.BAD_REQUEST
-
+def test_color_is_none_if_tag_is_none(create_3_notes):
+    note0, note1, note2 = create_3_notes
+    assert note0['color'] is None
 
 # test note_color is none when set update/create note w/o tag
 

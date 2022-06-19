@@ -81,13 +81,9 @@ class NoteCreate(NoteBase):
     def validate_tag_color(cls, values):
         if values.get('tag') is None and values.get('color') is not None:
             raise ValueError('Color can be assigned only when tag is not None')
+        elif values.get('tag') is not None and (values.get('color') is None or values.get('color') == '#000000'):
+            values['color'] = colortool.random_hex()
         return values
-
-    @validator('color', always=True)
-    def handle_default_color(cls, v):
-        if v is None or v == '#000000':
-            v = colortool.random_hex()
-        return v
 
 
 class NoteUpdate(NoteBase):
@@ -100,6 +96,12 @@ class Note(NoteBase):
     username: str
     created_time: datetime.datetime
     updated_time: datetime.datetime
+
+    @root_validator
+    def validate_tag_color(cls, values):
+        if values.get('tag') is None and values.get('color') is not None:
+            raise ValueError('Color can be assigned only when tag is not None')
+        return values
 
     class Config:
         orm_mode = True

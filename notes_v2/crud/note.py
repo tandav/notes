@@ -60,8 +60,6 @@ def create(
         authenticated_username = 'anon'
     user = crud.user.read_by_username(db, authenticated_username)
 
-    # handle_tag_for_create_or_update(db, note, action='create')
-
     if note.tag:
         already_existing_tag = read_by_tag(db, note.tag)
         if already_existing_tag is not None:
@@ -112,12 +110,7 @@ def update(
         if already_existing_tag is not None and already_existing_tag.id != note_id:
             raise crud.exceptions.TagAlreadyExists
 
-    # if note.color:
-    #     db_note.color = note.color
-
-    # handle_tag_for_create_or_update(db, note, action='update', note_id=note_id)
     # update only not None fields keep old values
-
     special_handle = {'tags'}
     for k, v in note.dict().items():
         if v is None:
@@ -126,19 +119,9 @@ def update(
             continue
         setattr(db_note, k, v)
 
-    # if note.tag is None:
-
-    # handle_tag
     # handle_tags
     # handle_right_notes
 
-    # if note.text:
-    #     db_note.text = note.text
-    # db_note.url = note.url
-    # db_note.is_private = note.is_private
-    # db_note.is_archived = note.is_archived
-    # db_note.tag = note.tag
-    # db_note.color = note.color
     db_note.updated_time = now
 
     # all_tags = read_tags(db)
