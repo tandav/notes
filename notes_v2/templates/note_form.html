@@ -32,7 +32,7 @@
         </label>
         <br/>
         <label>tag name</label>
-        <input type="text" name="tag"  {% if tag %} value="{{ tag }}" {% else %} disabled{% endif %}class="tag_fields">
+        <input type="text" name="tag" {% if tag %} value="{{ tag }}" {% else %} disabled{% endif %} class="tag_fields">
         <label>tag color</label>
         <input type="color" name="color" {% if color %} value="{{ color }}" {% else %} disabled{% endif %} class="tag_fields">
     </p>
