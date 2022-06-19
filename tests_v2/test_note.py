@@ -31,7 +31,7 @@ def test_create_note(client, create_users, text, url, tag):
         'tags': [],
     }
     if tag is not None:
-        assert colortool.is_hex_color(j['color']), str(j)
+        assert colortool.is_hex_color(j['color']) and j['color'] != '#000000', str(j)
 
 
 def test_links(client, create_3_notes):

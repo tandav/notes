@@ -100,21 +100,15 @@ class NoteCreateForm(NoteCreate):
 
     @validator('url')
     def validate_url(cls, v):
-        if v == '':
-            return None
-        return v
+        return None if v == '' else v
 
     @validator('tag')
     def validate_tag(cls, v):
-        if v == '':
-            return None
-        return v
+        return None if v == '' else v
 
     @validator('tags')
     def validate_tags(cls, v):
-        if v is None:
-            return []
-        return v
+        return [] if v is None else v
 
 
 class NoteUpdate(NoteBase): pass

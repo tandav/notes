@@ -1,7 +1,5 @@
 import datetime
 
-import colortool
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 import notes_v2.crud.exceptions
@@ -42,25 +40,6 @@ def read_by_tags(db: Session, tags: list[str], not_found_error: bool = False) ->
 
 def read_tags(db: Session) -> list[models.Note]:
     return db.query(models.Note).filter(models.Note.tag.is_not(None)).all()
-
-
-# def handle_tags_for_create_or_update(db: Session, note: schemas.NoteCreate, action: str, note_id: int | None = None):
-#     if note.tags is not None:
-#         raise NotImplementedError
-
-
-# def handle_right_notes_and_tags(db: Session, note: schemas.NoteCreate | schemas.NoteUpdate) -> dict:
-#     note_dict = note.dict()
-#     note_dict['right_notes'] = []
-#
-#     if note.tags:
-#         tags = read_by_tags(db, note.tags, not_found_error=True)
-#         note_dict['right_notes'] += tags
-#
-#     if note.right_notes:
-#         note_dict['right_notes'] += read_by_ids(db, note.right_notes)
-#     del note_dict['tags']
-#     return note_dict
 
 
 def create(
