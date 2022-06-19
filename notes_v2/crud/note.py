@@ -19,23 +19,23 @@ def read_many(db: Session, skip: int = 0, limit: int = 100) -> list[models.Note]
     return db.query(models.Note).offset(skip).limit(limit).all()
 
 
-def read_by_ids(db: Session, ids: list[int], error_if_not_all_exists: bool = False) -> list[models.Note]:
+def read_by_ids(db: Session, ids: list[int], not_found_error: bool = False) -> list[models.Note]:
     notes = db.query(models.Note).filter(models.Note.id.in_(ids)).all()
-    if set(ids) != {note.id for note in notes}:
+    if not_found_error and set(ids) != {note.id for note in notes}:
         raise crud.exceptions.NoteNotExistsError
     return notes
 
 
 def read_by_tag(db: Session, tag: str, not_found_error: bool = False) -> models.Note:
     db_tag = db.query(models.Note).filter(models.Note.tag == tag).first()
-    if db_tag is None and not_found_error:
+    if not_found_error and db_tag is None:
         raise crud.exceptions.TagNotExistsError
     return db_tag
 
 
 def read_by_tags(db: Session, tags: list[str], not_found_error: bool = False) -> list[models.Note]:
     db_tags = db.query(models.Note).filter(models.Note.tag.in_(tags)).all()
-    if set(tags) != {tag.tag for tag in db_tags}:
+    if not_found_error and set(tags) != {tag.tag for tag in db_tags}:
         raise crud.exceptions.TagNotExistsError
     return db_tags
 
@@ -44,9 +44,23 @@ def read_tags(db: Session) -> list[models.Note]:
     return db.query(models.Note).filter(models.Note.tag.is_not(None)).all()
 
 
-def handle_tags_for_create_or_update(db: Session, note: schemas.NoteCreate, action: str, note_id: int | None = None):
-    if note.tags is not None:
-        raise NotImplementedError
+# def handle_tags_for_create_or_update(db: Session, note: schemas.NoteCreate, action: str, note_id: int | None = None):
+#     if note.tags is not None:
+#         raise NotImplementedError
+
+
+# def handle_right_notes_and_tags(db: Session, note: schemas.NoteCreate | schemas.NoteUpdate) -> dict:
+#     note_dict = note.dict()
+#     note_dict['right_notes'] = []
+#
+#     if note.tags:
+#         tags = read_by_tags(db, note.tags, not_found_error=True)
+#         note_dict['right_notes'] += tags
+#
+#     if note.right_notes:
+#         note_dict['right_notes'] += read_by_ids(db, note.right_notes)
+#     del note_dict['tags']
+#     return note_dict
 
 
 def create(
@@ -67,14 +81,12 @@ def create(
 
     note_dict = note.dict()
     note_dict['right_notes'] = []
-
     if note.tags:
-        tags = read_by_tags(db, note.tags, not_found_error=True)
-        note_dict['right_notes'] += tags
-
+        note_dict['right_notes'] += read_by_tags(db, note.tags, not_found_error=True)
     if note.right_notes:
-        note_dict['right_notes'] += read_by_ids(db, note.right_notes)
+        note_dict['right_notes'] += read_by_ids(db, note.right_notes, not_found_error=True)
     del note_dict['tags']
+
     db_note = models.Note(
         **note_dict,
         user=user,
@@ -119,8 +131,6 @@ def update(
             continue
         setattr(db_note, k, v)
 
-    # handle_tags
-    # handle_right_notes
 
     db_note.updated_time = now
 
@@ -130,20 +140,18 @@ def update(
     # if note.tag on update/create - you should check that there's only 1 note with that tag
     # rely on database constraints ?
 
-    # if note.tags:
-    #     ...
-    #
-    #
-    # if note.right_notes:
-    #     ...
-    #
-    # if unknown_tags := set(note.tags) - {tag.name for tag in tags}:
-    #     raise crud.exceptions.TagNotExistsError(list(unknown_tags))
-    #
+    right_notes = []
+
+    if note.tags:
+        right_notes += read_by_tags(db, note.tags, not_found_error=True)
+
+    if note.right_notes:
+        right_notes += read_by_ids(db, note.right_notes, not_found_error=True)
+
+    db_note.right_notes = right_notes
+
     # for tag in tags:
     #     tag.updated_time = now
-    #
-    # db_note.right_notes = tags
 
     db.commit()
     db.refresh(db_note)

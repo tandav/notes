@@ -62,8 +62,23 @@ def create_tags(client, create_users):
     client.post('/notes/', json={'tag': 'groceries'})
 
 
-# @pytest.fixture
-# def create_tags(client):
-#     client.post('/tags/', json={'name': 'books', 'color': '#c0ffee'})
-#     client.post('/tags/', json={'name': 'archive', 'color': '#f0ffff'})
-#     client.post('/tags/', json={'name': 'groceries'})
+@pytest.fixture
+def create_3_notes(client, create_users):
+    note0 = client.post('/notes/', json={}).json()
+    note1 = client.post('/notes/', json={}).json()
+    note2 = client.post('/notes/', json={}).json()
+    return note0, note1, note2
+
+
+@pytest.fixture
+def create_note(client, create_users):
+    auth, _, _ = create_users
+    r = client.post(
+        '/notes/', json={
+            'text': 'test',
+            'url': 'https://test.com',
+            'tag': 'test_tag',
+        },
+        auth=auth,
+    )
+    return auth, r.json()
