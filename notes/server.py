@@ -22,13 +22,13 @@ markdowner = markdown2.Markdown(
 )
 
 
-
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
 
 http_basic = HTTPBasic()
 http_basic_optional = HTTPBasic(auto_error=False)
@@ -93,7 +93,6 @@ app = FastAPI()
 #                 headers={"WWW-Authenticate": "Basic"},
 #             )
 #         return credentials.username
-
 
 
 # router = APIRouter(dependencies=[Depends(authenticate)])
@@ -422,6 +421,7 @@ def notes_table(notes: list) -> tuple[str, str]:
 
     return html, css
 
+
 @app.get(
     '/notes/',
     response_model=list[schemas.Note],
@@ -627,7 +627,6 @@ def _get_tag(name: str, db: Session = Depends(get_db), accept=Header('applicatio
                 # notes = db.query(models.Note).filter(models.Tag.name != 'archive')
                 README = 'README'
 
-
             notes = sorted(notes, key=operator.itemgetter('updated_time'), reverse=True)
             table_html, table_css = notes_table(notes)
 
@@ -697,6 +696,7 @@ def _get_tag(name: str, db: Session = Depends(get_db), accept=Header('applicatio
 )
 def get_tag(name: str, db: Session = Depends(get_db), accept=Header('application/json')):
     return _get_tag(name, db, accept, archive=False)
+
 
 @app.get(
     '/tags/{name}/archive',
@@ -789,7 +789,7 @@ async def new_tag_handle_form(request: Request, db: Session = Depends(get_db)):
 
 
 def note_form(
-    db: Session, action: str,#, note_id: int | None = None,
+    db: Session, action: str,  # , note_id: int | None = None,
     note: schemas.NoteCreate | models.Note | None = None,
 ):
     if action == 'new_note':
@@ -889,7 +889,7 @@ def new_note_form(
 ):
     # breakpoint()
     if text or url or tags:
-        tags = [] if tags is None else  tags.split(',')
+        tags = [] if tags is None else tags.split(',')
         try:
             note = schemas.NoteCreate(text=text, url=url, tags=tags)
         except ValueError as e:

@@ -90,7 +90,7 @@ def read_user_by_name(
     return templates.TemplateResponse(
         'user.html', {
             'request': request, **user,
-                'authenticated_username': authenticated_username,
+            'authenticated_username': authenticated_username,
         },
     )
 
@@ -101,7 +101,7 @@ def read_user_by_name(
 @router.get('/signup')
 def signup(
     db: Session = Depends(get_db),
-    credentials = Depends(http_basic),
+    credentials=Depends(http_basic),
 ):
     db_user = crud.user.read_by_username(db, username=credentials.username)
     if db_user:

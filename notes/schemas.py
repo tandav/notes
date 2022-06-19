@@ -130,6 +130,7 @@ class Tag(TagBase):
     class Config:
         orm_mode = True
 
+
 NoteCreate.update_forward_refs()
 Note.update_forward_refs()
 # Tag.update_forward_refs()

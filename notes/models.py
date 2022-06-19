@@ -75,8 +75,6 @@ class Tag(Base):
     notes = relationship('Note', secondary=notes_tags, back_populates='tags')
 
 
-
-
 # class Attachment(Base):
 #     __tablename__ = 'attachment'
 #

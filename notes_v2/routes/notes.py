@@ -104,10 +104,6 @@ async def create(
 #
 
 
-
-
-
-
 # @app.post("/notes/{note_id}/edit/", response_model=schemas.Note)
 # def update(note_id: int, note: schemas.NoteCreate, db: Session = Depends(get_db)):
 #     try:
@@ -301,6 +297,7 @@ def read_tags(
             'authenticated_username': authenticated_username,
         },
     )
+
 
 @router.get(
     '/tags/{tag_name}',
