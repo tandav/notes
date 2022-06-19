@@ -80,7 +80,7 @@ class NoteCreate(NoteBase):
     @root_validator(pre=True)
     def validate_tag_color(cls, values):
         if values.get('tag') is None and values.get('color') is not None:
-            raise ValueError('color is not None but tag is None. Cant assign color for tag == None')
+            raise ValueError('Color can be assigned only when tag is not None')
         return values
 
     @validator('color', always=True)

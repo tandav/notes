@@ -44,33 +44,6 @@ def read_tags(db: Session) -> list[models.Note]:
     return db.query(models.Note).filter(models.Note.tag.is_not(None)).all()
 
 
-def handle_tag_for_create_or_update(
-    db: Session,
-    note: schemas.NoteCreate | schemas.NoteUpdate,
-    action: str,
-    note_id: int | None = None,
-):
-    if action == 'create':
-        assert note_id is None
-    elif action == 'update':
-        assert note_id is not None
-    else:
-        raise NotImplementedError('unsupported action')
-
-    if note.tag is None:
-        return note
-
-    already_existing_tag = read_by_tag(db, note.tag)
-    if already_existing_tag is None:
-        pass
-    elif action == 'create':
-        raise crud.exceptions.TagAlreadyExists
-    elif action == 'update' and already_existing_tag.id != note_id:
-        raise crud.exceptions.TagAlreadyExists
-
-    return note
-
-
 def handle_tags_for_create_or_update(db: Session, note: schemas.NoteCreate, action: str, note_id: int | None = None):
     if note.tags is not None:
         raise NotImplementedError
@@ -87,7 +60,12 @@ def create(
         authenticated_username = 'anon'
     user = crud.user.read_by_username(db, authenticated_username)
 
-    handle_tag_for_create_or_update(db, note, action='create')
+    # handle_tag_for_create_or_update(db, note, action='create')
+
+    if note.tag:
+        already_existing_tag = read_by_tag(db, note.tag)
+        if already_existing_tag is not None:
+            raise crud.exceptions.TagAlreadyExists
 
     note_dict = note.dict()
     note_dict['right_notes'] = []
@@ -129,12 +107,18 @@ def update(
 
     now = datetime.datetime.now()
 
-    handle_tag_for_create_or_update(db, note, action='update', note_id=note_id)
-    db_note.tag = note.tag
-    db_note.color = note.color
+    if note.tag:
+        already_existing_tag = read_by_tag(db, note.tag)
+        if already_existing_tag is not None and already_existing_tag.id != note_id:
+            raise crud.exceptions.TagAlreadyExists
+
+    # if note.color:
+    #     db_note.color = note.color
+
+    # handle_tag_for_create_or_update(db, note, action='update', note_id=note_id)
     # update only not None fields keep old values
 
-    special_handle = {'tag', 'color', 'tags'}
+    special_handle = {'tags'}
     for k, v in note.dict().items():
         if v is None:
             continue

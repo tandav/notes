@@ -44,6 +44,20 @@ def create_3_notes(client, create_users):
 
 
 @pytest.fixture
+def create_note(client, create_users):
+    auth, _, _ = create_users
+    r = client.post(
+        '/notes/', json={
+            'text': 'test',
+            'url': 'https://test.com',
+            'tag': 'test_tag',
+        },
+        auth=auth,
+    )
+    return auth, r.json()
+
+
+@pytest.fixture
 def create_3_tags(client, create_users):
     tag0 = client.post('/notes/', json={'tag': 'books'}).json()
     tag1 = client.post('/notes/', json={'tag': 'groceries'}).json()
@@ -139,62 +153,47 @@ def test_tags(client, create_3_tags):
     assert r.status_code == HTTPStatus.NOT_FOUND
 
 
-def test_update_note(client, create_users):
-    auth, _, _ = create_users
-
-    r = client.post(
-        '/notes/', json={
-            'text': 'test',
-            'url': 'https://test.com',
-            'tag': 'test_tag',
-        },
-        auth=auth,
-    )
-    assert r.ok
-    update_times = []
-    update_times.append(r.json()['updated_time'])
-    n_id = r.json()['id']
-
-    r = client.post(f'/notes/{n_id}', json={'text': 'test2'}, auth=auth)
+@pytest.mark.parametrize(
+    'kv', [
+        {'text': 'test2'},
+        {'url': 'https://test2.com', 'is_private': False},
+        {'tag': 'books'},
+        {'color': '#913241'},
+        {'is_archived': True},
+    ],
+)
+def test_update_note(client, create_note, kv):
+    auth, note = create_note
+    note_id = note['id']
+    r = client.post(f'/notes/{note_id}', json=kv, auth=auth)
     assert r.ok
     updated = r.json()
-    assert updated['text'] == 'test2'
-    update_times.append(updated['updated_time'])
+    for k, v in kv.items():
+        assert updated[k] == v
+    assert note['updated_time'] < updated['updated_time']
 
-    r = client.post(f'/notes/{n_id}', json={'url': 'https://test2.com', 'is_private': False}, auth=auth)
-    assert r.ok
-    updated = r.json()
-    assert updated['text'] == 'test2'
-    assert updated['url'] == 'https://test2.com'
-    assert updated['is_private'] == False
-    update_times.append(updated['updated_time'])
 
-    r = client.post(f'/notes/{n_id}', json={'tag': 'books'}, auth=auth)
-    assert r.ok
-    updated = r.json()
-    color = updated['color']
-    update_times.append(updated['updated_time'])
+def test_color_on_update(client, create_note):
+    auth, note = create_note
+    note_id = note['id']
 
-    r = client.post(f'/notes/{n_id}', json={'tag': 'groceries'}, auth=auth)
-    updated = r.json()
-    assert updated['color'] == color
-    update_times.append(updated['updated_time'])
+    # update tag name without specifying color, check that color remains the same
+    r = client.post(f'/notes/{note_id}', json={'tag': 'books'}, auth=auth)
+    assert r.json()['color'] == note['color'], r.json()
 
+    # update color for tag, check that it changes
     color2 = '#913241'
-    r = client.post(f'/notes/{n_id}', json={'color': color2}, auth=auth)
-    updated = r.json()
-    assert updated['color'] == color2
-    update_times.append(updated['updated_time'])
+    r = client.post(f'/notes/{note_id}', json={'color': color2}, auth=auth)
+    assert r.json()['color'] == color2
 
-    updated = client.post(f'/notes/{n_id}', json={'is_private': False}, auth=auth).json()
-    assert updated['is_private'] == False
-    update_times.append(updated['updated_time'])
+    # update both tag and color
+    color3 = '#fab123'
+    r = client.post(f'/notes/{note_id}', json={'tag': 'groceries', 'color': color3}, auth=auth)
+    assert r.json()['color'] == color3
 
-    updated = client.post(f'/notes/{n_id}', json={'is_archived': True}, auth=auth).json()
-    assert updated['is_archived'] == True
-    update_times.append(updated['updated_time'])
 
-    assert update_times == sorted(update_times)
+
+#     assert update_times == sorted(update_times)
 
 
 # def test_tag_already_exists_on_update(client, create_users):
