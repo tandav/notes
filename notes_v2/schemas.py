@@ -76,13 +76,45 @@ class NoteBase(BaseModel):
 
 
 class NoteCreate(NoteBase):
-    @root_validator(pre=True)
+    # @root_validator(pre=True)
+    @root_validator(pre=False)
     def validate_tag_color(cls, values):
         if values.get('tag') is None and values.get('color') is not None:
             raise ValueError('Color can be assigned only when tag is not None')
         elif values.get('tag') is not None and (values.get('color') is None or values.get('color') == '#000000'):
             values['color'] = colortool.random_hex()
         return values
+
+
+# todo: simplify logic in routes
+class NoteCreateJson(NoteCreate): pass
+
+
+class NoteCreateForm(NoteCreate):
+    text: str | None
+    url: str | None
+    tags: list[str] = []
+    tag: str | None = None
+    color: str | None = None
+    is_private: bool = True
+
+    @validator('url')
+    def validate_url(cls, v):
+        if v == '':
+            return None
+        return v
+
+    @validator('tag')
+    def validate_tag(cls, v):
+        if v == '':
+            return None
+        return v
+
+    @validator('tags')
+    def validate_tags(cls, v):
+        if v is None:
+            return []
+        return v
 
 
 class NoteUpdate(NoteBase):

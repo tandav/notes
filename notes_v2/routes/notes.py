@@ -53,14 +53,8 @@ async def create(
     elif mediatype == 'form':
         payload = await request.form()
         try:
-            note = schemas.NoteCreate(
-                text=payload.get('text'),
-                url=payload.get('url') or None,  # replace '' with None
-                tags=payload.get('tags', []),
-                tag=payload.get('tag'),
-                color=payload.get('color'),
-                is_private=payload.get('is_private', False),
-            )
+            note = schemas.NoteCreateForm(**payload)
+            note = schemas.NoteCreate.parse_obj(note)
         except crud.exceptions.CrudError as e:
             raise e.http
         except ValueError as e:
