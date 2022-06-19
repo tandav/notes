@@ -18,7 +18,7 @@
 
     {% for tag in tags %}
        <label class="tag_label" for="{{tag.tag}}">
-       <input type="checkbox" class="tag_checkbox" id="{{tag.tag}}" name="tags" value="{{tag.tag}}"{% if tag.checked %}checked{% endif %}>
+       <input type="checkbox" class="tag_checkbox" id="{{tag.tag}}" name="tags" value="{{tag.tag}}"{% if tag.checked %} checked{% endif %}>
        {{tag.tag}}
        </label>
     {% endfor %}
@@ -28,13 +28,13 @@
 
     <p>
         <label id="note_is_tag_label">
-        <input type="checkbox" id="note_is_tag" name="note_is_tag" value="note_is_tag" onclick="tag_switch()">note is tag
+        <input type="checkbox" id="note_is_tag" name="note_is_tag" value="note_is_tag" onclick="tag_switch()"{% if tag %} checked{% endif %}>note is tag
         </label>
         <br/>
         <label>tag name</label>
-        <input type="text" name="tag" disabled class="tag_fields">
+        <input type="text" name="tag"  {% if tag %} value="{{ tag }}" {% else %} disabled{% endif %}class="tag_fields">
         <label>tag color</label>
-        <input type="color" name="color" value="none" disabled class="tag_fields">
+        <input type="color" name="color" {% if color %} value="{{ color }}" {% else %} disabled{% endif %} class="tag_fields">
     </p>
     <hr/>
 

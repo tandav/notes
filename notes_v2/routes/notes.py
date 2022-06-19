@@ -340,6 +340,8 @@ def note_form(
         payload = {
             'text': note.text,
             'url': note.url,
+            'tag': note.tag,
+            'color': note.color,
             'is_private': note.is_private,
             'heading': 'Edit note',
             'action_url': f'/notes/{note.id}',
