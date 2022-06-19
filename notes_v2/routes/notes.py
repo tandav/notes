@@ -53,8 +53,17 @@ async def create(
     elif mediatype == 'form':
         payload = await request.form()
         try:
-            note = schemas.NoteForm(**payload)
-            note = schemas.NoteCreate.parse_obj(note)
+            # note = schemas.NoteForm(**payload)
+            # note = schemas.NoteCreate.parse_obj(note)
+            note = schemas.NoteCreate(
+                text=payload.get('text'),
+                url=payload.get('url') or None,  # replace '' with None
+                tag=payload.get('tag') or None,  # replace '' with None
+                tags=payload.getlist('tags'),
+                color=payload.get('color'),
+                is_private=payload.get('is_private', True),
+            )
+
         except crud.exceptions.CrudError as e:
             raise e.http
         except ValueError as e:
@@ -99,16 +108,17 @@ async def update(
     elif mediatype == 'form':
         payload = await request.form()
         try:
-            note = schemas.NoteForm(**payload)
-            note = schemas.NoteUpdate.parse_obj(note)
+            # note = schemas.NoteForm(**payload)
+            # note = schemas.NoteUpdate.parse_obj(note)
 
-            # note = schemas.NoteUpdate(
-            #     text=form.get('text'),
-            #     url=form.get('url') or None,  # replace '' with None
-            #     tags=form.get('tags', []),
-            #     tag=form.get('tag'),
-            #     color=form.get('color'),
-            #     is_private=form.get('is_private', False),
+            note = schemas.NoteUpdate(
+                text=payload.get('text'),
+                url=payload.get('url') or None,  # replace '' with None
+                tag=payload.get('tag') or None,  # replace '' with None
+                tags=payload.getlist('tags'),
+                color=payload.get('color'),
+                is_private=payload.get('is_private', True),
+            )
             # text: str | None = Form(None),
             # url: str | None = Form(None),
             # tags: list[str] = Form([]),
