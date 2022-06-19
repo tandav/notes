@@ -53,7 +53,7 @@ async def create(
     elif mediatype == 'form':
         payload = await request.form()
         try:
-            note = schemas.NoteCreateForm(**payload)
+            note = schemas.NoteForm(**payload)
             note = schemas.NoteCreate.parse_obj(note)
         except crud.exceptions.CrudError as e:
             raise e.http
@@ -74,39 +74,6 @@ async def create(
     else:
         raise HTTPException(status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
 
-# @router.post('/notes/create')
-# def create_form_handle(
-#     text: str | None = Form(None),
-#     url: str | None = Form(None),
-#     tags: list[str] = Form([]),
-#     tag: str | None = Form(None),
-#     color: str | None = Form(None),
-#     is_private: bool = Form(False),
-#     db: Session = Depends(get_db),
-#     authenticated_username: str | None = Depends(authenticate_optional),
-# ):
-#     note = schemas.NoteCreate(
-#         text=text,
-#         url=url,
-#         tags=tags,
-#         tag=tag,
-#         color=color,
-#         is_private=is_private,
-#     )
-#     note_db = create(note, db, authenticated_username)
-#     return RedirectResponse(f"/notes/{note_db['id']}", status_code=HTTPStatus.FOUND)
-#
-
-
-# @app.post("/notes/{note_id}/edit/", response_model=schemas.Note)
-# def update(note_id: int, note: schemas.NoteCreate, db: Session = Depends(get_db)):
-#     try:
-#         res = crud.edit_note(db, note, note_id)
-#     except crud.NoteNotExistsError as e:
-#         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"note dont exists": e.args[0]})
-#     except crud.TagNotExistsError as e:
-#         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail={"tags dont exists": e.args[0]})
-#     return res
 
 @router.post(
     # '/notes/{note_id}/update',
@@ -130,22 +97,25 @@ async def update(
         except ValueError as e:
             raise HTTPException(status_code=HTTPStatus.UNPROCESSABLE_ENTITY, detail=str(e))
     elif mediatype == 'form':
-        form = await request.form()
+        payload = await request.form()
         try:
-            note = schemas.NoteUpdate(
-                text=form.get('text'),
-                url=form.get('url') or None,  # replace '' with None
-                tags=form.get('tags', []),
-                tag=form.get('tag'),
-                color=form.get('color'),
-                is_private=form.get('is_private', False),
-                # text: str | None = Form(None),
-                # url: str | None = Form(None),
-                # tags: list[str] = Form([]),
-                # tag: str | None = Form(None),
-                # color: str | None = Form(None),
-                # is_private: bool = Form(False),
-            )
+            note = schemas.NoteForm(**payload)
+            note = schemas.NoteUpdate.parse_obj(note)
+
+            # note = schemas.NoteUpdate(
+            #     text=form.get('text'),
+            #     url=form.get('url') or None,  # replace '' with None
+            #     tags=form.get('tags', []),
+            #     tag=form.get('tag'),
+            #     color=form.get('color'),
+            #     is_private=form.get('is_private', False),
+            # text: str | None = Form(None),
+            # url: str | None = Form(None),
+            # tags: list[str] = Form([]),
+            # tag: str | None = Form(None),
+            # color: str | None = Form(None),
+            # is_private: bool = Form(False),
+            # )
         except crud.exceptions.CrudError as e:
             raise e.http
         except ValueError as e:

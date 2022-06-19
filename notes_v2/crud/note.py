@@ -1,5 +1,6 @@
 import datetime
 
+import colortool
 from sqlalchemy.orm import Session
 
 import notes_v2.crud.exceptions
@@ -99,13 +100,30 @@ def update(
 
     now = datetime.datetime.now()
 
+    old_tag_exists = db_note.tag is not None
+    old_color_exists = db_note.color is not None
+    new_color_exists = note.color is not None and note.color != '#000000'
+
+    # TODO: refactor/simplify logic
     if note.tag:
         already_existing_tag = read_by_tag(db, note.tag)
         if already_existing_tag is not None and already_existing_tag.id != note_id:
             raise crud.exceptions.TagAlreadyExists
 
+        db_note.tag = note.tag
+
+        if new_color_exists:
+            db_note.color = note.color
+        elif not old_color_exists:
+            db_note.color = colortool.random_hex()
+
+    elif new_color_exists:
+        if not old_tag_exists:
+            raise crud.exceptions.ColorForNullTag
+        db_note.color = note.color
+
     # update only not None fields keep old values
-    special_handle = {'tags', 'right_notes'}
+    special_handle = {'color', 'color', 'tags', 'right_notes'}
     for k, v in note.dict().items():
         if v is None:
             continue

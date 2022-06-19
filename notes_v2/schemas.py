@@ -86,11 +86,10 @@ class NoteCreate(NoteBase):
         return values
 
 
-# todo: simplify logic in routes
-class NoteCreateJson(NoteCreate): pass
+# class NoteCreateJson(NoteCreate): pass
 
 
-class NoteCreateForm(NoteCreate):
+class NoteForm(NoteCreate):
     text: str | None
     url: str | None
     tags: list[str] = []
@@ -112,7 +111,7 @@ class NoteCreateForm(NoteCreate):
 
 
 class NoteUpdate(NoteBase): pass
-class NoteUpdateJson(NoteBase): pass
+# class NoteUpdateJson(NoteBase): pass
 class NoteUpdateForm(NoteBase): pass
 
 

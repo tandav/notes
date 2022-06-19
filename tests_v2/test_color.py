@@ -1,13 +1,11 @@
 from http import HTTPStatus
 
+import colortool
+
 
 def test_color_for_when_tag_is_null(client, create_user):
     auth = create_user
     assert client.post('/notes/', json={'color': '#fb7324'}).status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    # on create
-    # on update
-    # note_id = client.post('/notes/', json={}, auth=auth).json()['id']
-    # assert client.post(f'/notes/{note_id}', json={'color': '#fb7324'}, auth=auth).status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 def test_color_on_update(client, create_note):
@@ -27,6 +25,14 @@ def test_color_on_update(client, create_note):
     color3 = '#fab123'
     r = client.post(f'/notes/{note_id}', json={'tag': 'groceries', 'color': color3}, auth=auth)
     assert r.json()['color'] == color3
+
+    # 'test when updating note wiht tag=None, color=None and providing only tag, assert that random color is assigned
+    n = client.post('/notes/', json={}, auth=auth).json()  # create empty note
+    assert n['tag'] is None
+    assert n['color'] is None
+    note_id = n['id']
+    color = client.post(f'/notes/{note_id}', json={'tag': 'books'}, auth=auth).json()['color']
+    assert colortool.is_hex_color(color) and color != '#000000'
 
 
 def test_color_is_none_if_tag_is_none(client, create_users):
