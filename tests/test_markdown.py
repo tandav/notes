@@ -20,6 +20,9 @@ from notes.util import add_notes_and_tags_links
         ('#t_2', '[#t_2](/tags/t_2)'),
         ('fdsfsd fsdf #24 fdsf sd', 'fdsfsd fsdf [#24](/notes/24) fdsf sd'),
         ('fdsfsd fsdf #tag_42 fdsf sd', 'fdsfsd fsdf [#tag_42](/tags/tag_42) fdsf sd'),
+        ('https://docs.python.org/3/library/heapq.html#priority-queue-implementation-notes', 'https://docs.python.org/3/library/heapq.html#priority-queue-implementation-notes'),
+        ('3j4lkj kljkl https://docs.python.org/3/library/heapq.html#priority-queue-implementation-notes', '3j4lkj kljkl https://docs.python.org/3/library/heapq.html#priority-queue-implementation-notes'),
+        ('3j4lkj kljkl https://docs.python.org/3/library/heapq.html#priority-queue-implementation-notes fg ssz', '3j4lkj kljkl https://docs.python.org/3/library/heapq.html#priority-queue-implementation-notes fg ssz'),
         (
             '''
         fdsf
@@ -28,6 +31,7 @@ from notes.util import add_notes_and_tags_links
         # 1
         #
         #-
+        flkjkj https://docs.python.org/3/library/heapq.html#priority-queue-implementation-notes fd
         #_23
         #tag2-re #t_2
         #tag1 #tag2
@@ -40,6 +44,7 @@ from notes.util import add_notes_and_tags_links
         # 1
         #
         #-
+        flkjkj https://docs.python.org/3/library/heapq.html#priority-queue-implementation-notes fd
         #_23
         [#tag2-re](/tags/tag2-re) [#t_2](/tags/t_2)
         [#tag1](/tags/tag1) [#tag2](/tags/tag2)
