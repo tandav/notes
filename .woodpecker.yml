@@ -5,5 +5,4 @@ pipeline:
       - apk add make
       - python3 -m pip install -r requirements.txt
       - python3 -m pip install -r requirements-dev.txt
-      - make test
-branches: [sqlalchemy]
+      - make testv2
