@@ -8,3 +8,4 @@ pipeline:
       - make check-lint
       - make mypy
       - make test
+branches: [sqlalchemy]
