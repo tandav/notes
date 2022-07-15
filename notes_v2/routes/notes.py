@@ -308,7 +308,7 @@ def note_form(
 ):
     if action == 'create':
         assert isinstance(note, schemas.NoteCreate) or note is None
-        payload = {'text': '', 'url': '', 'heading': 'New note', 'action_url': '/notes/'}
+        payload = {'text': '', 'url': '', 'heading': 'New note', 'action_url': '/notes/', 'is_private': True}
     elif action == 'update':
         assert isinstance(note, models.Note)
         payload = {
