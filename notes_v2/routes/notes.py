@@ -200,7 +200,7 @@ def read(
         'note.html', {
             'request': request,
             'note': db_note,
-            'note_edit': True,
+            'note_edit': authenticated_username is not None,
             'authenticated_username': authenticated_username,
         },
     )

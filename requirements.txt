@@ -5,3 +5,4 @@ markdown2==2.4.3
 python-multipart==0.0.5
 requests==2.27.1
 SQLAlchemy==1.4.36
+uvicorn==0.17.5
