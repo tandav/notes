@@ -30,5 +30,6 @@ class NoteAlreadyArchived(HttpBadRequest): pass
 class NoteAlreadyUnarchived(HttpBadRequest): pass
 class TagAlreadyExists(HttpBadRequest): pass
 class AnonNotesCantBeUpdated(HttpUnauthorized): pass
+class AnonNotesCantBePrivate(HttpUnauthorized): pass
 class UserIsNotAllowedToEditOtherUserNotes(HttpUnauthorized): pass
 class ColorForNullTag(HttpBadRequest): pass

@@ -39,9 +39,11 @@
     <hr/>
 
     <button>{{action}}</button>
+    {% if is_private_checkbox %}
     <label id="is_private_label">
         <input type="checkbox" id="is_private" name="is_private"{% if is_private %} checked{% endif %} />private
     </label>
+    {% endif %}
 </form>
 {% endblock %}
 {% block js %}

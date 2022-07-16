@@ -117,7 +117,7 @@ async def update(
                 tag=payload.get('tag') or None,  # replace '' with None
                 tags=payload.getlist('tags'),
                 color=payload.get('color'),
-                is_private=payload.get('is_private', True),
+                is_private=payload.get('is_private', False),
             )
             # text: str | None = Form(None),
             # url: str | None = Form(None),
@@ -322,7 +322,13 @@ def note_form(
     else:
         raise ValueError('action must be "create" or "update"')
 
-    payload.update(request=request, action=action, authenticated_username=authenticated_username, is_private=True if note is None else note.is_private)
+    payload.update(request=request, action=action, authenticated_username=authenticated_username)
+
+    if authenticated_username is None:
+        payload['is_private'] = False
+    else:
+        payload['is_private_checkbox'] = True
+        payload['is_private'] = note.is_private if note is not None else True
 
     tags = []
     for tag in crud.note.read_tags(db):

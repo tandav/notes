@@ -52,6 +52,8 @@ def create(
 
     if authenticated_username is None:
         authenticated_username = 'anon'
+        if note.is_private:
+            raise crud.exceptions.AnonNotesCantBePrivate
     user = crud.user.read_by_username(db, authenticated_username)
 
     if note.tag:
