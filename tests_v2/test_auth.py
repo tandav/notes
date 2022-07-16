@@ -42,6 +42,14 @@ def test_public_auth_user_notes_are_accessible_for_other_users(client, create_us
     assert [n['id'] for n in client.get(f'/users/{auth0[0]}/notes', auth=auth1).json()] == n_ids
 
 
-def test_private_auth_user_notes_are_not_accessible_for_anon(client): pass
-def test_private_auth_user_notes_are_not_accessible_for_other_auth_user(client): pass
-def test_all_auth_user_notes_are_accessible_for_himself(client): pass
+def test_private_auth_user_notes_are_not_accessible_for_other_users(client, create_users):
+    auth0, auth1 = create_users
+    n_ids = [client.post('/notes/', json={'is_private': True}, auth=auth0).json()['id'] for _ in range(3)]
+    # test not accessible for anon user
+    assert client.get(f'/users/{auth0[0]}/notes').json() == []
+    # test not accessible for other auth user
+    assert client.get(f'/users/{auth0[0]}/notes', auth=auth1).json() == []
+
+
+def test_private_auth_user_notes_are_not_accessible_for_other_auth_user(client, create_users): pass
+def test_all_auth_user_notes_are_accessible_for_himself(client, create_users): pass
