@@ -36,13 +36,16 @@ router = APIRouter(
 @router.post('/notes/', response_model=schemas.Note)
 async def create(
     request: Request,
-    # note: schemas.NoteCreate,
     db: Session = Depends(get_db),
     mediatype=Depends(guess_type),
     authenticated_username: str | None = Depends(authenticate_optional),
 ):
     if mediatype == 'json':
         payload = await request.json()
+
+        if authenticated_username is None:
+            payload['is_private'] = False
+
         try:
             note = schemas.NoteCreate(**payload)
         except crud.exceptions.CrudError as e:

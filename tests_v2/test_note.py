@@ -22,7 +22,7 @@ def test_create_note(client, create_users, text, url, tag):
     assert util.drop_keys(j, {'created_time', 'updated_time', 'user_id', 'id', 'color'}) == {
         'text': text,
         'url': url,
-        'is_private': True,
+        'is_private': False,
         'is_archived': False,
         'right_notes': [],
         'left_notes': [],
