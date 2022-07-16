@@ -86,33 +86,7 @@ class NoteCreate(NoteBase):
         return values
 
 
-# class NoteCreateJson(NoteCreate): pass
-
-
-# class NoteForm(NoteCreate):
-#     text: str | None
-#     url: str | None
-#     tags: list[str] = []
-#     tag: str | None = None
-#     color: str | None = None
-#     is_private: bool = True
-#
-#     @validator('url')
-#     def validate_url(cls, v):
-#         return None if v == '' else v
-#
-#     @validator('tag')
-#     def validate_tag(cls, v):
-#         return None if v == '' else v
-#
-#     @validator('tags')
-#     def validate_tags(cls, v):
-#         return [] if v is None else v
-
-
 class NoteUpdate(NoteBase): pass
-# class NoteUpdateJson(NoteBase): pass
-class NoteUpdateForm(NoteBase): pass
 
 
 class Note(NoteBase):

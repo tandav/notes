@@ -264,7 +264,6 @@ def read_tags(
     return templates.TemplateResponse(
         'notes.html', {
             'request': request,
-            # 'notes': [schemas.Note(**n.to_dict()) for n in notes],
             'notes': notes,
             'tags': notes,
             'title': 'Tags',
