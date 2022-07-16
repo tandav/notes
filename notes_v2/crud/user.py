@@ -5,6 +5,8 @@ import secrets
 from fastapi.security import HTTPBasicCredentials
 from sqlalchemy.orm import Session
 
+import notes_v2.crud.exceptions
+from notes_v2 import crud
 from notes_v2 import models
 from notes_v2 import schemas
 
@@ -13,8 +15,11 @@ def read_many(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
-def read_by_username(db: Session, username: str):
-    return db.query(models.User).filter(models.User.username == username).first()
+def read_by_username(db: Session, username: str, not_found_error: bool = False):
+    db_user = db.query(models.User).filter(models.User.username == username).first()
+    if not_found_error and db_user is None:
+        raise crud.exceptions.UserNotExistsError
+    return db_user
 
 
 def create(db: Session, user: schemas.UserCreate) -> schemas.User:

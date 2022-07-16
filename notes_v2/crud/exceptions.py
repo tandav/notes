@@ -25,6 +25,7 @@ class HttpUnauthorized(CrudError):
 
 
 class TagNotExistsError(HttpNotFound): pass
+class UserNotExistsError(HttpNotFound): pass
 class NoteNotExistsError(HttpNotFound): pass
 class NoteAlreadyArchived(HttpBadRequest): pass
 class NoteAlreadyUnarchived(HttpBadRequest): pass

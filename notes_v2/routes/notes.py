@@ -238,7 +238,6 @@ def read_many(
     return templates.TemplateResponse(
         'notes.html', {
             'request': request,
-            # 'notes': [schemas.Note(**n.to_dict()) for n in notes],
             'title': 'Notes',
             'notes': notes,
             'tags': tags,

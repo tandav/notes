@@ -113,7 +113,6 @@ def test_notes_are_private_by_default_for_auth_users(client, create_users):
 # test edit/update note
 # test archive/unarhive (updated_time should be updated)
 # test public/private (updated_time should be updated)
-# test anon notes are always public (error when private:true w/o auth) and user are private by default
 # test delete note
 # test error when try to edit/update non-existing note
 # test unique constraint error when creating/updating note with tag that already exists in another note (db error should be raised)

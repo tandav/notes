@@ -25,3 +25,15 @@ def test_user_can_edit_only_own_notes(client, create_users):
 
     # user1 cant edit user0's note
     assert client.post(f'/notes/{n_id}', json={'text': 'test'}, auth=auth1).status_code == HTTPStatus.UNAUTHORIZED
+
+
+# def test_anon_notes_are_accessible_for_auth_user(client, create_users):
+#     auth0, auth1 = create_users
+#     n_ids = [client.post('/notes/', json={}, auth=auth0).json()['id'] for _ in range(3)]
+
+
+def test_public_auth_user_notes_are_accessible_for_anon(client): pass
+def test_public_auth_user_notes_are_accessible_for_other_auth_user(client): pass
+def test_private_auth_user_notes_are_not_accessible_for_anon(client): pass
+def test_private_auth_user_notes_are_not_accessible_for_other_auth_user(client): pass
+def test_all_auth_user_notes_are_accessible_for_himself(client): pass
