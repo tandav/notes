@@ -129,39 +129,39 @@ def signout():
     </script>
     '''
 
-#
-# @router.get(
-#     '/users/{username}/notes',
-#     response_model=list[schemas.Note],
-#     responses={200: {'content': {'text/html': {}}}},
-# )
-# def read_user_notes(
-#     request: Request,
-#     username: str,
-#     skip: int = 0,
-#     limit: int = 100,
-#     db: Session = Depends(get_db),
-#     mediatype=Depends(guess_type),
-#     authenticated_username: str | None = Depends(authenticate_optional),
-#
-# ):
-#     tags = []
-#     for tag in crud.note.read_tags(db):
-#         tag_ = tag.to_dict()
-#         font_color, border_color = colortool.font_border_colors(tag_['color'])
-#         tag_['color_pale'] = colortool.lighter(tag_['color'], ratio=0.8)
-#         tag_['font_color'] = font_color
-#         tags.append(tag_)
-#
-#     notes = [schemas.Note(**n.to_dict()) for n in crud.note.read_by_username(db, username, authenticated_username, skip, limit)]
-#     if mediatype == 'json':
-#         return notes
-#     return templates.TemplateResponse(
-#         'notes.html', {
-#             'request': request,
-#             'title': 'Notes',
-#             'notes': notes,
-#             'tags': tags,
-#             'authenticated_username': authenticated_username,
-#         },
-#     )
+
+@router.get(
+    '/users/{username}/notes',
+    response_model=list[schemas.Note],
+    responses={200: {'content': {'text/html': {}}}},
+)
+def read_user_notes(
+    request: Request,
+    username: str,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    mediatype=Depends(guess_type),
+    authenticated_username: str | None = Depends(authenticate_optional),
+
+):
+    tags = []
+    for tag in crud.note.read_tags(db):
+        tag_ = tag.to_dict()
+        font_color, border_color = colortool.font_border_colors(tag_['color'])
+        tag_['color_pale'] = colortool.lighter(tag_['color'], ratio=0.8)
+        tag_['font_color'] = font_color
+        tags.append(tag_)
+
+    notes = [schemas.Note(**n.to_dict()) for n in crud.note.read_by_username(db, username, authenticated_username, skip, limit)]
+    if mediatype == 'json':
+        return notes
+    return templates.TemplateResponse(
+        'notes.html', {
+            'request': request,
+            'title': 'Notes',
+            'notes': notes,
+            'tags': tags,
+            'authenticated_username': authenticated_username,
+        },
+    )
