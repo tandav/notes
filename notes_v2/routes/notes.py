@@ -43,7 +43,7 @@ async def create(
     if mediatype == 'json':
         payload = await request.json()
 
-        if authenticated_username is None:
+        if authenticated_username is None and 'is_private' not in payload:
             payload['is_private'] = False
 
         try:

@@ -89,6 +89,14 @@ def test_update_note(client, create_note, kv):
         assert updated[k] == v
     assert note['updated_time'] < updated['updated_time']
 
+
+def test_anon_notes_cant_be_private(client):
+    r = client.post(f'/notes/', json={'is_private': True})
+    assert r.status_code == HTTPStatus.UNAUTHORIZED
+    assert r.json() == {'detail': 'AnonNotesCantBePrivate'}
+
+    assert client.post(f'/notes/', json={}).json()['is_private'] == False
+
 # add theese tests for update too, (not only for create)
 # assert error creating private by unauthenticated anon user
 # test right_notes
