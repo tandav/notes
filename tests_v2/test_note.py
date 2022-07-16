@@ -97,6 +97,12 @@ def test_anon_notes_cant_be_private(client):
 
     assert client.post(f'/notes/', json={}).json()['is_private'] == False
 
+
+def test_notes_are_private_by_default_for_auth_users(client, create_users):
+    auth, _ = create_users
+    assert client.post('/notes/', json={}, auth=auth).json()['is_private']
+
+
 # add theese tests for update too, (not only for create)
 # assert error creating private by unauthenticated anon user
 # test right_notes
