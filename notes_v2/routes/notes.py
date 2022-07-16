@@ -61,7 +61,7 @@ async def create(
                 tag=payload.get('tag') or None,  # replace '' with None
                 tags=payload.getlist('tags'),
                 color=payload.get('color'),
-                is_private=payload.get('is_private', True),
+                is_private=payload.get('is_private', False),
             )
 
         except crud.exceptions.CrudError as e:
@@ -166,7 +166,7 @@ def create_form(
                 tags=tags,
                 tag=tag_name,
                 color=tag_color,
-                is_private=is_private,
+                is_private=True,
             )
         except ValueError as e:
             return str(e)
@@ -308,7 +308,7 @@ def note_form(
 ):
     if action == 'create':
         assert isinstance(note, schemas.NoteCreate) or note is None
-        payload = {'text': '', 'url': '', 'heading': 'New note', 'action_url': '/notes/', 'is_private': True}
+        payload = {'text': '', 'url': '', 'heading': 'New note', 'action_url': '/notes/'}
     elif action == 'update':
         assert isinstance(note, models.Note)
         payload = {
@@ -323,7 +323,7 @@ def note_form(
     else:
         raise ValueError('action must be "create" or "update"')
 
-    payload.update(request=request, action=action, authenticated_username=authenticated_username)
+    payload.update(request=request, action=action, authenticated_username=authenticated_username, is_private=True if note is None else note.is_private)
 
     tags = []
     for tag in crud.note.read_tags(db):
