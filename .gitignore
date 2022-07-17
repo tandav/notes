@@ -2,4 +2,4 @@ backups
 *.db
 *.sqlite
 *.ipynb
-*.html
+/*.html
