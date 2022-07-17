@@ -223,7 +223,7 @@ def read_many(
     authenticated_username: str | None = Depends(authenticate_optional),
 ):
     notes = [schemas.Note(**n.to_dict()) for n in crud.note.read_many(db, skip=skip, limit=limit)]
-    # tags = [schemas.Note(**n.to_dict()) for n in crud.note.read_tags(db)]
+    notes = [schemas.Note(**n.to_dict()) for n in crud.note.read_many(db, authenticated_username=authenticated_username, skip=skip, limit=limit)]
 
     tags = []
     for tag in crud.note.read_tags(db):
