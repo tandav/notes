@@ -116,7 +116,6 @@ def test_notes_are_private_by_default_for_auth_users(client, create_users):
 # test delete note
 # test error when try to edit/update non-existing note
 # test unique constraint error when creating/updating note with tag that already exists in another note (db error should be raised)
-# test notes created by anon user cant be updated/edited
 # test cant create note with non existing tags/right notes
 # test tags /right_notes / left_notes timestamps are updating when linked note updates
 # xml etree tests

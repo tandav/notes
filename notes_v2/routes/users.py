@@ -153,7 +153,7 @@ def read_user_notes(
         tag_['font_color'] = font_color
         tags.append(tag_)
 
-    notes = [schemas.Note(**n.to_dict()) for n in crud.note.read_by_username(db, username, authenticated_username, skip, limit)]
+    notes = [schemas.Note(**n.to_dict()) for n in crud.note.read_many(db, username, authenticated_username, skip, limit)]
     if mediatype == 'json':
         return notes
     return templates.TemplateResponse(

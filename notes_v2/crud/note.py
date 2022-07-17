@@ -14,8 +14,28 @@ def read_by_id(db: Session, id: int) -> models.Note:
     return db.query(models.Note).filter(models.Note.id == id).first()
 
 
-def read_many(db: Session, skip: int = 0, limit: int = 100) -> list[models.Note]:
-    return db.query(models.Note).offset(skip).limit(limit).all()
+def read_many(
+    db: Session,
+    username: str | None = None,
+    authenticated_username: str | None = None,
+    skip: int = 0,
+    limit: int = 100,
+) -> list[models.Note]:
+
+    query = db.query(models.Note)
+
+    if authenticated_username is None:
+        authenticated_username = 'anon'
+
+    authenticated_user = crud.user.read_by_username(db, authenticated_username, not_found_error=True)
+    query = query.filter((models.Note.user == authenticated_user) | (models.Note.is_private == False))
+
+    if username is not None:
+        user = crud.user.read_by_username(db, username, not_found_error=True)
+        query = query.filter(models.Note.user == user)
+
+    query = query.offset(skip).limit(limit)
+    return query.all()
 
 
 def read_by_ids(db: Session, ids: list[int], not_found_error: bool = False) -> list[models.Note]:
@@ -41,26 +61,6 @@ def read_by_tags(db: Session, tags: list[str], not_found_error: bool = False) ->
 
 def read_tags(db: Session) -> list[models.Note]:
     return db.query(models.Note).filter(models.Note.tag.is_not(None)).all()
-
-
-def read_by_username(
-    db: Session,
-    username: str,
-    authenticated_username: str | None = None,
-    skip: int = 0,
-    limit: int = 100,
-) -> list[models.Note]:
-    user = crud.user.read_by_username(db, username, not_found_error=True)
-
-    if authenticated_username is None:
-        authenticated_username = 'anon'
-    authenticated_user = crud.user.read_by_username(db, authenticated_username, not_found_error=True)
-
-    notes = db.query(models.Note).filter(models.Note.user == user)
-    if user != authenticated_user:
-        notes = notes.filter(models.Note.is_private == False)
-
-    return notes.offset(skip).limit(limit).all()
 
 
 def create(
