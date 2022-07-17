@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Note Details{% endblock %}
+{% block content %}
+    <div>ID: {{ note.id }}</div>
+    <a href="/users/{{ note.username }}">username: {{ note.username }}</a>
+    <div>url {{note.url}}</div>
+    <div>tag {{note.tag}}</div>
+    <div>color {{note.color}}</div>
+    <div>tags {{note.tags}}</div>
+    <div>is_archived {{note.is_archived}}</div>
+    <div>is_private {{note.is_private}}</div>
+    <div title='{{note.created_time|format_time(absolute=True)}}'>created {{note.created_time|format_time}}</div>
+    <div title='{{note.updated_time|format_time(absolute=True)}}'>last_edit {{note.updated_time|format_time}}</div>
+    <hr/>
+    <p>
+        {{note.text}}
+    </p>
+    <hr/>
+    <h3>Links</h3>
+    <h3>Backlinks</h3>
+{% endblock %}

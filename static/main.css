@@ -1,0 +1,100 @@
+
+
+/*:root {*/
+/*  --background-body: #fff;*/
+/*  --background: #efefef;*/
+/*  --background-alt: #f7f7f7;*/
+/*  --selection: #9e9e9e;*/
+/*  --text-main: #363636;*/
+/*  --text-bright: #000;*/
+/*  --text-muted: #70777f;*/
+/*  --links: #0076d1;*/
+/*  --focus: #0096bfab;*/
+/*  --border: #dbdbdb;*/
+/*  --code: #000;*/
+/*  --animation-duration: 0.1s;*/
+/*  --button-base: #d0cfcf;*/
+/*  --button-hover: #9b9b9b;*/
+/*  --scrollbar-thumb: color-mod(var(--button-hover) lightness(+6%));*/
+/*  --scrollbar-thumb-hover: var(--button-hover);*/
+/*  --form-placeholder: #949494;*/
+/*  --form-text: #1d1d1d;*/
+/*  --variable: #39a33c;*/
+/*  --highlight: #ff0;*/
+/*  --select-arrow: svg-load('./assets/select-arrow.svg', fill: #161f27);*/
+/*}*/
+
+:root {
+    --link-background: #c4e5ff;
+    --link-background-light: #EEF7FF;
+    --green-link: #20B05A;
+    --green-link-background: #C9F5DA;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --link-background: #061119;
+        --green-link-background: #020D06;
+    }
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/*nav a {*/
+a, #note_is_tag_label {
+    border-radius: 5px;
+    padding: 8px 20px;
+    /*margin: 20px 0px;*/
+    /*padding: 4px 10px;*/
+    /*padding: 4px;*/
+    text-align: center;
+    /*background-color: var(--link-background-light);*/
+    background-color: var(--link-background);
+    /*text-decoration: none;*/
+}
+
+/*nav a:hover {*/
+a:hover, #note_is_tag_label:hover {
+    /*border-radius: 5px;*/
+    /*padding: 8px 20px;*/
+    /*text-decoration: none;*/
+    background-color: var(--link-background);
+}
+
+.green-link {
+    color: var(--green-link);
+}
+.green-link:hover {
+    background-color: var(--green-link-background);
+}
+
+#is_private_label {
+    border-radius: 5px;
+    padding:6px 18px;
+    background-color: var(--link-background);
+}
+
+.navbar-right {
+    display: flex;
+    flex-direction: column;
+}
+
+#text_field, #url_field, #payload_field {
+    font-family: monospace;
+    font-size: 9pt;
+}
+
+#url_field {
+    width: 100%;
+}
+
+td {
+    max-width:100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

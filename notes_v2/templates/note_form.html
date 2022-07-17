@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}New note{% endblock %}
+{% block content %}
+<h1>{{heading}}</h1>
+<form action="{{action_url}}" method="post" id="note_form">
+    <p>
+        <label for="text_field">text</label>
+        <textarea id="text_field" type="input" placeholder="Enter your note here" form="note_form" name="text">{% if text %}{{text}}{% endif %}</textarea>
+    </p>
+
+    <p>
+        <label for="url_field">url</label><br>
+        <input id="url_field" type="url" name="url"{% if url %} value="{{url}}"{% endif %}/>
+    </p>
+    <hr/>
+    <p>
+    <label>tags</label><br>
+
+    {% for tag in tags %}
+       <label class="tag_label" for="{{tag.tag}}">
+       <input type="checkbox" class="tag_checkbox" id="{{tag.tag}}" name="tags" value="{{tag.tag}}"{% if tag.checked %} checked{% endif %}>
+       {{tag.tag}}
+       </label>
+    {% endfor %}
+
+    </p>
+    <hr/>
+
+    <p>
+        <label id="note_is_tag_label">
+            <input type="checkbox" id="note_is_tag" name="note_is_tag" value="note_is_tag" onclick="tag_switch()"{% if tag %} checked{% endif %}>note is tag
+        </label>
+        <br/>
+        <label>tag name</label>
+        <input type="text" name="tag" {% if tag %} value="{{ tag }}" {% else %} disabled{% endif %} class="tag_fields">
+        <label>tag color</label>
+        <input type="color" name="color" {% if color %} value="{{ color }}" {% else %} disabled{% endif %} class="tag_fields">
+    </p>
+    <hr/>
+
+    <button>{{action}}</button>
+    {% if is_private_checkbox %}
+    <label id="is_private_label">
+        <input type="checkbox" id="is_private" name="is_private"{% if is_private %} checked{% endif %} />private
+    </label>
+    {% endif %}
+</form>
+{% endblock %}
+{% block js %}
+<script>
+const tag_switch = () => {
+    for (let field of document.getElementsByClassName("tag_fields")) {
+        field.disabled = !document.getElementById("note_is_tag").checked
+    }
+}
+</script>
+{% endblock %}
+{% block css %}
+<style>
+{% for tag in tags %}
+
+.tag_label[for="{{ tag.tag }}"] {
+    background-color: {{tag.color}};
+    color: {{ tag.font_color }};
+    border-radius: 5px;
+    padding: 0.25em;
+    margin: 3px;
+}
+
+{% endfor %}
+</style>
+{% endblock %}

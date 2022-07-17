@@ -1,0 +1,36 @@
+<h1>Tags Test</h1>
+
+<label for="tag1">
+    <input type="checkbox" name="my-checkbox" id="tag1" class="tag_checkbox">
+    <span>tag1</span>
+</label>
+
+<label for="tag2">
+    <input type="checkbox" name="my-checkbox" id="tag2" class="tag_checkbox">
+    <span>tag2</span>
+</label>
+
+<style>
+
+
+.tag_checkbox {
+    display: none;
+}
+
+.tag_checkbox + span {
+    padding: 8px 20px;
+    border-radius: 5px;
+    background-color: #b9eab9;
+}
+
+.tag_checkbox:checked + span,
+.tag_checkbox:hover + span {
+    background-color: #3e4c3e;
+}
+
+
+.tag_checkbox:checked {
+  box-shadow: 0 0 0 3px hotpink;
+}
+
+</style>

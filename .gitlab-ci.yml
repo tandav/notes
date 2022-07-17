@@ -1,0 +1,36 @@
+#stages:
+#  - install_dependencies
+#  - test
+#
+image: python:3-alpine
+
+#system_deps:
+#  stage: install_dependencies
+#  script:
+#    - apk add make
+#
+#python_deps:
+#  stage: install_dependencies
+#  script:
+#    - python3 -m pip install -r requirements.txt
+#
+#python_dev_deps:
+#  stage: install_dependencies
+#  script:
+#    - python3 -m pip install -r requirements-dev.txt
+#
+#test:
+#  stage: test
+#  script:
+#    - make testv2
+
+
+test:
+  stage: test
+  tags:
+    - x86_64
+  script:
+    - apk add make
+    - python3 -m pip install -r requirements.txt
+    - python3 -m pip install -r requirements-dev.txt
+    - make testv2
